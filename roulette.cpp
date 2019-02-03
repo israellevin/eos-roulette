@@ -9,7 +9,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
     public:
         using contract::contract;
 
-        roulette(name receiver, name code,  datastream<const char*> ds): contract(receiver, code, ds){}
+        roulette(name receiver, name code, datastream<const char*> ds): contract(receiver, code, ds){}
 
         [[eosio::action]]
             // Create a new spin to bet on.
@@ -40,9 +40,12 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 eosio_assert(n < spins_iterator->max_bet_time, "betting ended");
 
                 // Accept bet.
+                char buffer[128];
+                snprintf(buffer, sizeof(buffer), "3PSIK Roulette bet on %d", towin);
                 action(
                     permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
-                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string("3PSIK Roulette bet"))
+                    // TODO Add towin in memo.
+                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string(buffer))
                 ).send();
 
                 // Write in table.
@@ -56,7 +59,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     row.user = user;
                 });
 
-                eosio::print("bet accepted");
+                eosio::print("bet accepted from ", user, " on ", towin);
             }
 
         [[eosio::action]]
