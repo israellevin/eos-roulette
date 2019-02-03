@@ -1,10 +1,38 @@
-#!/bin/sh
-keosd&
-pkill nodeos
-nodeos -e -p eosio --plugin eosio::producer_plugin --plugin eosio::chain_api_plugin --plugin eosio::http_plugin --plugin eosio::history_plugin --plugin eosio::history_api_plugin --data-dir ~/eos/eosio/data --config-dir ~/eos/eosio/config --access-control-allow-origin='*' --contracts-console --http-validate-host=false --verbose-http-errors --filter-on='*' >> ~/eos/nodeos.log 2>&1 &
+#!/bin/bash -x
+read -n1 -p"Remove all local data? [y|N] " q; echo
+if [ "$q" = 'y' ]; then
+    pkill keosd
+    pkill nodeos
+    #rm -r wallet
+    rm -r ~/eosio-wallet
+    rm -r blockchain
+    sleep 1
+fi
 
-cleos wallet unlock < ~/eos/password.txt
-cleos create account eosio roulette EOS7Zs4qaNryEVWySMG2Name6J4UQEy7rCGkBAUv19aEua6zLw7ck -p eosio@active
+./common.sh
+
+read -n1 -p"Create accounts? [y|N] " q; echo
+if [ "$q" = 'y' ]; then
+    echo '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3' | cleos wallet import
+
+    pubkey=$(cat ./pubkey.txt)
+    cleos create account eosio eosio.token $pubkey -p eosio@active
+    cleos create account eosio roulette $pubkey -p eosio@active
+    cleos create account eosio alice $pubkey -p eosio@active
+
+    git clone https://github.com/eosio/eosio.contracts
+    eosio-cpp -I eosio.contracts/eosio.token/include/ -o eosio.token.wasm eosio.contracts/eosio.token/src/eosio.token.cpp --abigen
+    mv eosio.token.wasm eosio.token.abi eosio.contracts/eosio.token/.
+    cleos set contract eosio.token ./eosio.contracts/eosio.token/ -p eosio.token@active
+
+    cleos push action eosio.token create '[ "eosio", "10000000000.0000 EOS" ]' -p eosio.token@active
+    cleos push action eosio.token issue '[ "alice", "10000000000.0000 EOS", "fund alice" ]' -p eosio@active
+    cleos get currency balance eosio.token roulette
+    cleos get currency balance eosio.token alice
+
+    cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
+    cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
+fi
 
 eosio-cpp -o roulette.wasm roulette.cpp --abigen
-cleos set contract roulette ~/eos/CONTRACTS_DIR/roulette/ -p roulette@active
+cleos set contract roulette ./ -p roulette@active
