@@ -19,7 +19,7 @@ cleos get table roulette roulette spins
 echo Hit enter to bet on this spin
 read
 
-for i in {0..1000}; do
+for i in {0..100}; do
     cleos push action roulette bet "[\"alice\", 666, $((RANDOM % 37)), $((RANDOM % 10 + 1)), $RANDOM]" -p alice@owner
 done
 echo Standing bets are
