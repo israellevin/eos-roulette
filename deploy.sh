@@ -25,8 +25,9 @@ if [ "$q" = 'y' ]; then
     mv eosio.token.wasm eosio.token.abi eosio.contracts/eosio.token/.
     cleos set contract eosio.token ./eosio.contracts/eosio.token/ -p eosio.token@active
 
-    cleos push action eosio.token create '[ "eosio", "10000000000.0000 EOS" ]' -p eosio.token@active
-    cleos push action eosio.token issue '[ "alice", "10000000000.0000 EOS", "fund alice" ]' -p eosio@active
+    cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token@active
+    cleos push action eosio.token issue '["eosio", "10000000000.0000 EOS", "issue eos"]' -p eosio@active
+    cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":"10000.0000 EOS","memo":"funding alice"}' -p eosio@active
     cleos get currency balance eosio.token roulette
     cleos get currency balance eosio.token alice
 
