@@ -29,7 +29,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Bet larimers on a number towin in spin spinseedhash and add a seed.
-            void bet(name user, uint64_t spinseedhash, uint64_t towin, uint64_t larimers, uint64_t seed){
+            void bet(name user, uint64_t spinseedhash, uint8_t towin, uint64_t larimers, uint64_t seed){
                 require_auth(user);
                 // Get spin and velidate.
                 spins_indexed spins(_code, _code.value);
@@ -44,7 +44,6 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 snprintf(buffer, sizeof(buffer), "3PSIK Roulette bet on %d", towin);
                 action(
                     permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
-                    // TODO Add towin in memo.
                     std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string(buffer))
                 ).send();
 
@@ -98,7 +97,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
                 // Calculate winning number.
                 // FIXME Should be uint8_t
-                uint64_t winner = 0;
+                uint8_t winner = 0;
                 capi_checksum256 spinchecksum;
                 sha256((const char *)&spinseed, sizeof(uint64_t), &spinchecksum);
                 for(uint32_t i = 0; i < 32; ++i) winner = winner * 256 + spinchecksum.hash[i];
@@ -158,16 +157,15 @@ class [[eosio::contract]] roulette : public eosio::contract{
             uint64_t id;
             uint64_t spinseedhash;
             // FIXME Should be uint8_t
-            uint64_t towin;
+            uint8_t towin;
             uint64_t seed;
             uint64_t larimers;
             name user;
             uint64_t primary_key() const {return id;}
             uint64_t by_spin() const {return spinseedhash;}
-            uint64_t by_towin() const {return towin;}
             uint64_t by_user() const {return user.value;}
         };
-        typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>, indexed_by<"towin"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_towin>>, indexed_by<"user"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_user>>> bets_indexed;
+        typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>, indexed_by<"user"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_user>>> bets_indexed;
 };
 
 // TODO Add modify bet.
