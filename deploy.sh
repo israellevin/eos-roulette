@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 read -n1 -p"Remove all local data? [y|N] " q; echo
 if [ "$q" = 'y' ]; then
     pkill keosd
