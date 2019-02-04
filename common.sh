@@ -12,6 +12,8 @@ pgrep nodeos || nodeos -e -p eosio --data-dir blockchain --config-dir blockchain
 --http-validate-host=false \
 --verbose-http-errors \
 --filter-on='*' >> nodeos.log 2>&1 &
-cleos wallet create --file password.txt && cleos wallet create_key | grep -Po '(?<=").*(?=\")' > pubkey.txt
+if cleos wallet create --file password.txt; then
+    cleos wallet create_key | grep -Po '(?<=").*(?=\")' > pubkey.txt
+fi
 cleos wallet unlock < password.txt
-while ! cleos get code eosio > /dev/null; do :; done
+while ! cleos get code eosio > /dev/null; do date; done
