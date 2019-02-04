@@ -15,15 +15,20 @@ class [[eosio::contract]] roulette : public eosio::contract{
             // Create a new spin to bet on.
             void spin(uint64_t seed_hash, uint32_t min_bet_time, uint32_t max_bet_time){
                 require_auth(_self);
+
+                // Validate.
                 eosio_assert(now() < max_bet_time, "max_bet_time not in the future");
                 spins_indexed spins(_code, _code.value);
                 auto iterator = spins.find(seed_hash);
                 eosio_assert(iterator == spins.end(), "duplicate hash");
+
+                // Write in table.
                 spins.emplace(_self, [&](auto& row){
                     row.seed_hash = seed_hash;
                     row.min_bet_time = min_bet_time;
                     row.max_bet_time = max_bet_time;
                 });
+
                 eosio::print("spin created");
             }
 
@@ -31,6 +36,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
             // Bet larimers on a number towin in spin spinseedhash and add a seed.
             void bet(name user, uint64_t spinseedhash, uint8_t towin, uint64_t larimers, uint64_t seed){
                 require_auth(user);
+
                 // Get spin and velidate.
                 spins_indexed spins(_code, _code.value);
                 auto spins_iterator = spins.find(spinseedhash);
@@ -76,27 +82,18 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 spins_indexed spins(_code, _code.value);
                 auto spins_iterator = spins.find(spinseedhash);
                 eosio_assert(spins_iterator != spins.end(), "matching hash not found");
-                // FIXME Disabled for debug.
-                //eosio_assert(now() > spins_iterator->max_bet_time, "betting not yet ended");
+                eosio_assert(now() > spins_iterator->max_bet_time, "betting not yet ended");
 
-                // Get all user seeds.
+                // Bets iterator tools.
                 bets_indexed bets(_code, _code.value);
-                // FIXME Iterate according to secondary index, only for bets on this hash.
-                //auto bets_spin_index = bets.get_index("by_spin");
-                //auto bets_iterator = bets_spin_index.begin();
-                //auto bets_iterator = bets_spin_index.find(spinseedhash);
-                //while(bets_iterator != bets.end()){
-                //    bets_iterator = bets.erase(bets_iterator);
-                //}
-                std::vector<uint64_t> betsToDelete;
-                for(auto& bet : bets) {
-                    if(bet.spinseedhash != spinseedhash) continue;
-                    spinseed += bet.seed;
-                    betsToDelete.push_back(bet.id);
+                auto bets_spin_index = bets.get_index<"spinseedhash"_n>();
+
+                // Combine all user seeds.
+                for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
+                    spinseed += bets_iterator->seed;
                 }
 
                 // Calculate winning number.
-                // FIXME Should be uint8_t
                 uint8_t winner = 0;
                 capi_checksum256 spinchecksum;
                 sha256((const char *)&spinseed, sizeof(uint64_t), &spinchecksum);
@@ -106,22 +103,22 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 winner %= 37;
                 eosio::print("winning number is: ", winner);
 
-                // FIXME Iterate according to secondary index, only for winning bets on this hash.
-                for(auto& bet : bets){
-                    if(bet.spinseedhash != spinseedhash) continue;
-                    if(bet.towin != winner) continue;
-                    // Pay winner.
+                // Pay winners.
+                for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
+                    eosio::print(bets_iterator->id);
+                    if(bets_iterator->towin != winner) continue;
                     action(
                         permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
-                        std::make_tuple(_self, bet.user, asset(bet.larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
+                        std::make_tuple(_self, bets_iterator->user, asset(bets_iterator->larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
                     ).send();
                 }
 
                 // Erase the bets and the spin.
-                for(uint64_t id : betsToDelete){
-                    auto bets_iterator = bets.find(id);
-                    if(bets_iterator != bets.end()) bets.erase(bets_iterator);
-                }
+                for(
+                    auto bets_iterator = bets_spin_index.find(spinseedhash);
+                    bets_iterator != bets_spin_index.end();
+                    bets_iterator = bets_spin_index.erase(bets_iterator)
+                );
                 spins.erase(spins_iterator);
             }
 
@@ -152,20 +149,18 @@ class [[eosio::contract]] roulette : public eosio::contract{
         };
         typedef eosio::multi_index<"spins"_n, spin_indexed> spins_indexed;
 
-        // Bets table - indexed by incrementing id with a few secondary indices.
+        // Bets table - indexed by incrementing id and spinseedhash.
         struct [[eosio::table]] bet_indexed{
             uint64_t id;
             uint64_t spinseedhash;
-            // FIXME Should be uint8_t
             uint8_t towin;
             uint64_t seed;
             uint64_t larimers;
             name user;
             uint64_t primary_key() const {return id;}
             uint64_t by_spin() const {return spinseedhash;}
-            uint64_t by_user() const {return user.value;}
         };
-        typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>, indexed_by<"user"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_user>>> bets_indexed;
+        typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>> bets_indexed;
 };
 
 // TODO Add modify bet.
