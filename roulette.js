@@ -2,9 +2,9 @@
 (function(){
     'use strict';
 
-    const defaultPrivateKey = '5J8jB9ErRQP1yuiPEDTfseoSC6DMYZrXSZDkn2Ehw3Mje2rA3Z4';
+    const privateKey = '5J8jB9ErRQP1yuiPEDTfseoSC6DMYZrXSZDkn2Ehw3Mje2rA3Z4';
     const rpc = new eosjs_jsonrpc.default('http://127.0.0.1:8888');
-    const signatureProvider = new eosjs_jssig.default([defaultPrivateKey]);
+    const signatureProvider = new eosjs_jssig.default([privateKey]);
     const api = new eosjs_api.default({rpc, signatureProvider});
 
     function getBalance(success, failure){
