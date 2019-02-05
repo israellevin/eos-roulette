@@ -6,7 +6,7 @@
     const rpc = new eosjs_jsonrpc.default('http://127.0.0.1:8888');
 
     // Get a user's balance.
-    function getBalance(user, success, failure){
+    function getBalance(user, success){
         (async() => {
             try{
                 const result = await rpc.get_table_rows({
@@ -18,7 +18,7 @@
                 });
                 success(result);
             }catch(e){
-                failure(e.json);
+                console.error(e.json);
             }
         })();
     }
@@ -107,7 +107,7 @@
         });
     }
 
-    window.bet = function(towin, larimers, seed, success, failure){
+    window.bet = function(towin, larimers, seed, success){
         (async() => {
             try{
                 console.log('del', await deleteall());
@@ -123,7 +123,7 @@
                 console.log('pay', payresult);
                 success(payresult.processed.action_traces[0].console);
             }catch(e){
-                failure(e.json);
+                console.error(e.json);
             }
         })();
     };
