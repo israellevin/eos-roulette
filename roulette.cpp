@@ -105,7 +105,6 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
                 // Pay winners.
                 for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
-                    eosio::print(bets_iterator->id);
                     if(bets_iterator->towin != winner) continue;
                     action(
                         permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
