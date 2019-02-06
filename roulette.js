@@ -2,8 +2,10 @@
 (function(){
     'use strict';
 
-    const privateKey = '5J8jB9ErRQP1yuiPEDTfseoSC6DMYZrXSZDkn2Ehw3Mje2rA3Z4';
+    const privkey = window.roulette.privkey;
+    console.log(privkey);
     const rpc = new eosjs_jsonrpc.default('http://127.0.0.1:8888');
+    window.roulette = {};
 
     // Get a user's balance.
     function getBalance(user, success){
@@ -22,9 +24,9 @@
             }
         })();
     }
-    window.getBalance = getBalance;
+    window.roulette.getBalance = getBalance;
 
-    const signatureProvider = new eosjs_jssig.default([privateKey]);
+    const signatureProvider = new eosjs_jssig.default([privkey]);
     const api = new eosjs_api.default({rpc, signatureProvider});
 
     async function deleteall(){
@@ -107,23 +109,24 @@
         });
     }
 
-    window.bet = function(towin, larimers, seed, success){
+    window.roulette.bet = function(towin, larimers, success, failure){
         (async() => {
             try{
+                const runtime = +new Date();
                 console.log('del', await deleteall());
-                console.log('spn', await spin(888, 0, Math.round(new Date().getTime() / 1000) + 2));
-                console.log('bet', await bet(888, towin, larimers, seed));
+                console.log('spn', await spin(runtime, 0, Math.round(runtime / 1000) + 2));
+                console.log('bet', await bet(runtime, towin, larimers, runtime));
 
-                alert('wheel is spinning');
                 await function sleep(ms){
                     return new Promise(resolve => setTimeout(resolve, ms));
                 }(3000);
 
-                let payresult = await pay(888);
+                let payresult = await pay(runtime);
                 console.log('pay', payresult);
                 success(payresult.processed.action_traces[0].console);
             }catch(e){
                 console.error(e.json);
+                failure(e);
             }
         })();
     };
