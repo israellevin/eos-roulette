@@ -18,4 +18,4 @@ if ! cleos wallet open; then
     cleos wallet private_keys < password.txt | sed -n '3s/ *"\([^"]*\).*/\1/gp' > privkey.txt
 fi
 cleos wallet unlock < password.txt
-while ! cleos get code eosio > /dev/null; do date; done
+while ! cleos get code eosio > /dev/null; do sleep 1; done
