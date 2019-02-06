@@ -31,7 +31,7 @@ cleos get currency balance eosio.token roulette
 echo Hit enter to pay winner
 read
 
-while ! cleos push action roulette pay '[777]' -p roulette@owner; do date; done
+while ! cleos push action roulette pay '[777]' -p roulette@owner; do sleep 1; done
 echo Hit enter to see final stats
 read
 
