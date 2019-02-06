@@ -6,11 +6,15 @@
 </head>
 <body>
     <div>
-        balance: <span id="balance">???</span>
+        Hello Alice, your balance is: <span id="balance">???</span>
+    </div>
+    <div id="wheel">
+        Here be wheel
     </div>
     <div>
         <form onsubmit="return placeBet(this.towin.value, this.larimers.value);">
-            <select name="towin">
+            <select name="towin" onchange="this.parentElement.bet.disabled = this.value == 0;">
+                <option value="0" selected disabled>choose a number</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -48,7 +52,8 @@
                 <option value="35">35</option>
                 <option value="36">36</option>
             </select>
-            <input name="larimers" type="number" min="1">
+            <input name="larimers" type="number" min="1" value="10"></input>
+            <input name="bet" type="submit" value="spin!" disabled></input>
         </form>
 
     </div>
@@ -71,10 +76,17 @@
     updateBalance();
 
     window.placeBet = function(towin, larimers){
+        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
         roulette.bet(towin, larimers, function(result){
-            alert(result);
+            let message = 'Roulette stops on ' + result + '!  Alice ';
+            if(parseInt(towin, 10) === result){
+                message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+            }else{
+                message += ' lost...';
+            }
+            document.getElementById('wheel').innerText = message;
         }, function(error){
-            alert("Some error occured, probably Oren's fault, check the console for evidence...");
+            alert('Some error occured, probably Oren\'s fault, check the console for evidence...');
         });
         return false;
     };

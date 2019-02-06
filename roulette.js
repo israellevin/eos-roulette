@@ -3,7 +3,6 @@
     'use strict';
 
     const privkey = window.roulette.privkey;
-    console.log(privkey);
     const rpc = new eosjs_jsonrpc.default('http://127.0.0.1:8888');
     window.roulette = {};
 
@@ -123,7 +122,7 @@
 
                 let payresult = await pay(runtime);
                 console.log('pay', payresult);
-                success(payresult.processed.action_traces[0].console);
+                success(parseInt(payresult.processed.action_traces[0].console.slice(-2), 10));
             }catch(e){
                 console.error(e.json);
                 failure(e);
