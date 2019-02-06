@@ -27,12 +27,15 @@ if [ "$q" = 'y' ]; then
 
     cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token@active
     cleos push action eosio.token issue '["eosio", "10000000000.0000 EOS", "issue eos"]' -p eosio@active
+    cleos push action eosio.token transfer '{"from":"eosio","to":"roulette","quantity":"10000.0000 EOS","memo":"funding roulette"}' -p eosio@active
     cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":"10000.0000 EOS","memo":"funding alice"}' -p eosio@active
     cleos get currency balance eosio.token roulette
     cleos get currency balance eosio.token alice
 
     cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
     cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
+
+    echo "window.roulette = {privkey: '$(cat privkey.txt)'};" > js/eosjs-privkey.js
 fi
 
 eosio-cpp -o roulette.wasm roulette.cpp --abigen
