@@ -2,31 +2,99 @@
 (function(){
     'use strict';
 
+    const scatterjs = ScatterJS;
+    window.ScatterJS = null;
+    scatterjs.plugins(new ScatterEOS());
+
+    // FIXME Set this in deploy.
+    const network = scatterjs.Network.fromJson({
+        blockchain:'eos',
+        chainId:'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f',
+        host:'127.0.0.1',
+        port:8888,
+        protocol:'http'
+    });
+    const rpc = new eosjs_jsonrpc.default(network.protocol + '://' + network.host + ':' + network.port);
+    const eos = scatterjs.eos(network, Eos, {rpc, beta3:true});
+
+    // FIXME Hard coded permission to act as roulette account - soon to be removed.
     const privkey = window.roulette.privkey;
-    const rpc = new eosjs_jsonrpc.default('http://127.0.0.1:8888');
+    const signatureProvider = new eosjs_jssig.default([privkey]);
+    const api = new eosjs_api.default({rpc, signatureProvider});
+
     window.roulette = {};
 
-    // Get a user's balance.
-    function getBalance(user, success){
+    // Login to scatter.
+    function login(success){
+        scatterjs.connect('roulette', {network}).then(connected => {
+            if(!connected) return false;
+            scatterjs.scatter.login().then(function(){
+                window.roulette.account = scatterjs.account('eos');
+                success(window.roulette.account);
+            });
+        });
+    }
+    window.roulette.login = login;
+
+    // Logout of scatter.
+    function logout(success){
+        scatterjs.scatter.logout().then(function(){
+            delete window.roulette.account;
+            success();
+        });
+    }
+    window.roulette.logout = logout;
+
+
+    // Get current user's balance.
+    function getBalance(success, failure){
+        if(! window.roulette.account){
+            return failure('not logged in');
+        }
         (async() => {
             try{
-                const result = await rpc.get_table_rows({
+                const result = await eos.getTableRows({
                     json: true,
                     code: 'eosio.token',
-                    scope: user,
+                    scope: window.roulette.account.name,
                     table: 'accounts',
                     limit: 10,
                 });
                 success(result);
             }catch(e){
-                console.error(e.json);
+                console.error(e);
+                failure(e);
             }
         })();
     }
     window.roulette.getBalance = getBalance;
 
-    const signatureProvider = new eosjs_jssig.default([privkey]);
-    const api = new eosjs_api.default({rpc, signatureProvider});
+    // Bet on an existing spin.
+    async function bet(spinseedhash, towin, larimers, seed){
+        return await api.transact({
+            actions: [{
+                account: 'roulette',
+                name: 'bet',
+                authorization: [{
+                    actor: window.roulette.account.name,
+                    permission: 'active',
+                }],
+                data: {
+                    user: window.roulette.account.name,
+                    spinseedhash: spinseedhash,
+                    towin: towin,
+                    larimers: larimers,
+                    seed: seed,
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        });
+    }
+    window.roulette.bet = bet;
+
+    // FIXME Admin actionas for debug - soon to be removed.
 
     async function deleteall(){
         return await api.transact({
@@ -58,29 +126,6 @@
                     seed_hash: seed_hash,
                     min_bet_time: min_bet_time,
                     max_bet_time: max_bet_time,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        });
-    }
-
-    async function bet(spinseedhash, towin, larimers, seed){
-        return await api.transact({
-            actions: [{
-                account: 'roulette',
-                name: 'bet',
-                authorization: [{
-                    actor: 'alice',
-                    permission: 'owner',
-                }],
-                data: {
-                    user: 'alice',
-                    spinseedhash: spinseedhash,
-                    towin: towin,
-                    larimers: larimers,
-                    seed: seed,
                 },
             }]
         }, {
