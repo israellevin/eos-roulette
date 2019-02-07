@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>EOS Roulette</title>
+    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
+    <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-core.min.js"></script>
+    <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs.min.js"></script>
+    <!--script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs2.min.js"></script-->
+    <script src="js/eosjs-api.js"></script>
+    <script src="js/eosjs-jsonrpc.js"></script>
+    <script src="js/eosjs-jssig.js"></script>
+    <script src="js/eosjs-privkey.js"></script>
+    <script src="roulette.js"></script>
 </head>
 <body>
     <div style='font-size:140%; margin:10px;'>
-        Hello Alice, your balance is: <span id="balance">???</span>
+        Hello <span id="user">???</span>, your balance is: <span id="balance">???</span>
     </div>
+    <div id="status"></div>
     <div id="wheel-gif">
 	<img src='Roulette_spinning.gif'>
     </div>
@@ -16,7 +26,7 @@
     </div>
     <div>
         <form onsubmit="return placeBet(this.towin.value, this.larimers.value);">
-            <select name="towin" onchange="this.parentElement.bet.disabled = this.value > 0;">
+            <select name="towin" onchange="this.parentElement.bet.disabled = this.value < 0;">
                 <option value="-1" selected disabled>choose a number</option>
                 <option value="0">0</option>
                 <option value="2">2</option>
@@ -61,22 +71,26 @@
 
     </div>
 
-    <script src="js/eosjs-api.js"></script>
-    <script src="js/eosjs-jsonrpc.js"></script>
-    <script src="js/eosjs-jssig.js"></script>
-    <script src="js/eosjs-privkey.js"></script>
-    <script src="roulette.js"></script>
     <script>
 // jshint esversion: 8
 (function(){
     'use strict';
-    function updateBalance(){
-        roulette.getBalance('alice', function(balance){
-            document.getElementById('balance').innerText = balance.rows[0].balance;
+
+    roulette.login(function(){
+        function updateBalance(){
+            if(roulette.account){
+                document.getElementById('user').innerText = roulette.account.name;
+            }
+            roulette.getBalance(function(balance){
+                document.getElementById('balance').innerText = balance.rows[0].balance;
+            }, function(e){
+                console.error(e);
+            });
             setTimeout(updateBalance, 1000);
-        });
-    }
-    updateBalance();
+        }
+        updateBalance();
+    });
+
 
     window.placeBet = function(towin, larimers){
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
