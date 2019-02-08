@@ -10,7 +10,7 @@
     <script src="js/eosjs-api.js"></script>
     <script src="js/eosjs-jsonrpc.js"></script>
     <script src="js/eosjs-jssig.js"></script>
-    <script src="js/eosjs-privkey.js"></script>
+    <script src="js/eosjs-chainid.js"></script>
     <script src="roulette.js"></script>
 </head>
 <body>
@@ -29,6 +29,7 @@
             <select name="towin" onchange="this.parentElement.bet.disabled = this.value < 0;">
                 <option value="-1" selected disabled>choose a number</option>
                 <option value="0">0</option>
+                <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
