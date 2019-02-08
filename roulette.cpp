@@ -13,11 +13,11 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Create a new spin to bet on.
-            void spin(uint64_t seed_hash, uint32_t min_bet_time, uint32_t max_bet_time){
+            void spin(uint64_t seed_hash, uint32_t minbettime, uint32_t maxbettime){
                 require_auth(_self);
 
                 // Validate.
-                eosio_assert(now() < max_bet_time, "max_bet_time not in the future");
+                eosio_assert(now() < maxbettime, "maxbettime not in the future");
                 spins_indexed spins(_code, _code.value);
                 auto iterator = spins.find(seed_hash);
                 eosio_assert(iterator == spins.end(), "duplicate hash");
@@ -25,8 +25,8 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 // Write in table.
                 spins.emplace(_self, [&](auto& row){
                     row.seed_hash = seed_hash;
-                    row.min_bet_time = min_bet_time;
-                    row.max_bet_time = max_bet_time;
+                    row.minbettime = minbettime;
+                    row.maxbettime = maxbettime;
                 });
 
                 eosio::print("spin created");
@@ -42,8 +42,8 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 auto spins_iterator = spins.find(spinseedhash);
                 eosio_assert(spins_iterator != spins.end(), "hash not found");
                 uint32_t n = now();
-                eosio_assert(n > spins_iterator->min_bet_time, "betting not yet started");
-                eosio_assert(n < spins_iterator->max_bet_time, "betting ended");
+                eosio_assert(n > spins_iterator->minbettime, "betting not yet started");
+                eosio_assert(n < spins_iterator->maxbettime, "betting ended");
 
                 // Accept bet.
                 char buffer[128];
@@ -82,7 +82,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 spins_indexed spins(_code, _code.value);
                 auto spins_iterator = spins.find(spinseedhash);
                 eosio_assert(spins_iterator != spins.end(), "matching hash not found");
-                eosio_assert(now() > spins_iterator->max_bet_time, "betting not yet ended");
+                eosio_assert(now() > spins_iterator->maxbettime, "betting not yet ended");
 
                 // Bets iterator tools.
                 bets_indexed bets(_code, _code.value);
@@ -142,11 +142,12 @@ class [[eosio::contract]] roulette : public eosio::contract{
         // Spins table - indexed by hash.
         struct [[eosio::table]] spin_indexed{
             uint64_t seed_hash;
-            uint32_t min_bet_time;
-            uint32_t max_bet_time;
+            uint32_t minbettime;
+            uint32_t maxbettime;
             uint64_t primary_key() const {return seed_hash;}
+            uint64_t by_maxbettime() const {return maxbettime;}
         };
-        typedef eosio::multi_index<"spins"_n, spin_indexed> spins_indexed;
+        typedef eosio::multi_index<"spins"_n, spin_indexed, indexed_by<"maxbettime"_n, const_mem_fun<spin_indexed, uint64_t, &spin_indexed::by_maxbettime>>> spins_indexed;
 
         // Bets table - indexed by incrementing id and spinseedhash.
         struct [[eosio::table]] bet_indexed{

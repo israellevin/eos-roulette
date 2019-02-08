@@ -45,32 +45,40 @@
     }
     window.roulette.logout = logout;
 
-
     // Get current user's balance.
-    function getBalance(success, failure){
-        if(! window.roulette.account){
-            return failure('not logged in');
-        }
-        (async() => {
-            try{
-                const result = await eos.getTableRows({
-                    json: true,
-                    code: 'eosio.token',
-                    scope: window.roulette.account.name,
-                    table: 'accounts',
-                    limit: 10,
-                });
-                success(result);
-            }catch(e){
-                console.error(e);
-                failure(e);
-            }
-        })();
+    async function getBalance(){
+        const result = await eos.getTableRows({
+            json: true,
+            code: 'eosio.token',
+            scope: window.roulette.account.name,
+            table: 'accounts',
+            limit: 10,
+        });
+        return result;
     }
     window.roulette.getBalance = getBalance;
 
+    // Get running spins TODO sorted by maxbettime.
+    async function getSpin(){
+        const result = await eos.getTableRows({
+            json: true,
+            code: 'roulette',
+            scope: 'roulette',
+            table: 'spins',
+            index_position: 2,
+            key_type: 'i64',
+            lower_bound: Math.round(new Date() / 1000),
+            limit: 1,
+        });
+        return result.rows[0];
+    }
+    window.roulette.getSpin = getSpin;
+
     // Bet on an existing spin.
     async function bet(spinseedhash, towin, larimers, seed){
+        if(! window.roulette.account){
+            return failure('not logged in');
+        }
         return await api.transact({
             actions: [{
                 account: 'roulette',
@@ -113,7 +121,7 @@
         });
     }
 
-    async function spin(seed_hash, min_bet_time, max_bet_time){
+    async function spin(seed_hash, minbettime, maxbettime){
         return await api.transact({
             actions: [{
                 account: 'roulette',
@@ -124,8 +132,8 @@
                 }],
                 data: {
                     seed_hash: seed_hash,
-                    min_bet_time: min_bet_time,
-                    max_bet_time: max_bet_time,
+                    minbettime: minbettime,
+                    maxbettime: maxbettime,
                 },
             }]
         }, {
