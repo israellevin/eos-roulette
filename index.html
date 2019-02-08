@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
     <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-core.min.js"></script>
     <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs.min.js"></script>
-    <!--script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs2.min.js"></script-->
+    <!-- We do not need most of these, right? -->
     <script src="js/eosjs-api.js"></script>
     <script src="js/eosjs-jsonrpc.js"></script>
     <script src="js/eosjs-jssig.js"></script>
@@ -25,7 +25,7 @@
 	.
     </div>
     <div>
-        <form onsubmit="return placeBet(this.towin.value, this.larimers.value);">
+        <form onsubmit="placeBet(this.towin.value, this.larimers.value); return false;">
             <select name="towin" onchange="this.parentElement.bet.disabled = this.value < 0;">
                 <option value="-1" selected disabled>choose a number</option>
                 <option value="0">0</option>
@@ -87,21 +87,23 @@
         updateBalance();
     });
 
-
-    window.placeBet = function(towin, larimers){
+    window.placeBet = async function(towin, larimers){
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
-        roulette.bet(towin, larimers, function(result){
-            let message = 'Roulette stops on ' + result + '!  Alice ';
-            if(parseInt(towin, 10) === result){
-                message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
-            }else{
-                message += ' lost...';
-            }
-            document.getElementById('wheel').innerText = message;
-        }, function(error){
-            alert('Some error occured, probably Oren\'s fault, check the console for evidence...');
-        });
-        return false;
+        let mybet = await roulette.autoBet(towin, larimers);
+        console.log(mybet);
+
+        // FIXME Get an event for this!
+        //function(result){
+        //    let message = 'Roulette stops on ' + result + '!  Alice ';
+        //    if(parseInt(towin, 10) === result){
+        //        message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+        //    }else{
+        //        message += ' lost...';
+        //    }
+        //    document.getElementById('wheel').innerText = message;
+        //}, function(error){
+        //    alert('Some error occured, probably Oren\'s fault, check the console for evidence...');
+        //});
     };
 }());
     </script>

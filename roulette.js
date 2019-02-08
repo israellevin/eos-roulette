@@ -14,15 +14,10 @@
         port:8888,
         protocol:'http'
     });
+
     const rpc = new eosjs_jsonrpc.default(network.protocol + '://' + network.host + ':' + network.port);
     const eos = scatterjs.eos(network, Eos, {rpc, beta3:true});
-
-    // FIXME Hard coded permission to act as roulette account - soon to be removed.
-    const privkey = window.roulette.privkey;
-    const signatureProvider = new eosjs_jssig.default([privkey]);
-    const api = new eosjs_api.default({rpc, signatureProvider});
-
-    window.roulette = {};
+    window.stam = eos;
 
     // Login to scatter.
     function login(success){
@@ -34,7 +29,6 @@
             });
         });
     }
-    window.roulette.login = login;
 
     // Logout of scatter.
     function logout(success){
@@ -43,7 +37,6 @@
             success();
         });
     }
-    window.roulette.logout = logout;
 
     // Get current user's balance.
     async function getBalance(){
@@ -56,9 +49,8 @@
         });
         return result;
     }
-    window.roulette.getBalance = getBalance;
 
-    // Get running spins TODO sorted by maxbettime.
+    // Get the currently running spin with the smallest maxbettime.
     async function getSpin(){
         const result = await eos.getTableRows({
             json: true,
@@ -72,14 +64,13 @@
         });
         return result.rows[0];
     }
-    window.roulette.getSpin = getSpin;
 
     // Bet on an existing spin.
     async function bet(spinseedhash, towin, larimers, seed){
         if(! window.roulette.account){
-            return failure('not logged in');
+            console.error('not logged in');
         }
-        return await api.transact({
+        return await eos.transaction({
             actions: [{
                 account: 'roulette',
                 name: 'bet',
@@ -100,86 +91,20 @@
             expireSeconds: 30,
         });
     }
-    window.roulette.bet = bet;
 
-    // FIXME Admin actionas for debug - soon to be removed.
-
-    async function deleteall(){
-        return await api.transact({
-            actions: [{
-                account: 'roulette',
-                name: 'deleteall',
-                authorization: [{
-                    actor: 'roulette',
-                    permission: 'owner',
-                }],
-                data: {},
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        });
-    }
-
-    async function spin(seed_hash, minbettime, maxbettime){
-        return await api.transact({
-            actions: [{
-                account: 'roulette',
-                name: 'spin',
-                authorization: [{
-                    actor: 'roulette',
-                    permission: 'owner',
-                }],
-                data: {
-                    seed_hash: seed_hash,
-                    minbettime: minbettime,
-                    maxbettime: maxbettime,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        });
-    }
-
-    async function pay(spinseed){
-        return await api.transact({
-            actions: [{
-                account: 'roulette',
-                name: 'pay',
-                authorization: [{
-                    actor: 'roulette',
-                    permission: 'owner',
-                }],
-                data: {
-                    spinseed: spinseed,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        });
-    }
-
-    window.roulette.bet = function(towin, larimers, success, failure){
-        (async() => {
-            try{
-                const runtime = +new Date();
-                console.log('del', await deleteall());
-                console.log('spn', await spin(runtime, 0, Math.round(runtime / 1000) + 2));
-                console.log('bet', await bet(runtime, towin, larimers, runtime));
-
-                await function sleep(ms){
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }(3000);
-
-                let payresult = await pay(runtime);
-                console.log('pay', payresult);
-                success(parseInt(payresult.processed.action_traces[0].console.slice(-2), 10));
-            }catch(e){
-                console.error(e.json);
-                failure(e);
+    window.roulette = {
+        login: login,
+        logout: logout,
+        getBalance: getBalance,
+        getSpin: getSpin,
+        bet: bet,
+        autoBet: async function(towin, larimers){
+            let spin = await getSpin();
+            if(! spin){
+                console.error('no spin found');
+                return;
             }
-        })();
+            return await bet(spin.seed_hash, parseInt(towin, 10), parseInt(larimers, 10), +new Date());
+        }
     };
 }());
