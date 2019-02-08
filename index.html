@@ -77,15 +77,11 @@
     'use strict';
 
     roulette.login(function(){
-        function updateBalance(){
+        async function updateBalance(){
             if(roulette.account){
                 document.getElementById('user').innerText = roulette.account.name;
             }
-            roulette.getBalance(function(balance){
-                document.getElementById('balance').innerText = balance.rows[0].balance;
-            }, function(e){
-                console.error(e);
-            });
+            document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
             setTimeout(updateBalance, 1000);
         }
         updateBalance();
