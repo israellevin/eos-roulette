@@ -1,4 +1,5 @@
 #!/bin/bash
+pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 #pgrep keosd || keosd --data-dir wallet --config-dir wallet &
 pgrep keosd || keosd &
 pgrep nodeos || nodeos -e -p eosio --data-dir blockchain --config-dir blockchain \
@@ -19,3 +20,4 @@ if ! cleos wallet open; then
 fi
 cleos wallet unlock < password.txt
 while ! cleos get code eosio > /dev/null; do sleep 1; done
+popd > /dev/null
