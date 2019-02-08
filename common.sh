@@ -1,7 +1,5 @@
 #!/bin/bash
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
-#pgrep keosd || keosd --data-dir wallet --config-dir wallet &
-pgrep keosd || keosd &
 pgrep nodeos || nodeos -e -p eosio --data-dir blockchain --config-dir blockchain \
 --plugin eosio::producer_plugin \
 --plugin eosio::chain_api_plugin \
@@ -17,6 +15,7 @@ if ! cleos wallet open; then
     cleos wallet create --file password.txt
     cleos wallet create_key | grep -Po '(?<=").*(?=\")' > pubkey.txt
     cleos wallet private_keys < password.txt | sed -n '3s/ *"\([^"]*\).*/\1/gp' > privkey.txt
+    cleos get info | sed -n '3s/.*"\([^"]*\)",.*/\1/gp' > chainid.txt
 fi
 cleos wallet unlock < password.txt
 while ! cleos get code eosio > /dev/null; do sleep 1; done

@@ -3,7 +3,6 @@ read -n1 -p"Remove all local data? [y|N] " q; echo
 if [ "$q" = 'y' ]; then
     pkill keosd
     pkill nodeos
-    #rm -r wallet
     rm -r ~/eosio-wallet
     rm -r blockchain
     sleep 1
@@ -35,7 +34,7 @@ if [ "$q" = 'y' ]; then
     cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
     cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
 
-    echo "window.roulette = {privkey: '$(cat privkey.txt)'};" > js/eosjs-privkey.js
+    echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
 fi
 
 eosio-cpp -o roulette.wasm roulette.cpp --abigen
