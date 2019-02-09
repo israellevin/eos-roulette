@@ -57,7 +57,7 @@
             table: 'spins',
             index_position: 2,
             key_type: 'i64',
-            lower_bound: Math.round(new Date() / 1000),
+            lower_bound: Math.round(new Date() / 1000) + 10,
             limit: 1,
         })).rows[0];
     }
