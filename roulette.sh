@@ -8,6 +8,6 @@ while :; do
 done
 current=$(cleos get table roulette roulette spins --index 2 --key-type i64 -L $(date +%s) -l1 | sed -n '3s/.*: \(.*\),/\1/gp')
 for i in {1..5}; do
-    [ "$current" ] || cleos push action roulette spin "[$RANDOM, 1, $(date -d "+$((RANDOM % 100 + 30)) second" +%s)]" -p roulette@owner
+    cleos push action roulette spin "[$RANDOM, 1, $(date -d "+$((RANDOM % 100 + 30)) second" +%s)]" -p roulette@owner
 done
 cleos get table roulette roulette spins
