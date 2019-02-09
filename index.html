@@ -77,34 +77,42 @@
 (function(){
     'use strict';
 
+    // Login to roulette.
     roulette.login(function(){
-        async function updateBalance(){
+
+        // Balance updater.
+        (async function updateBalance(){
             if(roulette.account){
                 document.getElementById('user').innerText = roulette.account.name;
             }
             document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
             setTimeout(updateBalance, 1000);
-        }
-        updateBalance();
+        })();
     });
 
+    // Place a bet.
     window.placeBet = async function(towin, larimers){
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
-        let mybet = await roulette.autoBet(towin, larimers);
-        console.log(mybet);
+        try{
+            let receipt = await roulette.autoBet(towin, larimers, function(result){
+                let message = 'Roulette stops on ' + result.winner + '! ' + roulette.account.name + ' ';
+                if(parseInt(towin, 10) === result.winner){
+                    message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+                }else{
+                    message += ' lost...';
+                    // Uncomment this to play till you win - for debug.
+                    // window.placeBet(+new Date() % 37, +new Date() % 10);
+                }
+                document.getElementById('wheel').innerText = message;
+            });
+            console.log(receipt.processed.action_traces[0].act);
+        }catch(e){
+            console.error(e);
+            document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+            window.placeBet(towin, larimers);
+        }
 
-        // FIXME Get an event for this!
-        //function(result){
-        //    let message = 'Roulette stops on ' + result + '!  Alice ';
-        //    if(parseInt(towin, 10) === result){
-        //        message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
-        //    }else{
-        //        message += ' lost...';
-        //    }
-        //    document.getElementById('wheel').innerText = message;
-        //}, function(error){
-        //    alert('Some error occured, probably Oren\'s fault, check the console for evidence...');
-        //});
+
     };
 }());
     </script>

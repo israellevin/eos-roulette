@@ -39,19 +39,18 @@
 
     // Get current user's balance.
     async function getBalance(){
-        const result = await eos.getTableRows({
+        return await eos.getTableRows({
             json: true,
             code: 'eosio.token',
             scope: window.roulette.account.name,
             table: 'accounts',
             limit: 10,
         });
-        return result;
     }
 
     // Get the currently running spin with the smallest maxbettime.
     async function getSpin(){
-        const result = await eos.getTableRows({
+        return (await eos.getTableRows({
             json: true,
             code: 'roulette',
             scope: 'roulette',
@@ -60,8 +59,7 @@
             key_type: 'i64',
             lower_bound: Math.round(new Date() / 1000),
             limit: 1,
-        });
-        return result.rows[0];
+        })).rows[0];
     }
 
     // Bet on an existing spin.
@@ -98,12 +96,27 @@
         getBalance: getBalance,
         getSpin: getSpin,
         bet: bet,
-        autoBet: async function(towin, larimers){
+        poll: async function(spin, after, callback){
+            let actions = (await eos.getActions(window.roulette.account.name, after, 1)).actions;
+            if(actions.length === 2){
+                let action = actions[1].action_trace.act;
+                if(action.name === 'notify' && action.data.spinseedhash === spin.seed_hash){
+                    console.log(action.data);
+                    callback(action.data);
+                }
+                after = actions[1].account_action_seq;
+            }
+            setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
+        },
+        autoBet: async function(towin, larimers, callback){
             let spin = await getSpin();
             if(! spin){
                 console.error('no spin found');
                 return;
             }
+            window.roulette.poll(
+                spin, (await eos.getActions(window.roulette.account.name, -1, -1)).actions[0].account_action_seq, callback
+            );
             return await bet(spin.seed_hash, parseInt(towin, 10), parseInt(larimers, 10), +new Date());
         }
     };
