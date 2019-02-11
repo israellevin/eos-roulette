@@ -46,11 +46,11 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 eosio_assert(n < spins_iterator->maxbettime, "betting ended");
 
                 // Accept bet.
-                char buffer[128];
-                snprintf(buffer, sizeof(buffer), "3PSIK Roulette bet on %d", towin);
+                char memo[128];
+                snprintf(memo, sizeof(memo), "3PSIK Roulette bet on %d", towin);
                 action(
                     permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
-                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string(buffer))
+                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string(memo))
                 ).send();
 
                 // Write in table.
@@ -103,13 +103,21 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 winner %= 37;
                 eosio::print("winning number is: ", winner);
 
-                // Pay winners.
+                // Handle bettors.
                 for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
-                    if(bets_iterator->towin != winner) continue;
+                    // Notifify bettor.
                     action(
-                        permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
-                        std::make_tuple(_self, bets_iterator->user, asset(bets_iterator->larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
+                        permission_level{_self, "active"_n}, _self, "notify"_n,
+                        std::make_tuple(bets_iterator->user, spinseedhash, winner)
                     ).send();
+
+                    // Pay if winner.
+                    if(bets_iterator->towin == winner){
+                        action(
+                            permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
+                            std::make_tuple(_self, bets_iterator->user, asset(bets_iterator->larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
+                        ).send();
+                    }
                 }
 
                 // Erase the bets and the spin.
@@ -119,6 +127,13 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     bets_iterator = bets_spin_index.erase(bets_iterator)
                 );
                 spins.erase(spins_iterator);
+            }
+
+        [[eosio::action]]
+            // Send spin result to bettor.
+            void notify(name user, uint64_t spinseedhash, uint8_t winner){
+                require_auth(_self);
+                require_recipient(user);
             }
 
         [[eosio::action]]
@@ -163,5 +178,4 @@ class [[eosio::contract]] roulette : public eosio::contract{
         typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>> bets_indexed;
 };
 
-// TODO Add modify bet.
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(deleteall))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall))
