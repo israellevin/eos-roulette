@@ -3,7 +3,7 @@
 cleos push action roulette deleteall '["roulette"]' -p roulette@owner
 
 seed=$(openssl rand -hex 32)
-seedhash="$(cleos push action -j roulette hash '["'$seed'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
+seedhash="$(cleos push action -j roulette gethash '["'$seed'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
 
 echo Available spins are
 cleos get table roulette roulette spins
@@ -34,7 +34,7 @@ cleos get currency balance eosio.token roulette
 echo Hit enter to pay winner
 read
 
-while ! cleos push action roulette pay '["'$seedhash'", "'$seed'"]' -p roulette@owner; do sleep 1; done
+while ! cleos push action roulette pay '["'$seed'"]' -p roulette@owner; do sleep 1; done
 echo Hit enter to see final stats
 read
 
