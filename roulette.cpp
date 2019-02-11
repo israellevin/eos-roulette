@@ -75,7 +75,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
             void pay(checksum256 seed){
                 require_auth(_self);
 
-                checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
+                const checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
 
                 // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
@@ -117,10 +117,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 // Handle bettors.
                 for(auto bets_iterator = bets_spin_index.find(seedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
                     // Notifify bettor.
-                    action(
-                        permission_level{_self, "active"_n}, _self, "notify"_n,
-                        std::make_tuple(bets_iterator->user, winner, seedhash)
-                    ).send();
+                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winner, seedhash});
 
                     // Pay if winner.
                     if(bets_iterator->towin == winner){
