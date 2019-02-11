@@ -102,17 +102,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 }
 
                 // Calculate winning number.
-                uint64_t winner = 0;
-                checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
-                char* hash_char = (char*)&seednsalt_hash;
-                uint8_t hash_size = sizeof(seednsalt_hash);
-                uint8_t char_value;
-                for(int i=0; i < hash_size; i++){
-                    char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
-                    winner = winner * 256 + char_value;
-                }
-                winner = winner % 37;
-                print("winning number is: ", winner);
+                uint8_t winner = calculate_winner(seednsalt);
 
                 // Handle bettors.
                 for(auto bets_iterator = bets_spin_index.find(seedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
@@ -199,6 +189,24 @@ class [[eosio::contract]] roulette : public eosio::contract{
             std::vector<uint64_t> salts;
         };
 
+        // Get a winning roulette number from a checksum256.
+        // The method is to look at the first byte of the hash - if the value is below 222, modolu it by 37 and you have a winner. If the hash is above, move on to the next byte and do the same thing. If you run out of bytes, which is pretty unlikely, just add a new salt of 1 and try again.
+        uint8_t calculate_winner(seednsalt_struct seednsalt){
+            checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
+            char* hash_char = (char*)&seednsalt_hash;
+            uint8_t hash_size = sizeof(seednsalt_hash);
+            uint8_t char_value;
+            for(int i=0; i < hash_size; i++){
+                char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
+                if(char_value < 222){
+                    return char_value % 37;
+                }
+            }
+            seednsalt.salts.push_back(1);
+            return calculate_winner(seednsalt);
+        }
+
+        // Convert checksum256 to hex string.
         std::string checksum256_to_hex(checksum256 hash){
             const char* to_hex="0123456789abcdef";
             char* hash_char = (char*)&hash;
@@ -211,7 +219,6 @@ class [[eosio::contract]] roulette : public eosio::contract{
             }
             return result;
         }
-
 };
 
 EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash))
