@@ -105,14 +105,17 @@
                 }
                 document.getElementById('wheel').innerText = message;
             });
-            console.log(receipt.processed.action_traces[0].act);
+            if(receipt){
+                console.log(receipt.processed.action_traces[0].act);
+                return;
+            }else{
+                document.getElementById('wheel').innerText = 'No available spins - retrying...';
+            }
         }catch(e){
             console.error(e);
             document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
-            window.placeBet(towin, larimers);
         }
-
-
+        setTimeout(function(){window.placeBet(towin, larimers);}, 1000);
     };
 }());
     </script>
