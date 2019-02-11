@@ -32,8 +32,6 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     row.minbettime = minbettime;
                     row.maxbettime = maxbettime;
                 });
-
-                print("spin created");
             }
 
         [[eosio::action]]
@@ -70,23 +68,14 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     row.larimers = larimers;
                     row.user = user;
                 });
-
-                print("bet accepted from ", user, " on ", towin);
             }
 
         [[eosio::action]]
             // Pay winners of a spin.
-            void pay(checksum256 seedhash, checksum256 seed){
+            void pay(checksum256 seed){
                 require_auth(_self);
 
-                // FIXME Get the hash of the seed.
-                //print("---");
-                //printhex(&seedhash, sizeof(seedhash));
-                //print("---");
-                //checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
-                //print("---");
-                //printhex(&seedhash, sizeof(seedhash));
-                //print("---");
+                checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
 
                 // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
@@ -115,17 +104,12 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 // Calculate winning number.
                 uint64_t winner = 0;
                 checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
-                char* hash_char;
-                hash_char = (char *)&seednsalt_hash;
+                char* hash_char = (char*)&seednsalt_hash;
+                uint8_t hash_size = sizeof(seednsalt_hash);
                 uint8_t char_value;
-                // FIXME That's not really how the hash datatype is built.
-                for(uint8_t char_pos = 0; char_pos < sizeof(seednsalt_hash); char_pos++){
-                    if(*hash_char >= '0' && *hash_char <= '9')
-                        char_value = *hash_char - '0';
-                    else
-                        char_value = *hash_char - 'a' + 10;
+                for(int i=0; i < hash_size; i++){
+                    char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
                     winner = winner * 256 + char_value;
-                    hash_char += sizeof(char);
                 }
                 winner = winner % 37;
                 print("winning number is: ", winner);
@@ -181,21 +165,8 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Hash a hex string
-            void hash(checksum256 seed){
-                checksum256 hash = sha256((const char *)&seed, sizeof(checksum256));
-                printhex(&hash, sizeof(hash));
-
-                uint8_t* hash_char;
-                hash_char = (uint8_t *)&seed;
-                uint8_t char_value;
-                for(uint8_t char_pos = 0; char_pos < 32; char_pos++){
-                    if(*hash_char >= '0' && *hash_char <= '9'){
-                        char_value = *hash_char - '0';
-                    }else{
-                        char_value = *hash_char - 'a' + 10;
-                    }
-                    hash_char += sizeof(char);
-                }
+            void gethash(checksum256 seed){
+                print(checksum256_to_hex(sha256((const char*)&seed, sizeof(seed))));
             }
 
     private:
@@ -230,6 +201,20 @@ class [[eosio::contract]] roulette : public eosio::contract{
             checksum256 seed;
             std::vector<uint64_t> salts;
         };
+
+        std::string checksum256_to_hex(checksum256 hash){
+            const char* to_hex="0123456789abcdef";
+            char* hash_char = (char*)&hash;
+            uint8_t char_value;
+            std::string result = "";
+            for(int i=0; i<sizeof(hash); i++){
+                char_value = (uint8_t)hash_char[(sizeof(hash) / 2 + sizeof(hash) - 1 - i) % sizeof(hash)];
+                result += to_hex[char_value >> 4];
+                result += to_hex[char_value & 0x0f];
+            }
+            return result;
+        }
+
 };
 
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(hash))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash))
