@@ -55,7 +55,7 @@
             code: 'roulette',
             scope: 'roulette',
             table: 'spins',
-            index_position: 2,
+            index_position: 3,
             key_type: 'i64',
             lower_bound: Math.round(new Date() / 1000) + 10,
             limit: 1,
@@ -63,7 +63,7 @@
     }
 
     // Bet on an existing spin.
-    async function bet(spinseedhash, towin, larimers, seed){
+    async function bet(seedhash, towin, larimers, salt){
         if(! window.roulette.account){
             console.error('not logged in');
         }
@@ -77,10 +77,10 @@
                 }],
                 data: {
                     user: window.roulette.account.name,
-                    spinseedhash: spinseedhash,
+                    seedhash: seedhash,
                     towin: towin,
                     larimers: larimers,
-                    seed: seed,
+                    salt: salt,
                 },
             }]
         }, {
@@ -100,8 +100,7 @@
             let actions = (await eos.getActions(window.roulette.account.name, after, 1)).actions;
             if(actions.length === 2){
                 let action = actions[1].action_trace.act;
-                if(action.name === 'notify' && action.data.spinseedhash === spin.seed_hash){
-                    console.log(action.data);
+                if(action.name === 'notify' && action.data.seedhash === spin.seedhash){
                     callback(action.data);
                 }
                 after = actions[1].account_action_seq;
@@ -112,12 +111,12 @@
             let spin = await getSpin();
             if(! spin){
                 console.error('no spin found');
-                return;
+                return false;
             }
             window.roulette.poll(
                 spin, (await eos.getActions(window.roulette.account.name, -1, -1)).actions[0].account_action_seq, callback
             );
-            return await bet(spin.seed_hash, parseInt(towin, 10), parseInt(larimers, 10), +new Date());
+            return await bet(spin.seedhash, parseInt(towin, 10), parseInt(larimers, 10), +new Date());
         }
     };
 }());
