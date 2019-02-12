@@ -25,7 +25,7 @@ cleos get currency balance eosio.token alice
 echo Hit enter to create a spin
 read
 
-cleos push action roulette spin '["'$seedhash'", 1, '$(date -d '+2 seconds' +%s)']' -p roulette@owner
+cleos push action roulette spin '["'$seedhash'", 1, '$(date -d '+10 seconds' +%s)']' -p roulette@owner
 echo Available spins are
 cleos get table roulette roulette spins
 echo Hit enter to bet on this spin
