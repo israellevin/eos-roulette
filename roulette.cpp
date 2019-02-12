@@ -204,14 +204,14 @@ class [[eosio::contract]] roulette : public eosio::contract{
             char* hash_char = (char*)&seednsalt_hash;
             uint8_t hash_size = sizeof(seednsalt_hash);
             uint8_t char_value;
-            for(int i=0; i < hash_size; i++){
+            for(int i = 0; i < hash_size; i++){
                 char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
                 if(char_value < 222){
                     return char_value % 37;
                 }
             }
             seednsalt.salts.push_back(1);
-            print("Adding salt");
+            print("adding salt. ");
             return calculate_winner(seednsalt);
         }
 
