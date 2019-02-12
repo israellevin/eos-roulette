@@ -21,7 +21,7 @@ while :; do
     pay $oldest
 done
 current=$(cleos get table roulette roulette spins --index 3 --key-type i64 -L $(date +%s) -l1 | grep -Po '(?<="seedhash": ").*(?=\")')
-for i in {1..5}; do
-    spin $(date -d "+$((RANDOM % 300 + 60)) second" +%s)
+for i in $(seq 5 5 30); do
+    spin $(date -d "+$i second" +%s)
 done
 cleos get table roulette roulette spins
