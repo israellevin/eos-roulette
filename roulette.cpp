@@ -156,6 +156,14 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 print(checksum256_to_hex(sha256((const char*)&seed, sizeof(seed))));
             }
 
+        [[eosio::action]]
+            // Calculate a winner from a hash, for testing
+            void getwinner(checksum256 seed){
+                seednsalt_struct seednsalt;
+                seednsalt.seed = seed;
+                print(calculate_winner(seednsalt));
+            }
+
     private:
 
         // Spins table - indexed by hash.
@@ -203,6 +211,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 }
             }
             seednsalt.salts.push_back(1);
+            print("Adding salt");
             return calculate_winner(seednsalt);
         }
 
@@ -221,4 +230,4 @@ class [[eosio::contract]] roulette : public eosio::contract{
         }
 };
 
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash)(getwinner))
