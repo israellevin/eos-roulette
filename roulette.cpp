@@ -1,6 +1,6 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/asset.hpp>
-#include <eosiolib/crypto.h>
+#include <eosiolib/crypto.hpp>
 #define EOS_SYMBOL symbol("EOS", 4)
 
 using namespace eosio;
@@ -13,34 +13,39 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Create a new spin to bet on.
-            void spin(uint64_t seed_hash, uint32_t minbettime, uint32_t maxbettime){
+            void spin(checksum256 seedhash, uint32_t minbettime, uint32_t maxbettime){
                 require_auth(_self);
 
-                // Validate.
-                eosio_assert(now() < maxbettime, "maxbettime not in the future");
+                // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto iterator = spins.find(seed_hash);
-                eosio_assert(iterator == spins.end(), "duplicate hash");
+                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
+                auto spins_iterator = spins_seedhash_index.find(seedhash);
+
+                // Validate.
+                eosio_assert(spins_iterator == spins_seedhash_index.end(), "duplicate hash");
+                eosio_assert(now() < maxbettime, "maxbettime not in the future");
 
                 // Write in table.
                 spins.emplace(_self, [&](auto& row){
-                    row.seed_hash = seed_hash;
+                    row.id = spins.available_primary_key();
+                    row.seedhash = seedhash;
                     row.minbettime = minbettime;
                     row.maxbettime = maxbettime;
                 });
-
-                eosio::print("spin created");
             }
 
         [[eosio::action]]
-            // Bet larimers on a number towin in spin spinseedhash and add a seed.
-            void bet(name user, uint64_t spinseedhash, uint8_t towin, uint64_t larimers, uint64_t seed){
+            // Bet larimers on a number towin in spin seedhash and add a salt.
+            void bet(name user, checksum256 seedhash, uint8_t towin, uint64_t larimers, uint64_t salt){
                 require_auth(user);
 
-                // Get spin and velidate.
+                // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto spins_iterator = spins.find(spinseedhash);
-                eosio_assert(spins_iterator != spins.end(), "hash not found");
+                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
+                auto spins_iterator = spins_seedhash_index.find(seedhash);
+
+                // validate.
+                eosio_assert(spins_iterator != spins_seedhash_index.end(), "hash not found");
                 uint32_t n = now();
                 eosio_assert(n > spins_iterator->minbettime, "betting not yet started");
                 eosio_assert(n < spins_iterator->maxbettime, "betting ended");
@@ -57,59 +62,52 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 bets_indexed bets(_code, _code.value);
                 bets.emplace(user, [&](auto& row){
                     row.id = bets.available_primary_key();
-                    row.spinseedhash = spinseedhash;
+                    row.seedhash = seedhash;
                     row.towin = towin;
-                    row.seed = seed;
+                    row.salt = salt;
                     row.larimers = larimers;
                     row.user = user;
                 });
-
-                eosio::print("bet accepted from ", user, " on ", towin);
             }
 
         [[eosio::action]]
             // Pay winners of a spin.
-            void pay(uint64_t spinseed){
+            void pay(checksum256 seed){
                 require_auth(_self);
 
-                // FIXME Get the hash from the seed.
-                //capi_checksum256 spinseedhash;
-                //sha256((const char *)&spinseed, sizeof(uint64_t), &spinseedhash);
-                //printhex(&spinseedhash, sizeof(spinseedhash));
-                uint64_t spinseedhash = spinseed;
+                const checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
 
-                // Get the spin and validate.
+                // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto spins_iterator = spins.find(spinseedhash);
-                eosio_assert(spins_iterator != spins.end(), "matching hash not found");
+                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
+                auto spins_iterator = spins_seedhash_index.find(seedhash);
+
+                // Validate.
+                eosio_assert(spins_iterator != spins_seedhash_index.end(), "matching hash not found");
                 eosio_assert(now() > spins_iterator->maxbettime, "betting not yet ended");
 
                 // Bets iterator tools.
                 bets_indexed bets(_code, _code.value);
-                auto bets_spin_index = bets.get_index<"spinseedhash"_n>();
+                auto bets_spin_index = bets.get_index<"seedhash"_n>();
 
-                // Combine all user seeds.
-                for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
-                    spinseed += bets_iterator->seed;
+                // Combine seed with all user salts.
+                seednsalt_struct seednsalt;
+                seednsalt.seed = seed;
+                for(
+                    auto bets_iterator = bets_spin_index.find(seedhash);
+                    bets_iterator != bets_spin_index.end();
+                    bets_iterator++
+                ){
+                    seednsalt.salts.push_back(bets_iterator->salt);
                 }
 
                 // Calculate winning number.
-                uint8_t winner = 0;
-                capi_checksum256 spinchecksum;
-                sha256((const char *)&spinseed, sizeof(uint64_t), &spinchecksum);
-                for(uint32_t i = 0; i < 32; ++i) winner = winner * 256 + spinchecksum.hash[i];
-                // FIXME Try something like this?
-                //int num = *((int*)&spinchecksum.hash) & INT_MAX; // 0x7FFFFFFF
-                winner %= 37;
-                eosio::print("winning number is: ", winner);
+                uint8_t winner = calculate_winner(seednsalt);
 
                 // Handle bettors.
-                for(auto bets_iterator = bets_spin_index.find(spinseedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
+                for(auto bets_iterator = bets_spin_index.find(seedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
                     // Notifify bettor.
-                    action(
-                        permission_level{_self, "active"_n}, _self, "notify"_n,
-                        std::make_tuple(bets_iterator->user, spinseedhash, winner)
-                    ).send();
+                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winner, seedhash});
 
                     // Pay if winner.
                     if(bets_iterator->towin == winner){
@@ -122,16 +120,16 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
                 // Erase the bets and the spin.
                 for(
-                    auto bets_iterator = bets_spin_index.find(spinseedhash);
+                    auto bets_iterator = bets_spin_index.find(seedhash);
                     bets_iterator != bets_spin_index.end();
                     bets_iterator = bets_spin_index.erase(bets_iterator)
                 );
-                spins.erase(spins_iterator);
+                spins_seedhash_index.erase(spins_iterator);
             }
 
         [[eosio::action]]
             // Send spin result to bettor.
-            void notify(name user, uint64_t spinseedhash, uint8_t winner){
+            void notify(name user, uint8_t winner, checksum256 seedhash){
                 require_auth(_self);
                 require_recipient(user);
             }
@@ -152,30 +150,84 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 }
             }
 
+        [[eosio::action]]
+            // Hash a hex string
+            void gethash(checksum256 seed){
+                print(checksum256_to_hex(sha256((const char*)&seed, sizeof(seed))));
+            }
+
+        [[eosio::action]]
+            // Calculate a winner from a hash, for testing
+            void getwinner(checksum256 seed){
+                seednsalt_struct seednsalt;
+                seednsalt.seed = seed;
+                print(calculate_winner(seednsalt));
+            }
+
     private:
 
         // Spins table - indexed by hash.
         struct [[eosio::table]] spin_indexed{
-            uint64_t seed_hash;
+            uint64_t id;
+            checksum256 seedhash;
             uint32_t minbettime;
             uint32_t maxbettime;
-            uint64_t primary_key() const {return seed_hash;}
+            uint64_t primary_key() const {return id;}
+            checksum256 by_seedhash() const {return seedhash;}
             uint64_t by_maxbettime() const {return maxbettime;}
         };
-        typedef eosio::multi_index<"spins"_n, spin_indexed, indexed_by<"maxbettime"_n, const_mem_fun<spin_indexed, uint64_t, &spin_indexed::by_maxbettime>>> spins_indexed;
+        typedef multi_index<"spins"_n, spin_indexed, indexed_by<"seedhash"_n, const_mem_fun<spin_indexed, checksum256, &spin_indexed::by_seedhash>>, indexed_by<"maxbettime"_n, const_mem_fun<spin_indexed, uint64_t, &spin_indexed::by_maxbettime>>> spins_indexed;
 
-        // Bets table - indexed by incrementing id and spinseedhash.
+        // Bets table - indexed by incrementing id and seedhash.
         struct [[eosio::table]] bet_indexed{
             uint64_t id;
-            uint64_t spinseedhash;
+            checksum256 seedhash;
             uint8_t towin;
-            uint64_t seed;
+            uint64_t salt;
             uint64_t larimers;
             name user;
             uint64_t primary_key() const {return id;}
-            uint64_t by_spin() const {return spinseedhash;}
+            checksum256 by_seedhash() const {return seedhash;}
         };
-        typedef eosio::multi_index<"bets"_n, bet_indexed, indexed_by<"spinseedhash"_n, const_mem_fun<bet_indexed, uint64_t, &bet_indexed::by_spin>>> bets_indexed;
+        typedef multi_index<"bets"_n, bet_indexed, indexed_by<"seedhash"_n, const_mem_fun<bet_indexed, checksum256, &bet_indexed::by_seedhash>>> bets_indexed;
+
+        // Seed and salts, for hashing.
+        struct seednsalt_struct{
+            checksum256 seed;
+            std::vector<uint64_t> salts;
+        };
+
+        // Get a winning roulette number from a checksum256.
+        // The method is to look at the first byte of the hash - if the value is below 222, modolu it by 37 and you have a winner. If the hash is above, move on to the next byte and do the same thing. If you run out of bytes, which is pretty unlikely, just add a new salt of 1 and try again.
+        uint8_t calculate_winner(seednsalt_struct seednsalt){
+            checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
+            char* hash_char = (char*)&seednsalt_hash;
+            uint8_t hash_size = sizeof(seednsalt_hash);
+            uint8_t char_value;
+            for(int i = 0; i < hash_size; i++){
+                char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
+                if(char_value < 222){
+                    return char_value % 37;
+                }
+            }
+            seednsalt.salts.push_back(1);
+            print("adding salt. ");
+            return calculate_winner(seednsalt);
+        }
+
+        // Convert checksum256 to hex string.
+        std::string checksum256_to_hex(checksum256 hash){
+            const char* to_hex="0123456789abcdef";
+            char* hash_char = (char*)&hash;
+            uint8_t char_value;
+            std::string result = "";
+            for(int i=0; i<sizeof(hash); i++){
+                char_value = (uint8_t)hash_char[(sizeof(hash) / 2 + sizeof(hash) - 1 - i) % sizeof(hash)];
+                result += to_hex[char_value >> 4];
+                result += to_hex[char_value & 0x0f];
+            }
+            return result;
+        }
 };
 
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash)(getwinner))

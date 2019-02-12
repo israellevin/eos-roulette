@@ -26,8 +26,7 @@
     </div>
     <div>
         <form onsubmit="placeBet(this.towin.value, this.larimers.value); return false;">
-            <select name="towin" onchange="this.parentElement.bet.disabled = this.value < 0;">
-                <option value="-1" selected disabled>choose a number</option>
+            <select name="towin">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -67,7 +66,7 @@
                 <option value="36">36</option>
             </select>
             <input name="larimers" type="number" min="1" value="10"></input>
-            <input name="bet" type="submit" value="spin!" disabled></input>
+            <input name="bet" type="submit" value="spin!"></input>
         </form>
 
     </div>
@@ -105,14 +104,17 @@
                 }
                 document.getElementById('wheel').innerText = message;
             });
-            console.log(receipt.processed.action_traces[0].act);
+            if(receipt){
+                console.log(receipt.processed.action_traces[0].act);
+                return;
+            }else{
+                document.getElementById('wheel').innerText = 'No available spins - retrying...';
+            }
         }catch(e){
             console.error(e);
             document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
-            window.placeBet(towin, larimers);
         }
-
-
+        setTimeout(function(){window.placeBet(towin, larimers);}, 1000);
     };
 }());
     </script>
