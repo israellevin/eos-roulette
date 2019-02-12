@@ -2,6 +2,15 @@
 ./common.sh
 cleos push action roulette deleteall '["roulette"]' -p roulette@owner
 
+#for i in {1..999}; do
+#    echo $i 1>&2
+#    seed=$(openssl rand -hex 32)
+#    winner="$(cleos push action -j roulette getwinner '["'$seed'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
+#    echo $winner
+#done | sort -n | uniq -c
+#
+#exit 1
+
 seed=$(openssl rand -hex 32)
 seedhash="$(cleos push action -j roulette gethash '["'$seed'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
 
@@ -16,7 +25,7 @@ cleos get currency balance eosio.token alice
 echo Hit enter to create a spin
 read
 
-cleos push action roulette spin '["'$seedhash'", 1, '$(date -d '+5 seconds' +%s)']' -p roulette@owner
+cleos push action roulette spin '["'$seedhash'", 1, '$(date -d '+2 seconds' +%s)']' -p roulette@owner
 echo Available spins are
 cleos get table roulette roulette spins
 echo Hit enter to bet on this spin
