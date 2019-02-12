@@ -37,6 +37,11 @@
         });
     }
 
+    // Get current user's account.
+    async function getAccount(){
+        return await eos.getAccount(window.roulette.account.name);
+    }
+
     // Get current user's balance.
     async function getBalance(){
         return await eos.getTableRows({
@@ -93,6 +98,7 @@
         chainid: window.roulette.chainid,
         login: login,
         logout: logout,
+        getAccount: getAccount,
         getBalance: getBalance,
         getSpin: getSpin,
         bet: bet,
