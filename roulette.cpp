@@ -102,15 +102,15 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 }
 
                 // Calculate winning number.
-                uint8_t winner = calculate_winner(seednsalt);
+                uint8_t winning_number = calculate_winning_number(seednsalt);
 
                 // Handle bettors.
                 for(auto bets_iterator = bets_spin_index.find(seedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
                     // Notifify bettor.
-                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winner, seedhash});
+                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winning_number, seedhash});
 
-                    // Pay if winner.
-                    if(bets_iterator->towin == winner){
+                    // Pay if bettor chose winning number.
+                    if(bets_iterator->towin == winning_number){
                         action(
                             permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
                             std::make_tuple(_self, bets_iterator->user, asset(bets_iterator->larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
@@ -129,7 +129,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Send spin result to bettor.
-            void notify(name user, uint8_t winner, checksum256 seedhash){
+            void notify(name user, uint8_t winning_number, checksum256 seedhash){
                 require_auth(_self);
                 require_recipient(user);
             }
@@ -157,11 +157,11 @@ class [[eosio::contract]] roulette : public eosio::contract{
             }
 
         [[eosio::action]]
-            // Calculate a winner from a hash, for testing
-            void getwinner(checksum256 seed){
+            // Calculate a winning number from a hash, for testing
+            void calcwin(checksum256 seed){
                 seednsalt_struct seednsalt;
                 seednsalt.seed = seed;
-                print(calculate_winner(seednsalt));
+                print(calculate_winning_number(seednsalt));
             }
 
     private:
@@ -199,7 +199,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         // Get a winning roulette number from a checksum256.
         // The method is to look at the first byte of the hash - if the value is below 222, modolu it by 37 and you have a winner. If the hash is above, move on to the next byte and do the same thing. If you run out of bytes, which is pretty unlikely, just add a new salt of 1 and try again.
-        uint8_t calculate_winner(seednsalt_struct seednsalt){
+        uint8_t calculate_winning_number(seednsalt_struct seednsalt){
             checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
             char* hash_char = (char*)&seednsalt_hash;
             uint8_t hash_size = sizeof(seednsalt_hash);
@@ -212,7 +212,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
             }
             seednsalt.salts.push_back(1);
             print("adding salt. ");
-            return calculate_winner(seednsalt);
+            return calculate_winning_number(seednsalt);
         }
 
         // Convert checksum256 to hex string.
@@ -230,4 +230,4 @@ class [[eosio::contract]] roulette : public eosio::contract{
         }
 };
 
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash)(getwinner))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash)(calcwin))

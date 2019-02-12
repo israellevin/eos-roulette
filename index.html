@@ -66,7 +66,7 @@
                 <option value="36">36</option>
             </select>
             <input name="larimers" type="number" min="1" value="10"></input>
-            <input name="bet" type="submit" value="spin!"></input>
+            <input id="spinBtn" name="bet" type="submit" value="spin!"></input>
         </form>
 
     </div>
@@ -91,11 +91,12 @@
 
     // Place a bet.
     window.placeBet = async function(towin, larimers){
+        document.getElementById('spinBtn').disabled = true;
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
         try{
             let receipt = await roulette.autoBet(towin, larimers, function(result){
-                let message = 'Roulette stops on ' + result.winner + '! ' + roulette.account.name + ' ';
-                if(parseInt(towin, 10) === result.winner){
+                let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
+                if(parseInt(towin, 10) === result.winning_number){
                     message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
@@ -103,6 +104,7 @@
                     // window.placeBet(+new Date() % 37, +new Date() % 10);
                 }
                 document.getElementById('wheel').innerText = message;
+                document.getElementById('spinBtn').disabled = false;
             });
             if(receipt){
                 console.log(receipt.processed.action_traces[0].act);
