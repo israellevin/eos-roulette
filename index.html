@@ -25,8 +25,10 @@
 	.
     </div>
     <div>
-        <form onsubmit="placeBet(this.towin.value, this.larimers.value); return false;">
-            <select name="towin">
+        <form onsubmit="placeBet(Array.map(this.coverage.selectedOptions, function(option){
+            return parseInt(option.value, 10);
+        }), this.larimers.value); return false;">
+            <select name="coverage" multiple style="height: 50em">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -90,18 +92,18 @@
     });
 
     // Place a bet.
-    window.placeBet = async function(towin, larimers){
+    window.placeBet = async function(coverage, larimers){
         document.getElementById('spinBtn').disabled = true;
-        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
+        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + coverage + ' to win...';
         try{
-            let receipt = await roulette.autoBet(towin, larimers, function(result){
+            let receipt = await roulette.autoBet(coverage, larimers, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
-                if(parseInt(towin, 10) === result.winning_number){
-                    message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+                if(result.winning_number in coverage){
+                    message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
                     // Uncomment this to play till you win - for debug.
-                    // window.placeBet(+new Date() % 37, +new Date() % 10);
+                    // window.placeBet(coverage, larimers);
                 }
                 document.getElementById('wheel').innerText = message;
                 document.getElementById('spinBtn').disabled = false;
@@ -116,7 +118,7 @@
             console.error(e);
             document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
         }
-        setTimeout(function(){window.placeBet(towin, larimers);}, 1000);
+        setTimeout(function(){window.placeBet(coverage, larimers);}, 1000);
     };
 }());
     </script>

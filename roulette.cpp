@@ -35,27 +35,26 @@ class [[eosio::contract]] roulette : public eosio::contract{
             }
 
         [[eosio::action]]
-            // Bet larimers on a number towin in spin seedhash and add a salt.
-            void bet(name user, checksum256 seedhash, uint8_t towin, uint64_t larimers, uint64_t salt){
+            // Bet larimers on a coverage of numbers in spin seedhash and add a salt.
+            void bet(name user, checksum256 seedhash, std::vector<uint8_t> coverage, uint64_t larimers, uint64_t salt){
                 require_auth(user);
 
-                // Try to get the spin.
+                //// Try to get the spin.
                 spins_indexed spins(_code, _code.value);
                 auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
                 auto spins_iterator = spins_seedhash_index.find(seedhash);
 
                 // validate.
                 eosio_assert(spins_iterator != spins_seedhash_index.end(), "hash not found");
+                eosio_assert(36 % coverage.size() == 0, "coverage size does not divide 36");
                 uint32_t n = now();
                 eosio_assert(n > spins_iterator->minbettime, "betting not yet started");
                 eosio_assert(n < spins_iterator->maxbettime, "betting ended");
 
                 // Accept bet.
-                char memo[128];
-                snprintf(memo, sizeof(memo), "3PSIK Roulette bet on %d", towin);
                 action(
                     permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
-                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string(memo))
+                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string("Roulette bets"))
                 ).send();
 
                 // Write in table.
@@ -63,7 +62,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 bets.emplace(user, [&](auto& row){
                     row.id = bets.available_primary_key();
                     row.seedhash = seedhash;
-                    row.towin = towin;
+                    row.coverage = coverage;
                     row.salt = salt;
                     row.larimers = larimers;
                     row.user = user;
@@ -110,11 +109,17 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winning_number, seedhash});
 
                     // Pay if bettor chose winning number.
-                    if(bets_iterator->towin == winning_number){
-                        action(
-                            permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
-                            std::make_tuple(_self, bets_iterator->user, asset(bets_iterator->larimers * 36, EOS_SYMBOL), std::string("3PSIK Roulette winnings!"))
-                        ).send();
+                    uint64_t winnings = bets_iterator->larimers * 36 / bets_iterator->coverage.size();
+                    for(auto const& bet_number: bets_iterator->coverage){
+                        if(bet_number == winning_number){
+                            action(
+                                permission_level{_self, "active"_n}, "eosio.token"_n, "transfer"_n,
+                                std::make_tuple(_self, bets_iterator->user, asset(winnings, EOS_SYMBOL),
+                                std::string("Roulette winnings!"))
+                            ).send();
+                            // Should we break here? What if a user bets more than once on the same number?
+                            // break;
+                        }
                     }
                 }
 
@@ -182,9 +187,9 @@ class [[eosio::contract]] roulette : public eosio::contract{
         struct [[eosio::table]] bet_row{
             uint64_t id;
             checksum256 seedhash;
-            uint8_t towin;
-            uint64_t salt;
+            std::vector<uint8_t> coverage;
             uint64_t larimers;
+            uint64_t salt;
             name user;
             uint64_t primary_key() const {return id;}
             checksum256 by_seedhash() const {return seedhash;}
