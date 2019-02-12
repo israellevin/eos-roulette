@@ -93,6 +93,10 @@
 
     // Place a bet.
     window.placeBet = async function(coverage, larimers){
+        if(36 % coverage.length !== 0){
+            console.error('coverage size must divide 36');
+            return;
+        }
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + coverage + ' to win...';
         try{
