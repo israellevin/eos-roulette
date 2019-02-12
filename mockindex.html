@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EOS Roulette</title>
+    <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
+    <script src="mockroulette.js"></script>
+</head>
+<body>
+    <div style='font-size:140%; margin:10px;'>
+        Hello <span id="user">???</span>, your balance is: <span id="balance">???</span>
+    </div>
+    <div id="status"></div>
+    <div id="wheel-gif">
+	<img src='Roulette_spinning.gif'>
+    </div>
+    <div id="wheel">
+	.
+    </div>
+    <div>
+        <form onsubmit="placeBet(this.towin.value, this.larimers.value); return false;">
+            <select name="towin">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="31">31</option>
+                <option value="32">32</option>
+                <option value="33">33</option>
+                <option value="34">34</option>
+                <option value="35">35</option>
+                <option value="36">36</option>
+            </select>
+            <input name="larimers" type="number" min="1" value="10"></input>
+            <input name="bet" type="submit" value="spin!"></input>
+        </form>
+
+    </div>
+
+    <script>
+// jshint esversion: 8
+(function(){
+    'use strict';
+
+    // Login to roulette.
+    roulette.login(function(){
+
+        // Balance updater.
+        (async function updateBalance(){
+            if(roulette.account){
+                document.getElementById('user').innerText = roulette.account.name;
+            }
+            document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
+            setTimeout(updateBalance, 1000);
+        })();
+    });
+
+    // Place a bet.
+    window.placeBet = async function(towin, larimers){
+        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
+        try{
+            let receipt = await roulette.autoBet(towin, larimers, function(result){
+                let message = 'Roulette stops on ' + result.winner + '! ' + roulette.account.name + ' ';
+                if(parseInt(towin, 10) === result.winner){
+                    message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+                }else{
+                    message += ' lost...';
+                    // Uncomment this to play till you win - for debug.
+                    // window.placeBet(+new Date() % 37, +new Date() % 10);
+                }
+                document.getElementById('wheel').innerText = message;
+            },
+            3);
+            // Math.floor(Math.random()*37));
+
+            if(receipt){
+                console.log(receipt.processed.action_traces[0].act);
+                return;
+            }else{
+                document.getElementById('wheel').innerText = 'No available spins - retrying...';
+            }
+        }catch(e){
+            console.error(e);
+            document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+        }
+        setTimeout(function(){window.placeBet(towin, larimers);}, 1000);
+    };
+}());
+    </script>
+</body>
+</html>

@@ -16,12 +16,15 @@
             window.roulette._balance -= parseInt(larimers, 10);
             return {processed: {action_traces: [{act: 'mock'}]}};
         },
-        poll: function(towin, larimers, callback){
-            if(parseInt(towin, 10) === 0) window.roulette._balance += 37 * larimers;
-            setTimeout(function(){callback({winner: 0, mock: true});}, 1000);
+        poll: function(towin, larimers, callback, force){
+            setTimeout(function(){
+                let winner = typeof(force) === 'undefined' ? 0 : force;
+                if(parseInt(towin, 10) === winner) window.roulette._balance += 36 * larimers;
+                callback({winner: winner, mock: true});
+            }, 1000);
         },
-        autoBet: function(towin, larimers, callback){
-            window.roulette.poll(towin, larimers, callback);
+        autoBet: function(towin, larimers, callback, force){
+            window.roulette.poll(towin, larimers, callback, force);
             return window.roulette.bet(0, towin, larimers);
         }
     };
