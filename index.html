@@ -106,10 +106,10 @@
                 document.getElementById('wheel').innerText = message;
                 document.getElementById('spinBtn').disabled = false;
             });
-            if(receipt){
-                console.log(receipt.processed.action_traces[0].act);
+            try{
+                console.log(receipt.processed.action_traces[0].act.data.seedhash);
                 return;
-            }else{
+            }catch(e){
                 document.getElementById('wheel').innerText = 'No available spins - retrying...';
             }
         }catch(e){
