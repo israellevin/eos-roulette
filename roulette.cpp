@@ -167,7 +167,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
     private:
 
         // Spins table - indexed by hash.
-        struct [[eosio::table]] spin_indexed{
+        struct [[eosio::table]] spin_row{
             uint64_t id;
             checksum256 seedhash;
             uint32_t minbettime;
@@ -176,10 +176,10 @@ class [[eosio::contract]] roulette : public eosio::contract{
             checksum256 by_seedhash() const {return seedhash;}
             uint64_t by_maxbettime() const {return maxbettime;}
         };
-        typedef multi_index<"spins"_n, spin_indexed, indexed_by<"seedhash"_n, const_mem_fun<spin_indexed, checksum256, &spin_indexed::by_seedhash>>, indexed_by<"maxbettime"_n, const_mem_fun<spin_indexed, uint64_t, &spin_indexed::by_maxbettime>>> spins_indexed;
+        typedef multi_index<"spins"_n, spin_row, indexed_by<"seedhash"_n, const_mem_fun<spin_row, checksum256, &spin_row::by_seedhash>>, indexed_by<"maxbettime"_n, const_mem_fun<spin_row, uint64_t, &spin_row::by_maxbettime>>> spins_indexed;
 
         // Bets table - indexed by incrementing id and seedhash.
-        struct [[eosio::table]] bet_indexed{
+        struct [[eosio::table]] bet_row{
             uint64_t id;
             checksum256 seedhash;
             uint8_t towin;
@@ -189,7 +189,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
             uint64_t primary_key() const {return id;}
             checksum256 by_seedhash() const {return seedhash;}
         };
-        typedef multi_index<"bets"_n, bet_indexed, indexed_by<"seedhash"_n, const_mem_fun<bet_indexed, checksum256, &bet_indexed::by_seedhash>>> bets_indexed;
+        typedef multi_index<"bets"_n, bet_row, indexed_by<"seedhash"_n, const_mem_fun<bet_row, checksum256, &bet_row::by_seedhash>>> bets_indexed;
 
         // Seed and salts, for hashing.
         struct seednsalt_struct{
@@ -198,7 +198,11 @@ class [[eosio::contract]] roulette : public eosio::contract{
         };
 
         // Get a winning roulette number from a checksum256.
-        // The method is to look at the first byte of the hash - if the value is below 222, modolu it by 37 and you have a winner. If the hash is above, move on to the next byte and do the same thing. If you run out of bytes, which is pretty unlikely, just add a new salt of 1 and try again.
+        // The method is to look at the first byte of the hash - if the value
+        // is below 222, modolu it by 37 and you have a winner. If the hash is
+        // above, move on to the next byte and do the same thing. If you run
+        // out of bytes, which is pretty unlikely, just add a new salt of 1 and
+        // try again.
         uint8_t calculate_winning_number(seednsalt_struct seednsalt){
             checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
             char* hash_char = (char*)&seednsalt_hash;
