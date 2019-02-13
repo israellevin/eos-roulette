@@ -110,6 +110,10 @@
             setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
         },
         autoBet: async function(coverage, larimers, callback){
+            if(! window.roulette.account){
+                console.error('not connected to scatter');
+                return false;
+            }
             let spin = await getSpin();
             if(! spin){
                 console.error('no spin found');
@@ -118,9 +122,14 @@
             window.roulette.poll(
                 spin, (await eos.getActions(window.roulette.account.name, -1, -1)).actions[0].account_action_seq, callback
             );
-            return (await bet(
-                spin.seedhash, coverage, parseInt(larimers, 10), +new Date()
-            )).processed.action_traces[0].act.data.seedhash;
+            try{
+                return (await bet(
+                    spin.seedhash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.seedhash;
+            }catch(e){
+                console.error(e);
+                return e;
+            }
         }
     };
 }());
