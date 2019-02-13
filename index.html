@@ -25,9 +25,7 @@
 	.
     </div>
     <div>
-        <form onsubmit="placeBet(Array.map(this.coverage.selectedOptions, function(option){
-            return parseInt(option.value, 10);
-        }), this.larimers.value); return false;">
+        <form onsubmit="processBet(this); return false;">
             <select name="coverage" multiple style="height: 50em">
                 <option value="0">0</option>
                 <option value="1">1</option>
@@ -92,37 +90,46 @@
     });
 
     // Place a bet.
-    window.placeBet = async function(coverage, larimers){
-        if(36 % coverage.length !== 0){
-            console.error('coverage size must divide 36');
-            return;
+    window.processBet = async function(layoutForm){
+        let coverage, larimers;
+        try{
+            coverage = Array.prototype.map.call(layoutForm.coverage.selectedOptions, function(option){
+                return parseInt(option.value, 10);
+            });
+            larimers = parseInt(layoutForm.larimers.value, 10);
+            if(36 % coverage.length !== 0){throw 'coverage size must divide 36';}
+        }catch(e){
+            console.error(e);
+            return false;
         }
+
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+
         try{
-            let receipt = await roulette.autoBet(coverage, larimers, function(result){
+            let seedhash = await roulette.autoBet(coverage, larimers, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
                 if(result.winning_number in coverage){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
                     // Uncomment this to play till you win - for debug.
-                    // window.placeBet(coverage, larimers);
+                    // window.processBet(layoutForm);
                 }
                 document.getElementById('wheel').innerText = message;
                 document.getElementById('spinBtn').disabled = false;
             });
-            try{
-                console.log(receipt.processed.action_traces[0].act.data.seedhash);
-                return;
-            }catch(e){
+            if(seedhash){
+                console.debug(seedhash);
+                return seedhash;
+            }else{
                 document.getElementById('wheel').innerText = 'No available spins - retrying...';
             }
         }catch(e){
             console.error(e);
             document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
         }
-        setTimeout(function(){window.placeBet(coverage, larimers);}, 1000);
+        setTimeout(function(){window.processBet(layoutForm);}, 1000);
     };
 }());
     </script>
