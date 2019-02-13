@@ -108,8 +108,12 @@
             let actions = (await eos.getActions(window.roulette.account.name, after, 1)).actions;
             if(actions.length === 2){
                 let action = actions[1].action_trace.act;
-                if(action.name === 'notify' && action.data.seedhash === spin.seedhash){
-                    callback(action.data);
+                if(
+                    action.account === 'roulette' &&
+                    action.name === 'notify' &&
+                    action.data.seedhash === spin.seedhash
+                ){
+                    return callback(action.data);
                 }
                 after = actions[1].account_action_seq;
             }
