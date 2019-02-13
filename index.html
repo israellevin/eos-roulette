@@ -113,7 +113,7 @@
         try{
             let seedhash = await roulette.autoBet(coverage, larimers, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
-                if(parseInt(result.winning_number, 10) in coverage.values()){
+                if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
