@@ -117,12 +117,13 @@
                     // window.processBet(layoutForm);
                 }
                 document.getElementById('wheel').innerText = message;
+                document.getElementById('spinBtn').disabled = false;
             });
             if(seedhash){
-                document.getElementById('spinBtn').disabled = false;
                 if(seedhash.name && seedhash.name === 'TypeError'){
-                    document.getElementById('wheel').innerText = 'Could not place bet - aborting...';
                     console.error(seedhash);
+                    document.getElementById('wheel').innerText = 'Could not place bet - aborting...';
+                    document.getElementById('spinBtn').disabled = false;
                 }else{
                     console.log(seedhash);
                 }
@@ -133,6 +134,7 @@
         }catch(e){
             console.error(e);
             document.getElementById('wheel').innerText = 'Something weird happened - aborting...';
+            document.getElementById('spinBtn').disabled = false;
         }
     };
 }());
