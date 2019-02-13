@@ -12,6 +12,10 @@
     <script src="js/eosjs-jssig.js"></script>
     <script src="js/eosjs-chainid.js"></script>
     <script src="roulette.js"></script>
+
+    <style>
+        option {display: inline-block; padding-right: 3px;}
+    </style>
 </head>
 <body>
     <div style='font-size:140%; margin:10px;'>
@@ -26,7 +30,7 @@
     </div>
     <div>
         <form onsubmit="processBet(this); return false;">
-            <select name="coverage" multiple style="height: 50em">
+            <select name="coverage" multiple style="height: 1.4em">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -109,7 +113,7 @@
         try{
             let seedhash = await roulette.autoBet(coverage, larimers, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
-                if(result.winning_number in coverage){
+                if(parseInt(result.winning_number, 10) in coverage.values()){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
