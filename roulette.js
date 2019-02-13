@@ -68,30 +68,32 @@
     }
 
     // Bet on an existing spin.
-    async function bet(seedhash, towin, larimers, salt){
-        if(! window.roulette.account){
-            console.error('not logged in');
+    async function bet(seedhash, coverage, larimers, salt){
+        try{
+            return await eos.transaction({
+                actions: [{
+                    account: 'roulette',
+                    name: 'bet',
+                    authorization: [{
+                        actor: window.roulette.account.name,
+                        permission: 'active',
+                    }],
+                    data: {
+                        user: window.roulette.account.name,
+                        seedhash: seedhash,
+                        coverage: coverage,
+                        larimers: larimers,
+                        salt: salt,
+                    },
+                }]
+            }, {
+                blocksBehind: 3,
+                expireSeconds: 30,
+            });
+        }catch(e){
+            console.error(e);
+            return false;
         }
-        return await eos.transaction({
-            actions: [{
-                account: 'roulette',
-                name: 'bet',
-                authorization: [{
-                    actor: window.roulette.account.name,
-                    permission: 'active',
-                }],
-                data: {
-                    user: window.roulette.account.name,
-                    seedhash: seedhash,
-                    towin: towin,
-                    larimers: larimers,
-                    salt: salt,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        });
     }
 
     window.roulette = {
@@ -113,7 +115,11 @@
             }
             setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
         },
-        autoBet: async function(towin, larimers, callback){
+        autoBet: async function(coverage, larimers, callback){
+            if(! window.roulette.account){
+                console.error('not connected to scatter');
+                return false;
+            }
             let spin = await getSpin();
             if(! spin){
                 console.error('no spin found');
@@ -122,7 +128,14 @@
             window.roulette.poll(
                 spin, (await eos.getActions(window.roulette.account.name, -1, -1)).actions[0].account_action_seq, callback
             );
-            return await bet(spin.seedhash, parseInt(towin, 10), parseInt(larimers, 10), +new Date());
+            try{
+                return (await bet(
+                    spin.seedhash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.seedhash;
+            }catch(e){
+                console.error(e);
+                return e;
+            }
         }
     };
 }());

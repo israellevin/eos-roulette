@@ -12,6 +12,10 @@
     <script src="js/eosjs-jssig.js"></script>
     <script src="js/eosjs-chainid.js"></script>
     <script src="roulette.js"></script>
+
+    <style>
+        option {display: inline-block; padding-right: 3px;}
+    </style>
 </head>
 <body>
     <div style='font-size:140%; margin:10px;'>
@@ -25,8 +29,8 @@
 	.
     </div>
     <div>
-        <form onsubmit="placeBet(this.towin.value, this.larimers.value); return false;">
-            <select name="towin">
+        <form onsubmit="processBet(this); return false;">
+            <select name="coverage" multiple style="height: 1.4em">
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -90,33 +94,52 @@
     });
 
     // Place a bet.
-    window.placeBet = async function(towin, larimers){
-        document.getElementById('spinBtn').disabled = true;
-        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + towin + ' to win...';
+    window.processBet = async function(layoutForm){
+        let coverage, larimers;
         try{
-            let receipt = await roulette.autoBet(towin, larimers, function(result){
+            coverage = Array.prototype.map.call(layoutForm.coverage.selectedOptions, function(option){
+                return parseInt(option.value, 10);
+            });
+            larimers = parseInt(layoutForm.larimers.value, 10);
+            if(36 % coverage.length !== 0){throw 'coverage size must divide 36';}
+        }catch(e){
+            console.error(e);
+            return false;
+        }
+
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+
+        try{
+            let seedhash = await roulette.autoBet(coverage, larimers, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.name + ' ';
-                if(parseInt(towin, 10) === result.winning_number){
-                    message += ' won ' + (larimers * 36) + ' larimers! Congrats!';
+                if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
+                    message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
                     // Uncomment this to play till you win - for debug.
-                    // window.placeBet(+new Date() % 37, +new Date() % 10);
+                    // window.processBet(layoutForm);
                 }
                 document.getElementById('wheel').innerText = message;
                 document.getElementById('spinBtn').disabled = false;
             });
-            try{
-                console.log(receipt.processed.action_traces[0].act.data.seedhash);
-                return;
-            }catch(e){
-                document.getElementById('wheel').innerText = 'No available spins - retrying...';
+            if(seedhash){
+                if(seedhash.name && seedhash.name === 'TypeError'){
+                    console.error(seedhash);
+                    document.getElementById('wheel').innerText = 'Could not place bet - aborting...';
+                    document.getElementById('spinBtn').disabled = false;
+                }else{
+                    console.log(seedhash);
+                }
+            }else{
+                document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+                setTimeout(function(){window.processBet(layoutForm);}, 1000);
             }
         }catch(e){
             console.error(e);
-            document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+            document.getElementById('wheel').innerText = 'Something weird happened - aborting...';
+            document.getElementById('spinBtn').disabled = false;
         }
-        setTimeout(function(){window.placeBet(towin, larimers);}, 1000);
     };
 }());
     </script>
