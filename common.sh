@@ -1,6 +1,6 @@
 #!/bin/bash
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
-pgrep nodeos || nodeos -e -p eosio --data-dir blockchain --config-dir blockchain \
+pgrep nodeos > /dev/null || nodeos -e -p eosio --data-dir blockchain --config-dir blockchain \
 --plugin eosio::producer_plugin \
 --plugin eosio::chain_api_plugin \
 --plugin eosio::http_plugin \
