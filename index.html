@@ -124,16 +124,22 @@
                 document.getElementById('spinBtn').disabled = false;
             });
             if(seedhash){
-                console.debug(seedhash);
-                return seedhash;
+                if(seedhash.name && seedhash.name === 'TypeError'){
+                    console.error(seedhash);
+                    document.getElementById('wheel').innerText = 'Could not place bet - aborting...';
+                    document.getElementById('spinBtn').disabled = false;
+                }else{
+                    console.log(seedhash);
+                }
             }else{
-                document.getElementById('wheel').innerText = 'No available spins - retrying...';
+                document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+                setTimeout(function(){window.processBet(layoutForm);}, 1000);
             }
         }catch(e){
             console.error(e);
-            document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+            document.getElementById('wheel').innerText = 'Something weird happened - aborting...';
+            document.getElementById('spinBtn').disabled = false;
         }
-        setTimeout(function(){window.processBet(layoutForm);}, 1000);
     };
 }());
     </script>
