@@ -39,3 +39,8 @@ cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubk
 
 # Put the chain ID in js file, for convenience.
 echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
+
+echo "Chain ID is:"
+cat chainid.txt
+echo "Private key is:"
+cat privkey.txt

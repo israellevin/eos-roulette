@@ -108,7 +108,7 @@
         }
 
         document.getElementById('spinBtn').disabled = true;
-        document.getElementById('wheel').innerText = 'Roulette is spinning... Alice placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+        document.getElementById('wheel').innerText = 'Roulette is spinning... ' + roulette.account.name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
 
         try{
             let seedhash = await roulette.autoBet(coverage, larimers, function(result){
