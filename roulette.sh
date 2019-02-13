@@ -14,14 +14,17 @@ spin(){
     cleos push action roulette spin '["'$seedhash'", '$(date +%s)', '$1']' -p roulette@owner
 }
 
-cleos get table roulette roulette spins
+echo 'open spins:' `cleos get table roulette roulette spins -l -1 | grep id\" | wc -l`
+cleos get table roulette roulette spins -l 20| grep id\"
+paid=0
 while :; do
     oldest=$(cleos get table roulette roulette spins --index 3 --key-type i64 -U $(date +%s) -l1 | grep -Po '(?<="seedhash": ").*(?=\")')
     [ "$oldest" ] || break;
     pay $oldest
+    let paid++
 done
+echo 'paid' $((paid)) 'spins'
 current=$(cleos get table roulette roulette spins --index 3 --key-type i64 -L $(date +%s) -l1 | grep -Po '(?<="seedhash": ").*(?=\")')
 for i in $(seq 5 5 30); do
     spin $(date -d "+$i second" +%s)
 done
-cleos get table roulette roulette spins
