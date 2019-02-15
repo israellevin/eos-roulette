@@ -16,6 +16,7 @@ echo '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3' | cleos wallet import
 # Create accounts.
 pubkey=$(cat ./pubkey.txt)
 cleos create account eosio eosio.token $pubkey -p eosio@active
+cleos create account eosio eosio.system $pubkey -p eosio@active
 cleos create account eosio roulette $pubkey -p eosio@active
 cleos create account eosio alice $pubkey -p eosio@active
 
@@ -24,6 +25,10 @@ git clone https://github.com/eosio/eosio.contracts
 eosio-cpp -I eosio.contracts/eosio.token/include/ -o eosio.token.wasm eosio.contracts/eosio.token/src/eosio.token.cpp --abigen
 mv eosio.token.wasm eosio.token.abi eosio.contracts/eosio.token/.
 cleos set contract eosio.token ./eosio.contracts/eosio.token/ -p eosio.token@active
+
+#compile system token
+eosio-cpp -I eosio.contracts/eosio.system/include/ -I eosio.contracts/eosio.token/include/ -o eosio.system.wasm eosio.contracts/eosio.system/src/eosio.system.cpp --abigen
+mv eosio.system.wasm eosio.system.abi eosio.contracts/eosio.system/.
 
 # Create token and distribute.
 cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token@active
