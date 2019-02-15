@@ -15,10 +15,10 @@ echo '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3' | cleos wallet import
 
 # Create accounts.
 pubkey=$(cat ./pubkey.txt)
-cleos create account eosio eosio.token $pubkey -p eosio@active
-cleos create account eosio eosio.system $pubkey -p eosio@active
-cleos create account eosio roulette $pubkey -p eosio@active
-cleos create account eosio alice $pubkey -p eosio@active
+cleos create account eosio eosio.token ${pubkey} -p eosio@active
+cleos create account eosio eosio.system ${pubkey} -p eosio@active
+cleos create account eosio roulette ${pubkey} -p eosio@active
+cleos create account eosio alice ${pubkey} -p eosio@active
 
 # Get and compile token contract.
 git clone https://github.com/eosio/eosio.contracts
@@ -39,8 +39,8 @@ cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":
 ./compile.sh
 
 # Give permissions.
-cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
-cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
+cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'${pubkey}'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
+cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'${pubkey}'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
 
 # Put the chain ID in js file, for convenience.
 echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
