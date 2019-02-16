@@ -44,8 +44,10 @@ cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":
 cleos push action eosio init '[0, "4,EOS"]' -p eosio@active
 
 # Get RAM and BW.
-cleos system buyram alice alice '1.0000 EOS'
-cleos system delegatebw alice alice '1.0000 EOS' '1.0000 EOS' -p alice@active
+cleos system buyram roulette roulette '100.0000 EOS'
+cleos system delegatebw roulette roulette '100.0000 EOS' '100.0000 EOS' -p roulette@active
+cleos system buyram alice alice '100.0000 EOS'
+cleos system delegatebw alice alice '100.0000 EOS' '100.0000 EOS' -p alice@active
 
 # Compile and set the roulette contract.
 ./compile.sh
