@@ -17,18 +17,18 @@ status
 echo Hit enter to create a spin and bet on it
 read
 
-seed=$(openssl rand -hex 32)
-seedhash="$(cleos push action -j roulette gethash '["'$seed'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
-cleos push action roulette spin '["'$seedhash'", 1, '$(date -d '+5 seconds' +%s)']' -p roulette@owner
+secret=$(openssl rand -hex 32)
+hash="$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
+cleos push action roulette spin '["'$hash'", 1, '$(date -d '+5 seconds' +%s)']' -p roulette@owner
 
 for i in {0..100}; do
-    cleos push action roulette bet '["alice", "'$seedhash'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $i]" -p alice@active
+    cleos push action roulette bet '["alice", "'$hash'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $i]" -p alice@active
 done
 status
 echo Hit enter to pay winners
 read
 
-while ! cleos push action roulette pay '["'$seed'"]' -p roulette@owner; do sleep 1; done
+while ! cleos push action roulette pay '["'$secret'"]' -p roulette@owner; do sleep 1; done
 echo Hit enter to see final stats
 read
 

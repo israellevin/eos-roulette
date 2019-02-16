@@ -69,7 +69,7 @@
     }
 
     // Bet on an existing spin.
-    async function bet(seedhash, coverage, larimers, salt){
+    async function bet(hash, coverage, larimers, salt){
         try{
             return await eos.transaction({
                 actions: [{
@@ -81,7 +81,7 @@
                     }],
                     data: {
                         user: window.roulette.scatterAccount,
-                        seedhash: seedhash,
+                        hash: hash,
                         coverage: coverage,
                         larimers: larimers,
                         salt: salt,
@@ -112,7 +112,7 @@
                 if(
                     action.account === 'roulette' &&
                     action.name === 'notify' &&
-                    action.data.seedhash === spin.seedhash
+                    action.data.hash === spin.hash
                 ){
                     return callback(action.data);
                 }
@@ -135,8 +135,8 @@
             );
             try{
                 return (await bet(
-                    spin.seedhash, coverage, parseInt(larimers, 10), +new Date()
-                )).processed.action_traces[0].act.data.seedhash;
+                    spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.hash;
             }catch(e){
                 console.error(e);
                 return e;

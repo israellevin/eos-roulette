@@ -13,39 +13,39 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Create a new spin to bet on.
-            void spin(checksum256 seedhash, uint32_t minbettime, uint32_t maxbettime){
+            void spin(checksum256 hash, uint32_t minbettime, uint32_t maxbettime){
                 require_auth(_self);
 
                 // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
-                auto spins_iterator = spins_seedhash_index.find(seedhash);
+                auto spins_hash_index = spins.get_index<"hash"_n>();
+                auto spins_iterator = spins_hash_index.find(hash);
 
                 // Validate.
-                eosio_assert(spins_iterator == spins_seedhash_index.end(), "duplicate hash");
+                eosio_assert(spins_iterator == spins_hash_index.end(), "duplicate hash");
                 eosio_assert(now() < maxbettime, "maxbettime not in the future");
 
                 // Write in table.
                 spins.emplace(_self, [&](auto& row){
                     row.id = spins.available_primary_key();
-                    row.seedhash = seedhash;
+                    row.hash = hash;
                     row.minbettime = minbettime;
                     row.maxbettime = maxbettime;
                 });
             }
 
         [[eosio::action]]
-            // Bet larimers on a coverage of numbers in spin seedhash and add a salt.
-            void bet(name user, checksum256 seedhash, std::vector<uint8_t> coverage, uint64_t larimers, uint64_t salt){
+            // Bet larimers on a coverage of numbers in spin hash and add a salt.
+            void bet(name user, checksum256 hash, std::vector<uint8_t> coverage, uint64_t larimers, uint64_t salt){
                 require_auth(user);
 
                 //// Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
-                auto spins_iterator = spins_seedhash_index.find(seedhash);
+                auto spins_hash_index = spins.get_index<"hash"_n>();
+                auto spins_iterator = spins_hash_index.find(hash);
 
                 // validate.
-                eosio_assert(spins_iterator != spins_seedhash_index.end(), "hash not found");
+                eosio_assert(spins_iterator != spins_hash_index.end(), "hash not found");
                 eosio_assert(36 % coverage.size() == 0, "coverage size does not divide 36");
                 uint32_t n = now();
                 eosio_assert(n > spins_iterator->minbettime, "betting not yet started");
@@ -61,7 +61,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 bets_indexed bets(_code, _code.value);
                 bets.emplace(user, [&](auto& row){
                     row.id = bets.available_primary_key();
-                    row.seedhash = seedhash;
+                    row.hash = hash;
                     row.coverage = coverage;
                     row.salt = salt;
                     row.larimers = larimers;
@@ -71,42 +71,42 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Pay winners of a spin.
-            void pay(checksum256 seed){
+            void pay(checksum256 secret){
                 require_auth(_self);
 
-                const checksum256 seedhash = sha256((const char *)&seed, sizeof(seed));
+                const checksum256 hash = sha256((const char *)&secret, sizeof(secret));
 
                 // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
-                auto spins_seedhash_index = spins.get_index<"seedhash"_n>();
-                auto spins_iterator = spins_seedhash_index.find(seedhash);
+                auto spins_hash_index = spins.get_index<"hash"_n>();
+                auto spins_iterator = spins_hash_index.find(hash);
 
                 // Validate.
-                eosio_assert(spins_iterator != spins_seedhash_index.end(), "matching hash not found");
+                eosio_assert(spins_iterator != spins_hash_index.end(), "matching hash not found");
                 eosio_assert(now() > spins_iterator->maxbettime, "betting not yet ended");
 
                 // Bets iterator tools.
                 bets_indexed bets(_code, _code.value);
-                auto bets_spin_index = bets.get_index<"seedhash"_n>();
+                auto bets_spin_index = bets.get_index<"hash"_n>();
 
-                // Combine seed with all user salts.
-                seednsalt_struct seednsalt;
-                seednsalt.seed = seed;
+                // Combine secret with all user salts.
+                saltedsecret_struct saltedsecret;
+                saltedsecret.secret = secret;
                 for(
-                    auto bets_iterator = bets_spin_index.find(seedhash);
+                    auto bets_iterator = bets_spin_index.find(hash);
                     bets_iterator != bets_spin_index.end();
                     bets_iterator++
                 ){
-                    seednsalt.salts.push_back(bets_iterator->salt);
+                    saltedsecret.salts.push_back(bets_iterator->salt);
                 }
 
                 // Calculate winning number.
-                uint8_t winning_number = calculate_winning_number(seednsalt);
+                uint8_t winning_number = calculate_winning_number(saltedsecret);
 
                 // Handle bettors.
-                for(auto bets_iterator = bets_spin_index.find(seedhash); bets_iterator != bets_spin_index.end(); bets_iterator++){
+                for(auto bets_iterator = bets_spin_index.find(hash); bets_iterator != bets_spin_index.end(); bets_iterator++){
                     // Notifify bettor.
-                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winning_number, seedhash});
+                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winning_number, hash});
 
                     // Pay if bettor chose winning number.
                     uint64_t winnings = bets_iterator->larimers * 36 / bets_iterator->coverage.size();
@@ -125,16 +125,16 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
                 // Erase the bets and the spin.
                 for(
-                    auto bets_iterator = bets_spin_index.find(seedhash);
+                    auto bets_iterator = bets_spin_index.find(hash);
                     bets_iterator != bets_spin_index.end();
                     bets_iterator = bets_spin_index.erase(bets_iterator)
                 );
-                spins_seedhash_index.erase(spins_iterator);
+                spins_hash_index.erase(spins_iterator);
             }
 
         [[eosio::action]]
             // Send spin result to bettor.
-            void notify(name user, uint8_t winning_number, checksum256 seedhash){
+            void notify(name user, uint8_t winning_number, checksum256 hash){
                 require_auth(_self);
                 require_recipient(user);
             }
@@ -157,16 +157,16 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         [[eosio::action]]
             // Hash a hex string
-            void gethash(checksum256 seed){
-                print(checksum256_to_hex(sha256((const char*)&seed, sizeof(seed))));
+            void gethash(checksum256 secret){
+                print(checksum256_to_hex(sha256((const char*)&secret, sizeof(secret))));
             }
 
         [[eosio::action]]
             // Calculate a winning number from a hash, for testing
-            void calcwin(checksum256 seed){
-                seednsalt_struct seednsalt;
-                seednsalt.seed = seed;
-                print(calculate_winning_number(seednsalt));
+            void calcwin(checksum256 secret){
+                saltedsecret_struct saltedsecret;
+                saltedsecret.secret = secret;
+                print(calculate_winning_number(saltedsecret));
             }
 
     private:
@@ -174,31 +174,31 @@ class [[eosio::contract]] roulette : public eosio::contract{
         // Spins table - indexed by hash.
         struct [[eosio::table]] spin_row{
             uint64_t id;
-            checksum256 seedhash;
+            checksum256 hash;
             uint32_t minbettime;
             uint32_t maxbettime;
             uint64_t primary_key() const {return id;}
-            checksum256 by_seedhash() const {return seedhash;}
+            checksum256 by_hash() const {return hash;}
             uint64_t by_maxbettime() const {return maxbettime;}
         };
-        typedef multi_index<"spins"_n, spin_row, indexed_by<"seedhash"_n, const_mem_fun<spin_row, checksum256, &spin_row::by_seedhash>>, indexed_by<"maxbettime"_n, const_mem_fun<spin_row, uint64_t, &spin_row::by_maxbettime>>> spins_indexed;
+        typedef multi_index<"spins"_n, spin_row, indexed_by<"hash"_n, const_mem_fun<spin_row, checksum256, &spin_row::by_hash>>, indexed_by<"maxbettime"_n, const_mem_fun<spin_row, uint64_t, &spin_row::by_maxbettime>>> spins_indexed;
 
-        // Bets table - indexed by incrementing id and seedhash.
+        // Bets table - indexed by incrementing id and hash.
         struct [[eosio::table]] bet_row{
             uint64_t id;
-            checksum256 seedhash;
+            checksum256 hash;
             std::vector<uint8_t> coverage;
             uint64_t larimers;
             uint64_t salt;
             name user;
             uint64_t primary_key() const {return id;}
-            checksum256 by_seedhash() const {return seedhash;}
+            checksum256 by_hash() const {return hash;}
         };
-        typedef multi_index<"bets"_n, bet_row, indexed_by<"seedhash"_n, const_mem_fun<bet_row, checksum256, &bet_row::by_seedhash>>> bets_indexed;
+        typedef multi_index<"bets"_n, bet_row, indexed_by<"hash"_n, const_mem_fun<bet_row, checksum256, &bet_row::by_hash>>> bets_indexed;
 
-        // Seed and salts, for hashing.
-        struct seednsalt_struct{
-            checksum256 seed;
+        // Secret and salts, for hashing.
+        struct saltedsecret_struct{
+            checksum256 secret;
             std::vector<uint64_t> salts;
         };
 
@@ -208,10 +208,10 @@ class [[eosio::contract]] roulette : public eosio::contract{
         // above, move on to the next byte and do the same thing. If you run
         // out of bytes, which is pretty unlikely, just add a new salt of 1 and
         // try again.
-        uint8_t calculate_winning_number(seednsalt_struct seednsalt){
-            checksum256 seednsalt_hash = sha256((const char *)&seednsalt, sizeof(seednsalt));
-            char* hash_char = (char*)&seednsalt_hash;
-            uint8_t hash_size = sizeof(seednsalt_hash);
+        uint8_t calculate_winning_number(saltedsecret_struct saltedsecret){
+            checksum256 saltedsecret_hash = sha256((const char *)&saltedsecret, sizeof(saltedsecret));
+            char* hash_char = (char*)&saltedsecret_hash;
+            uint8_t hash_size = sizeof(saltedsecret_hash);
             uint8_t char_value;
             for(int i = 0; i < hash_size; i++){
                 char_value = (uint8_t)hash_char[(hash_size / 2 + hash_size - 1 - i) % hash_size];
@@ -219,9 +219,9 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     return char_value % 37;
                 }
             }
-            seednsalt.salts.push_back(1);
+            saltedsecret.salts.push_back(1);
             print("adding salt. ");
-            return calculate_winning_number(seednsalt);
+            return calculate_winning_number(saltedsecret);
         }
 
         // Convert checksum256 to hex string.
