@@ -204,7 +204,7 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
         // Get a winning roulette number from a checksum256.
         // The method is to look at the first byte of the hash - if the value
-        // is below 222, modolu it by 37 and you have a winner. If the hash is
+        // is below 222, modulo it by 37 and you have a winner. If the hash is
         // above, move on to the next byte and do the same thing. If you run
         // out of bytes, which is pretty unlikely, just add a new salt of 1 and
         // try again.
