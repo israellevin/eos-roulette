@@ -9,10 +9,10 @@
         _balance: 1000.0,
         getBalance: function(){return {rows: [{balance: window.roulette._balance + ' EOS'}]};},
         getSpin: function(){return {
-            id: 0, seedhash: "0000000000000000000000000000000000000000000000000000000000000000",
+            id: 0, hash: "0000000000000000000000000000000000000000000000000000000000000000",
             minbettime: 0, maxbettime: 9999999999};
         },
-        bet: function(seedhash, towin, larimers){
+        bet: function(hash, towin, larimers){
             window.roulette._balance -= parseInt(larimers, 10);
             return {processed: {action_traces: [{act: 'mock'}]}};
         },

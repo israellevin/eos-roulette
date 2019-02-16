@@ -22,9 +22,9 @@
     function login(success){
         scatterjs.connect('roulette', {network}).then(connected => {
             if(!connected) return false;
-            scatterjs.scatter.login().then(function(){
-                window.roulette.account = scatterjs.account('eos');
-                success(window.roulette.account);
+            scatterjs.scatter.login().then(async function(){
+                window.roulette.scatterAccount = scatterjs.account('eos').name;
+                success(await getAccount());
             });
         });
     }
@@ -39,7 +39,8 @@
 
     // Get current user's account.
     async function getAccount(){
-        return await eos.getAccount(window.roulette.account.name);
+        window.roulette.account = await eos.getAccount(window.roulette.scatterAccount);
+        return window.roulette.account;
     }
 
     // Get current user's balance.
@@ -47,7 +48,7 @@
         return await eos.getTableRows({
             json: true,
             code: 'eosio.token',
-            scope: window.roulette.account.name,
+            scope: window.roulette.scatterAccount,
             table: 'accounts',
             limit: 10,
         });
@@ -68,19 +69,19 @@
     }
 
     // Bet on an existing spin.
-    async function bet(seedhash, coverage, larimers, salt){
+    async function bet(hash, coverage, larimers, salt){
         try{
             return await eos.transaction({
                 actions: [{
                     account: 'roulette',
                     name: 'bet',
                     authorization: [{
-                        actor: window.roulette.account.name,
+                        actor: window.roulette.scatterAccount,
                         permission: 'active',
                     }],
                     data: {
-                        user: window.roulette.account.name,
-                        seedhash: seedhash,
+                        user: window.roulette.scatterAccount,
+                        hash: hash,
                         coverage: coverage,
                         larimers: larimers,
                         salt: salt,
@@ -105,13 +106,13 @@
         getSpin: getSpin,
         bet: bet,
         poll: async function(spin, after, callback){
-            let actions = (await eos.getActions(window.roulette.account.name, after, 1)).actions;
+            let actions = (await eos.getActions(window.roulette.scatterAccount, after, 1)).actions;
             if(actions.length === 2){
                 let action = actions[1].action_trace.act;
                 if(
                     action.account === 'roulette' &&
                     action.name === 'notify' &&
-                    action.data.seedhash === spin.seedhash
+                    action.data.hash === spin.hash
                 ){
                     return callback(action.data);
                 }
@@ -130,12 +131,12 @@
                 return false;
             }
             window.roulette.poll(
-                spin, (await eos.getActions(window.roulette.account.name, -1, -1)).actions[0].account_action_seq, callback
+                spin, (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq, callback
             );
             try{
                 return (await bet(
-                    spin.seedhash, coverage, parseInt(larimers, 10), +new Date()
-                )).processed.action_traces[0].act.data.seedhash;
+                    spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.hash;
             }catch(e){
                 console.error(e);
                 return e;
