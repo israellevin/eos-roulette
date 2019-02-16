@@ -19,7 +19,7 @@
 </head>
 <body>
     <div style='font-size:140%; margin:10px;'>
-        Hello <span id="user">???</span>, your balance is: <span id="balance">???</span> - cpu:<span id="cpu">???</span>
+        Hello <span id="user">???</span>, your balance is: <span id="balance">???</span><br> - cpu:<span id="cpu">???</span><br> - net:<span id="net">???</span>
     </div>
     <div id="status"></div>
     <div id="wheel-gif">
@@ -95,7 +95,11 @@
         // user stats updater. TODO currently just shows used cpu (-1 on local) - expand...
         (async function updateStats(){
             let cpu = (await roulette.getAccount())["cpu_limit"];
-            document.getElementById('cpu').innerText = cpu["used"];
+            let  net = (await roulette.getAccount())["net_limit"];
+            document.getElementById('cpu').innerText = 'used:' + cpu["used"] + ' available:' + cpu["available"] +
+                ' max:' + cpu["max"] + '.  ' + 100*cpu["used"]/cpu["available"] + '%';
+            document.getElementById('net').innerText = 'used:' + net["used"] + ' available:' + net["available"] +
+                ' max:' + net["max"] + '.  ' + 100*net["used"]/net["available"] + '%';
             setTimeout(updateStats, 1000);
         })();
     });
