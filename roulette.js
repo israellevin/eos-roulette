@@ -67,6 +67,20 @@
         })).rows[0];
     }
 
+    // Get a spin's bets.
+    // FIXME Do this with secondary index, there has to be a way!
+    async function getBets(seedhash){
+        return Array.prototype.filter.call((await eos.getTableRows({
+            json: true,
+            code: 'roulette',
+            scope: 'roulette',
+            table: 'bets',
+            limit: 9999,
+        })).rows, function(row){
+            return row.seedhash === seedhash;
+        });
+    }
+
     // Bet on an existing spin.
     async function bet(seedhash, coverage, larimers, salt){
         try{
@@ -103,6 +117,7 @@
         getAccount: getAccount,
         getBalance: getBalance,
         getSpin: getSpin,
+        getBets: getBets,
         bet: bet,
         poll: async function(spin, after, callback){
             let actions = (await eos.getActions(window.roulette.account.name, after, 1)).actions;
