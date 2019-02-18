@@ -1,0 +1,13 @@
+.status{
+    font-size:140%;
+    margin:10px;
+ }
+
+option{
+    display: inline-block;
+    padding-right: 3px;
+}
+
+.coverage{
+    height: 1.4em;
+}
