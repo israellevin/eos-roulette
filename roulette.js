@@ -24,7 +24,7 @@
             if(!connected) return false;
             scatterjs.scatter.login().then(async function(){
                 window.roulette.scatterAccount = scatterjs.account('eos').name;
-                success(await getAccount());
+                success(window.roulette.scatterAccount);
             });
         });
     }
