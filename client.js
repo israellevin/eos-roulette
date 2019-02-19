@@ -37,11 +37,11 @@
         }
 
         document.getElementById('spinBtn').disabled = true;
-        document.getElementById('wheel').innerText = 'Roulette is spinning... ' + accountName + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+        document.getElementById('wheel').innerText = 'Roulette is spinning... ' + roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
 
         try{
             let hash = await roulette.autoBet(coverage, larimers, function(result){
-                let message = 'Roulette stops on ' + result.winning_number + '! ' + accountName + ' ';
+                let message = 'Roulette stops on ' + result.winning_number + '! ' + roulette.account.account_name + ' ';
                 if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
