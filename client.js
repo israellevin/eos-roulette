@@ -17,7 +17,11 @@
         // user stats updater. TODO currently just shows used cpu (-1 on local) - expand...
         (async function updateStats(){
             let cpu = (await roulette.getAccount()).cpu_limit;
-            document.getElementById('cpu').innerText = cpu.used;
+            let net = (await roulette.getAccount()).net_limit;
+            document.getElementById('cpu').innerText = 'used:' + cpu.used + ' available:' + cpu.available +
+                ' max:' + cpu.max + '.  ' + 100*cpu.used/cpu.available + '%';
+            document.getElementById('net').innerText = 'used:' + net.used + ' available:' + net.available +
+                ' max:' + net.max + '.  ' + 100*net["used"]/net.available + '%';
             setTimeout(updateStats, 1000);
         })();
     });
