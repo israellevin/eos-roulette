@@ -27,6 +27,8 @@ def start_block(block):
 def commit_block(block):
     'Called when finishing to process a block.'
     print('committing block', block['block_num'])
+    global START_AT
+    START_AT = block['block_num']
 
 
 def rollback(last_irr_block):
@@ -41,22 +43,33 @@ def get_latest(irreversible_only=False):
     }).json()['last_irreversible_block_num' if irreversible_only else 'head_block_num']
 
 
-if __name__ == '__main__':
-    DEMUXER = demuxeos.Demux(
+def listen(account, name):
+    '''
+    Listen to a specific call on a specific account from a specific block
+    onwards (default to latest irreversible block).
+    '''
+    demuxer = demuxeos.Demux(
         client_node=NODE,
         start_block_fn=start_block,
         commit_block_fn=commit_block,
         rollback_fn=rollback)
-    DEMUXER.register_action(scan_action, account='eosio.token', name='transfer', is_effect=False)
-    DEMUXER.register_action(scan_action, account='eosio.token', name='transfer', is_effect=True)
+    global START_AT
+    if not START_AT:
+        START_AT = get_latest(True)
+    demuxer.register_action(scan_action, account, name, is_effect=False)
+    demuxer.register_action(scan_action, account, name, is_effect=True)
+    # pylint: disable=broad-except
+    try:
+        print('starting to listen at', START_AT)
+        demuxer.process_blocks(START_AT, include_effects=True, irreversible_only=True)
+    except Exception as exception:
+        print(exception)
+        listen(account, name)
 
+
+if __name__ == '__main__':
     try:
         START_AT = int(str(sys.argv[1]))
     except (IndexError, ValueError):
         START_AT = get_latest(True)
-
-    # pylint: disable=broad-except
-    try:
-        DEMUXER.process_blocks(START_AT, include_effects=True, irreversible_only=True)
-    except Exception as exception:
-        print(exception)
+    listen('roulettespin', 'sendgain')
