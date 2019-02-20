@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 'Get actions from EOS blockchain in real time.'
-import requests
+import json
+import sys
 
 import demuxeos
+import requests
 
 NODE = 'https://api.eosnewyork.io'
 
@@ -12,16 +14,9 @@ def store_data(*args, **kwargs):
     print('I would store this, but I am not yet implemented', args, kwargs)
 
 
-def scan_transaction(transaction):
-    'Scan a transaction for interesting data.'
-    print(transaction['trx'].keys())
-
-
-def scan_block(block):
-    'Scan a block for interesting data.'
-    for transaction in block['transactions']:
-        if isinstance(transaction['trx'], dict):
-            scan_transaction(transaction)
+def scan_action(action, block, transaction):
+    'Scan an action for interesting data.'
+    print(json.dumps((action, block, transaction), indent=4, sort_keys=True))
 
 
 def start_block(block):
@@ -32,7 +27,6 @@ def start_block(block):
 def commit_block(block):
     'Called when finishing to process a block.'
     print('committing block', block['block_num'])
-    scan_block(block)
 
 
 def rollback(last_irr_block):
@@ -40,14 +34,29 @@ def rollback(last_irr_block):
     print('rollback! LIB is', last_irr_block)
 
 
+def get_latest(irreversible_only=False):
+    'Get the latest block number.'
+    return requests.request("POST", "{}/v1/chain/get_info".format(NODE), headers={
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    }).json()['last_irreversible_block_num' if irreversible_only else 'head_block_num']
+
+
 if __name__ == '__main__':
-    demuxeos.Demux(
+    DEMUXER = demuxeos.Demux(
         client_node=NODE,
         start_block_fn=start_block,
         commit_block_fn=commit_block,
-        rollback_fn=rollback
-    ).process_blocks(
-        requests.request("POST", "{}/v1/chain/get_info".format(NODE), headers={
-            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-        }).json()['last_irreversible_block_num'],
-        include_effects=True, irreversible_only=True)
+        rollback_fn=rollback)
+    DEMUXER.register_action(scan_action, account='eosio.token', name='transfer', is_effect=False)
+    DEMUXER.register_action(scan_action, account='eosio.token', name='transfer', is_effect=True)
+
+    try:
+        START_AT = int(str(sys.argv[1]))
+    except (IndexError, ValueError):
+        START_AT = get_latest(True)
+
+    # pylint: disable=broad-except
+    try:
+        DEMUXER.process_blocks(START_AT, include_effects=True, irreversible_only=True)
+    except Exception as exception:
+        print(exception)
