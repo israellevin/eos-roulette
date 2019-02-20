@@ -1,22 +1,53 @@
 #!/usr/bin/env python3
-import json
+'Get actions from EOS blockchain in real time.'
 import requests
 
-BASE_URL = 'http://api.eosnewyork.io:80'
-BASE_HEADERS = {'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'}
-INTERESTING_ACCOUNTS = ['eosio.token']
+import demuxeos
 
-def process_block(block):
+NODE = 'https://api.eosnewyork.io'
+
+
+def store_data(*args, **kwargs):
+    'Store block data in a data store.'
+    print('I would store this, but I am not yet implemented', args, kwargs)
+
+
+def scan_transaction(transaction):
+    'Scan a transaction for interesting data.'
+    print(transaction['trx'].keys())
+
+
+def scan_block(block):
+    'Scan a block for interesting data.'
     for transaction in block['transactions']:
         if isinstance(transaction['trx'], dict):
-            for action in transaction['trx']['transaction']['actions']:
-                if action['account'] in INTERESTING_ACCOUNTS:
-                    print(json.dumps(action, indent=4, sort_keys=True))
+            scan_transaction(transaction)
 
-def read_block(block_id):
-    url = "{}/v1/chain/get_block".format(BASE_URL)
-    return requests.request("POST", url, headers=BASE_HEADERS, json={'block_num_or_id': block_id}).json()
+
+def start_block(block):
+    'Called when starting to process a block.'
+    print('starting block', block['block_num'])
+
+
+def commit_block(block):
+    'Called when finishing to process a block.'
+    print('committing block', block['block_num'])
+    scan_block(block)
+
+
+def rollback(last_irr_block):
+    'Called when rolling back.'
+    print('rollback! LIB is', last_irr_block)
+
 
 if __name__ == '__main__':
-    for block_id in range(43466700, 43466715):
-        process_block(read_block(block_id))
+    demuxeos.Demux(
+        client_node=NODE,
+        start_block_fn=start_block,
+        commit_block_fn=commit_block,
+        rollback_fn=rollback
+    ).process_blocks(
+        requests.request("POST", "{}/v1/chain/get_info".format(NODE), headers={
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        }).json()['last_irreversible_block_num'],
+        include_effects=True, irreversible_only=True)
