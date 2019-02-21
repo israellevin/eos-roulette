@@ -1,75 +1,89 @@
 #!/usr/bin/env python3
-'Get actions from EOS blockchain in real time.'
+'Get some EOS data.'
+import contextlib
 import json
-import sys
+import sqlite3
 
-import demuxeos
 import requests
 
-NODE = 'https://api.eosnewyork.io'
+# pylint: disable=line-too-long
+TOKEN = 'eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTMzMzQ2NzIsImp0aSI6IjIwMzU1OWI0LTExODAtNDBmYi05MWU1LTlhMzBlNmI3MmUwYSIsImlhdCI6MTU1MDc0MjY3MiwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU0VlBCLzBkVEtJcjR0TElDOTZobCtMZmd6dkNQdk1uSm83T29uWGEwVFlTUEFBL0NMUnRZenl0RmJMbWlPYUdYekhvZG5jZ0pHdE9xVnM1UTBpRmwwREg5Y0RoQzlqVGQ4NHpQRndnTGY0b1dWTFdJQ09JZ2FiUTYwSzM1dz09IiwidGllciI6ImJldGEtdjEiLCJ2IjoxfQ.9KqNDQaCU-6apBFFqOewxXfJ-jJ7R4EPiQLjqH863ZUecHB80DhdMXe3llambDlpaowICTBHs5rA2xcCG8uxyQ'
+# pylint: enable=line-too-long
+BASE_URL = 'https://mainnet.eos.dfuse.io'
 
 
-def store_data(*args, **kwargs):
-    'Store block data in a data store.'
-    print('I would store this, but I am not yet implemented', args, kwargs)
-
-
-def scan_action(action, block, transaction):
-    'Scan an action for interesting data.'
-    print(json.dumps((action, block, transaction), indent=4, sort_keys=True))
-
-
-def start_block(block):
-    'Called when starting to process a block.'
-    print('starting block', block['block_num'])
-
-
-def commit_block(block):
-    'Called when finishing to process a block.'
-    print('committing block', block['block_num'])
-    global START_AT
-    START_AT = block['block_num']
-
-
-def rollback(last_irr_block):
-    'Called when rolling back.'
-    print('rollback! LIB is', last_irr_block)
-
-
-def get_latest(irreversible_only=False):
-    'Get the latest block number.'
-    return requests.request("POST", "{}/v1/chain/get_info".format(NODE), headers={
-        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-    }).json()['last_irreversible_block_num' if irreversible_only else 'head_block_num']
-
-
-def listen(account, name):
-    '''
-    Listen to a specific call on a specific account from a specific block
-    onwards (default to latest irreversible block).
-    '''
-    demuxer = demuxeos.Demux(
-        client_node=NODE,
-        start_block_fn=start_block,
-        commit_block_fn=commit_block,
-        rollback_fn=rollback)
-    global START_AT
-    if not START_AT:
-        START_AT = get_latest(True)
-    demuxer.register_action(scan_action, account, name, is_effect=False)
-    demuxer.register_action(scan_action, account, name, is_effect=True)
-    # pylint: disable=broad-except
+@contextlib.contextmanager
+def sql_connection():
+    """Context manager for querying the database."""
     try:
-        print('starting to listen at', START_AT)
-        demuxer.process_blocks(START_AT, include_effects=True, irreversible_only=True)
+        connection = sqlite3.connect('eos.db')
+        yield connection.cursor()
+        connection.commit()
     except Exception as exception:
         print(exception)
-        listen(account, name)
+        raise
+    finally:
+        if 'connection' in locals():
+            connection.close()
 
 
-if __name__ == '__main__':
-    try:
-        START_AT = int(str(sys.argv[1]))
-    except (IndexError, ValueError):
-        START_AT = get_latest(True)
-    listen('roulettespin', 'sendgain')
+def init_db():
+    'Initialize DB.'
+    with sql_connection() as sql:
+        sql.execute('''
+            CREATE TABLE IF NOT EXISTS actions
+            (contract text, action text, caller text, kwargs text)''')
+
+
+def populate_db():
+    'Populate DB.'
+    res = requests.get("{}/{}".format(BASE_URL, 'v0/search/transactions'), params={
+        'token': TOKEN,
+        'start_block': 0,
+        'block_count': 99999999999,
+        'limit': 100,
+        'sort': 'desc',
+        'q': 'receiver:roulettespin'
+    }).json()
+
+    print('cursor', res['cursor'])
+    for transaction in res['transactions']:
+        print('---')
+        for action in transaction['lifecycle']['execution_trace']['action_traces']:
+            action = action['act']
+            print("{}@{}->{}.{}({})".format(
+                action['authorization'][0]['actor'],
+                action['authorization'][0]['permission'],
+                action['account'], action['name'], action['data']))
+            print('!')
+
+            with sql_connection() as sql:
+                sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?)", (
+                    action['account'], action['name'], action['authorization'][0]['actor'], json.dumps(action['data'])
+                ))
+
+
+# import websocket
+# WS = websocket.create_connection("wss://mainnet.eos.dfuse.io/v1/stream?token={}".format(TOKEN))
+# WS.send('''
+# {
+#   "type": "get_action_traces",
+#   "listen": true,
+#   "req_id": "stam",
+#   "data": {
+#     "accounts": "eosio.token",
+#     "action_name": "transfer",
+#     "with_inline_traces": true,
+#     "with_dtrxops": true,
+#     "with_ramops": true
+#   }
+# }
+# ''')
+# try:
+#     while True:
+#         p = json.loads(WS.recv())['data']
+#         print(p)
+# except Exception as exception:
+#     print(exception)
+# finally:
+#     WS.close()

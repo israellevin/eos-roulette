@@ -1,1 +1,2 @@
-py-demux-eos==0.0.1.dev1
+requests==2.21.0
+websocket-client==0.54.0
