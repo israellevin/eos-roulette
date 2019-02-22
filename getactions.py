@@ -6,9 +6,14 @@ import sqlite3
 
 import requests
 
-# pylint: disable=line-too-long
-TOKEN = 'eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTMzMzQ2NzIsImp0aSI6IjIwMzU1OWI0LTExODAtNDBmYi05MWU1LTlhMzBlNmI3MmUwYSIsImlhdCI6MTU1MDc0MjY3MiwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU0VlBCLzBkVEtJcjR0TElDOTZobCtMZmd6dkNQdk1uSm83T29uWGEwVFlTUEFBL0NMUnRZenl0RmJMbWlPYUdYekhvZG5jZ0pHdE9xVnM1UTBpRmwwREg5Y0RoQzlqVGQ4NHpQRndnTGY0b1dWTFdJQ09JZ2FiUTYwSzM1dz09IiwidGllciI6ImJldGEtdjEiLCJ2IjoxfQ.9KqNDQaCU-6apBFFqOewxXfJ-jJ7R4EPiQLjqH863ZUecHB80DhdMXe3llambDlpaowICTBHs5rA2xcCG8uxyQ'
-# pylint: enable=line-too-long
+TOKEN = (
+    'eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTMzMzQ2NzIsImp0aSI6I'
+    'jIwMzU1OWI0LTExODAtNDBmYi05MWU1LTlhMzBlNmI3MmUwYSIsImlhdCI6MTU1MDc0MjY3Miw'
+    'iaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiJDaVFBNmNieWU0VlBCLzBkVEtJcjR0TElDOTZobCtMZm'
+    'd6dkNQdk1uSm83T29uWGEwVFlTUEFBL0NMUnRZenl0RmJMbWlPYUdYekhvZG5jZ0pHdE9xVnM1'
+    'UTBpRmwwREg5Y0RoQzlqVGQ4NHpQRndnTGY0b1dWTFdJQ09JZ2FiUTYwSzM1dz09IiwidGllci'
+    'I6ImJldGEtdjEiLCJ2IjoxfQ.9KqNDQaCU-6apBFFqOewxXfJ-jJ7R4EPiQLjqH863ZUecHB80'
+    'DhdMXe3llambDlpaowICTBHs5rA2xcCG8uxyQ')
 BASE_URL = 'https://mainnet.eos.dfuse.io'
 
 
@@ -20,7 +25,7 @@ def sql_connection():
         yield connection.cursor()
         connection.commit()
     except Exception as exception:
-        print(exception)
+        print('sqlite error', exception)
         raise
     finally:
         if 'connection' in locals():
@@ -32,58 +37,67 @@ def init_db():
     with sql_connection() as sql:
         sql.execute('''
             CREATE TABLE IF NOT EXISTS actions
-            (contract text, action text, caller text, kwargs text)''')
+            (txid text, level int, contract text, action text, caller text, kwargs text)''')
 
 
-def populate_db():
+def process_action(action, txid, level):
+    'Parse an action and store it in the db.'
+    print("{}{}->{}.{}({})".format(
+        level * '-',
+        action['authorization'][0]['actor'],
+        action['account'], action['name'], action['data']))
+    with sql_connection() as sql:
+        sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?, ?, ?)", (
+            txid, level, action['account'], action['name'],
+            action['authorization'][0]['actor'], json.dumps(action['data'])))
+
+
+def process_traces(action, txid, level=0):
+    'Recursively parse traces of an action.'
+    process_action(action['act'], txid, level)
+    if not action['inline_traces']:
+        return
+    for trace in action['inline_traces']:
+        process_traces(trace, txid, level + 1)
+
+
+def process_transaction(transaction):
+    'Parse a transaction.'
+    txid = transaction['lifecycle']['id']
+    print("[{}]".format(txid))
+    for action in transaction['lifecycle']['execution_trace']['action_traces']:
+        process_traces(action, txid)
+
+
+def populate_db(cursor=None):
     'Populate DB.'
-    res = requests.get("{}/{}".format(BASE_URL, 'v0/search/transactions'), params={
-        'token': TOKEN,
-        'start_block': 0,
-        'block_count': 99999999999,
-        'limit': 100,
-        'sort': 'desc',
-        'q': 'receiver:roulettespin'
-    }).json()
+    try:
+        res = requests.get("{}/{}".format(BASE_URL, 'v0/search/transactions'), params={
+            'token': TOKEN,
+            'start_block': 43635900,
+            'block_count': 100,
+            'limit': 100,
+            'q': 'receiver:roulettespin',
+            'cursor': cursor
+        }).json()
 
-    print('cursor', res['cursor'])
-    for transaction in res['transactions']:
-        print('---')
-        for action in transaction['lifecycle']['execution_trace']['action_traces']:
-            action = action['act']
-            print("{}@{}->{}.{}({})".format(
-                action['authorization'][0]['actor'],
-                action['authorization'][0]['permission'],
-                action['account'], action['name'], action['data']))
-            print('!')
+# pylint: disable=broad-except
+    except Exception as exception:
+        print('request error, retrying', exception)
+        return populate_db(cursor)
+# pylint: enable=broad-except
 
-            with sql_connection() as sql:
-                sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?)", (
-                    action['account'], action['name'], action['authorization'][0]['actor'], json.dumps(action['data'])
-                ))
+    try:
+        for transaction in res['transactions']:
+            process_transaction(transaction)
+    except Exception as exception:
+        print(res)
+        raise
+    if res['cursor']:
+        print('cursor found, getting more', res['cursor'])
+        populate_db(res['cursor'])
+    return None
 
 
-# import websocket
-# WS = websocket.create_connection("wss://mainnet.eos.dfuse.io/v1/stream?token={}".format(TOKEN))
-# WS.send('''
-# {
-#   "type": "get_action_traces",
-#   "listen": true,
-#   "req_id": "stam",
-#   "data": {
-#     "accounts": "eosio.token",
-#     "action_name": "transfer",
-#     "with_inline_traces": true,
-#     "with_dtrxops": true,
-#     "with_ramops": true
-#   }
-# }
-# ''')
-# try:
-#     while True:
-#         p = json.loads(WS.recv())['data']
-#         print(p)
-# except Exception as exception:
-#     print(exception)
-# finally:
-#     WS.close()
+init_db()
+populate_db()
