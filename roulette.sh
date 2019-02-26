@@ -4,6 +4,7 @@ secretsdir=secrets
 mkdir -p "$secretsdir"
 paid=()
 spun=()
+errors=()
 
 pay(){
     paid+=("$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)")
@@ -24,19 +25,21 @@ while :; do
         cleos get table roulette roulette spins --index 3 --key-type i64 -U $(date +%s) -l1 |\
         grep -Po '(?<="hash": ").*(?=\")')
     [ "$payable" ] || break;
-    pay $payable 2>/dev/null
+    pay $payable 2>errors.txt
 done
 
 echo ${#paid[@]} paid
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
-for i in $(seq 5 5 30); do
-    spin $(date -d "+$i second" +%s) 2>/dev/null
+for i in $(seq 30 30 60); do
+    spin $(date -d "+$i second" +%s) 2>errors.txt
 done
 
 
 echo ${#spun[@]} spun
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
+cat errors.txt
+> errors.txt
 printf '%s\n' "${paid[@]}"
 printf '%s\n' "${spun[@]}"

@@ -16,7 +16,6 @@
 
     const rpc = new eosjs_jsonrpc.default(network.protocol + '://' + network.host + ':' + network.port);
     const eos = scatterjs.eos(network, Eos, {rpc, beta3:true});
-    window.stam = eos;
 
     // Login to scatter.
     function login(success){
@@ -37,7 +36,7 @@
         });
     }
 
-    // Get current user's account.
+    // Get current user's account details.
     async function getAccount(){
         window.roulette.account = await eos.getAccount(window.roulette.scatterAccount);
         return window.roulette.account;
@@ -54,8 +53,8 @@
         });
     }
 
-    // Get the currently running spin with the smallest maxbettime.
-    async function getSpin(){
+    // Get the currently running spin with the smallest maxbettime larget than MinMaxbettime.
+    async function getSpin(MinMaxbettime){
         return (await eos.getTableRows({
             json: true,
             code: 'roulette',
@@ -63,14 +62,14 @@
             table: 'spins',
             index_position: 3,
             key_type: 'i64',
-            lower_bound: Math.round(new Date() / 1000) + 10,
+            lower_bound: MinMaxbettime,
             limit: 1,
         })).rows[0];
     }
 
     // Get a spin's bets.
     // FIXME Do this with secondary index, there has to be a way!
-    async function getBets(seedhash){
+    async function getBets(hash){
         return Array.prototype.filter.call((await eos.getTableRows({
             json: true,
             code: 'roulette',
@@ -78,7 +77,7 @@
             table: 'bets',
             limit: 9999,
         })).rows, function(row){
-            return row.seedhash === seedhash;
+            return row.hash === hash;
         });
     }
 
@@ -121,6 +120,9 @@
         getBets: getBets,
         bet: bet,
         poll: async function(spin, after, callback){
+            if(after < 0){
+                after = (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq;
+            }
             let actions = (await eos.getActions(window.roulette.scatterAccount, after, 1)).actions;
             if(actions.length === 2){
                 let action = actions[1].action_trace.act;
@@ -129,6 +131,7 @@
                     action.name === 'notify' &&
                     action.data.hash === spin.hash
                 ){
+                    console.log(action.data);
                     return callback(action.data);
                 }
                 after = actions[1].account_action_seq;
@@ -140,14 +143,12 @@
                 console.error('not connected to scatter');
                 return false;
             }
-            let spin = await getSpin();
+            let spin = await getSpin(Math.round(new Date() / 1000) + 10);
             if(! spin){
                 console.error('no spin found');
                 return false;
             }
-            window.roulette.poll(
-                spin, (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq, callback
-            );
+            window.roulette.poll(spin, -1, callback);
             try{
                 return (await bet(
                     spin.hash, coverage, parseInt(larimers, 10), +new Date()
