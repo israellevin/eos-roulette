@@ -15,58 +15,69 @@
             font-size: 9pt;
         }
         .list-group-item{
-            padding: .25rem .25rem;
+            padding: .65rem .25rem;
             background-color: transparent;
             border: none;
+        }
+        .btn{
+            padding: 0;
+            line-height: normal;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <!--Main Header-->
-    <div class="row border fixed-top" style="max-height: 50px; background-color: rgba(255,0,0,0.8);">
+    <div class="row border fixed-top" style="max-height: 42px; background-color: rgba(255,0,0,0.8);">
         <div class="col-12 ">
             <h2>Main Header</h2>
         </div>
     </div>
 
     <!--Main space-->
-    <div class="row border" style="padding-top: 50px; background-color: rgba(0,255,0,0.1);">
+    <div class="row border" style="padding-top: 42px; background-color: rgba(0,255,0,0.1);">
         <div class="col-12 ">
             <!--Messages-->
-            <div class="row border" style="max-height: 50px;">
+            <div class="row border" style="max-height: 42px;">
                 <h3>Messages</h3>
             </div>
             <!--Desk-->
             <div class="row" style="padding-bottom: 50px;">
-                <div class="col-1" style="max-width: 58px">
+                <div class="col-1" style="max-width: 45px">
                     <div>
-                        <p>History:</p>12<br>3<br>0<br>35
+                        <p>History</p>12<br>3<br>0<br>35
                     </div>
                 </div>
                 <div class="col-9" style="max-width: 200px; overflow-y:scroll; border:1px solid chocolate !important; padding:0; background-color: rgba(0,0,255,0.1);">
                     <img src="full-felt.jpg" width=200 height=460>
                 </div>
-                <div class="col-1 col-sm-1" style="min-width: 100px; padding:0; border:1px solid red !important">
+                <div class="col-1 col-sm-1" style="min-width: 113px; padding:0; border:1px solid red !important">
                     <div class="container" style="min-height:120px; border:1px solid blue !important">
                         <ul class="list-group">
                             <i class="fa fa-dot-circle-o list-group-item"> player 1</i>
                             <i class="fa fa-dot-circle-o list-group-item"> player 2</i>
-                            <i class="fa fa-dot-circle-o list-group-item"> player 3</i>
+                            <i class="fa fa-dot-circle-o list-group-item"> player 3<br> bet:0.3</i>
                             <i class="fa fa-dot-circle-o list-group-item"> player 4</i>
                         </ul>
                     </div>
                     <div class="container" style="min-height:120px; position: absolute; bottom: 0; border:1px solid green !important">
-                        <div style="font-size: 140%">drag this token</div>
+                        <div style="border: 1px solid gray; margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
+                        <div style="font-size: 120%">drag token to bet</div>
                         <i class="fa fa-dot-circle-o fa-4x" aria-hidden="true"></i>
-                        <div style="">1 token = 0.5 EOS</div>
+                        <div style="border: 1px solid gray; margin-top: 4px; text-align: center;">Token =<BR> 0.5 EOS</div>
                     </div>
                 </div>
 
             </div>
             <!--Betting Area-->
-            <div class="row border" style="height: 50px; position: absolute; bottom: 0; width: 100%">
-                <h3>Betting Area</h3>
+            <div class="row border" style="height: 50px; position: absolute; bottom: 0; width: 100%; padding: 2px">
+                <div style="height: 20px; max-width:120px; min-width:120px; padding: 8px">
+                    <p>Balance: 234.5 EOS</p>
+                </div>
+                <div style="height: 20px; padding: 8px">
+                    <button type="button" class="btn btn-primary" disabled>clear tokens</button>
+                    <button type="button" class="btn btn-primary">Repeat last bet</button>
+                </div>
             </div>
 
         </div>
