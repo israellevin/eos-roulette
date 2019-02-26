@@ -1,0 +1,5 @@
+#!/bin/bash
+sed -i 's/roulette/galgal/g' *.cpp *.js js/*.js *.sh *.html
+sed -i 's/Roulette/Galgal/g' *.cpp *.js js/*.js *.sh *.html
+sed -i 's/bet/tarvut/g' *.cpp *.js js/*.js *.sh *.html
+sed -i 's/Bet/Tarvut/g' *.cpp *.js js/*.js *.sh *.html

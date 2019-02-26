@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EOS Roulette</title>
+    <title>EOS Galgal</title>
     <script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.0/lib/eos.min.js"></script>
     <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-core.min.js"></script>
     <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs.min.js"></script>
@@ -11,7 +11,7 @@
     <script src="js/eosjs-jsonrpc.js"></script>
     <script src="js/eosjs-jssig.js"></script>
     <script src="js/eosjs-chainid.js"></script>
-    <script src="roulette.js"></script>
+    <script src="galgal.js"></script>
     <link rel="stylesheet" href="style.css"></link>
 </head>
 <body>
@@ -19,10 +19,10 @@
         Hello <span id="user">???</span>, your balance is: <span id="balance">???</span><br> - cpu:<span id="cpu">???</span><br> - net:<span id="net">???</span>
     </div>
     <div id="status"></div>
-    <div id="wheel-gif"><img src='Roulette_spinning.gif'></div>
+    <div id="wheel-gif"><img src='Galgal_spinning.gif'></div>
     <div id="wheel"></div>
     <div>
-        <form onsubmit="processBet(this); return false;">
+        <form onsubmit="processTarvut(this); return false;">
             <select name="coverage" class="coverage" multiple>
                 <option value="0">0</option>
                 <option value="1">1</option>
@@ -63,7 +63,7 @@
                 <option value="36">36</option>
             </select>
             <input name="larimers" type="number" min="1" value="10"></input>
-            <input id="spinBtn" name="bet" type="submit" value="spin!"></input>
+            <input id="spinBtn" name="tarvut" type="submit" value="spin!"></input>
         </form>
     </div>
     <script src="client.js"></script>

@@ -1,4 +1,4 @@
 #!/bin/bash
 ./common.sh
-eosio-cpp -o roulette.wasm roulette.cpp --abigen
-cleos set contract roulette ./ ./roulette.wasm ./roulette.abi -p roulette@active
+eosio-cpp -o galgal.wasm galgal.cpp --abigen
+cleos set contract galgal ./ ./galgal.wasm ./galgal.abi -p galgal@active

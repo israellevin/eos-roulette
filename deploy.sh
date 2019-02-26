@@ -15,7 +15,7 @@ echo '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3' | cleos wallet import
 
 # Create accounts.
 pubkey=$(cat ./pubkey.txt)
-for account in eosio.bpay eosio.msig eosio.names eosio.ram eosio.ramfee eosio.saving eosio.stake eosio.token eosio.upay roulette alice; do
+for account in eosio.bpay eosio.msig eosio.names eosio.ram eosio.ramfee eosio.saving eosio.stake eosio.token eosio.upay galgal alice; do
     cleos create account eosio $account $pubkey -p eosio@active
 done
 
@@ -37,27 +37,27 @@ cleos set contract eosio ./eosio.contracts/eosio.system/ -p eosio@active
 # Create token and distribute.
 cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token@active
 cleos push action eosio.token issue '["eosio", "10000000000.0000 EOS", "issue eos"]' -p eosio@active
-cleos push action eosio.token transfer '{"from":"eosio","to":"roulette","quantity":"10000.0000 EOS","memo":"funding roulette"}' -p eosio@active
+cleos push action eosio.token transfer '{"from":"eosio","to":"galgal","quantity":"10000.0000 EOS","memo":"funding galgal"}' -p eosio@active
 cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":"10000.0000 EOS","memo":"funding alice"}' -p eosio@active
 
 # This init call is required, and can only happen after token is issued.
 cleos push action eosio init '[0, "4,EOS"]' -p eosio@active
 
 # Get RAM and BW.
-cleos system buyram roulette roulette '100.0000 EOS'
-cleos system delegatebw roulette roulette '100.0000 EOS' '100.0000 EOS' -p roulette@active
+cleos system buyram galgal galgal '100.0000 EOS'
+cleos system delegatebw galgal galgal '100.0000 EOS' '100.0000 EOS' -p galgal@active
 cleos system buyram alice alice '100.0000 EOS'
 cleos system delegatebw alice alice '100.0000 EOS' '100.0000 EOS' -p alice@active
 
-# Compile and set the roulette contract.
+# Compile and set the galgal contract.
 ./compile.sh
 
 # Give permissions.
-cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p roulette@owner
-cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
+cleos set account permission galgal active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"galgal","permission":"eosio.code"},"weight":1}]}' owner -p galgal@owner
+cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"galgal","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
 
 # Put the chain ID in js file, for convenience.
-echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
+echo "window.galgal = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
 
 echo "Chain ID is:"
 cat chainid.txt
