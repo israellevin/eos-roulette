@@ -1,8 +1,11 @@
 
-body{
+body {
     font-size: 9pt;
     font-weight: bold;
     font-family: sans-serif;
+    max-width: 360px;
+    margin-left: calc(50vw - 180px);
+    background-color: rgba(15,109,57,0.9);
 }
 ul {
     list-style-type: none;
