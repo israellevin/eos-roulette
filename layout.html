@@ -13,6 +13,15 @@
     <style>
         body{
             font-size: 9pt;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+        ul {
+            list-style-type: none;
+        }
+        i.fa.fa-dot-circle-o.list-group-item{
+            padding: 0.1pt 3pt;;
+            margin: 0;
         }
         .list-group-item{
             padding: .65rem .25rem;
@@ -23,54 +32,88 @@
             padding: 0;
             line-height: normal;
         }
+        .bonus-box{
+            min-height:80px;
+            max-height:80px;
+            min-width:80px;
+            max-width:80px;
+        }
+        .betting-box{
+            font-size: 14px;
+            height: 50px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 2px
+        }
+        .main-header{
+            height: 36px;
+            background-color: rgba(0, 200, 0, 0.5);
+            color: whitesmoke;
+        }
+        .box{
+            /*border: 1px dashed yellow;*/
+            /*border-radius: 10px;*/
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <!--Main Header-->
-    <div class="row border fixed-top" style="max-height: 42px; background-color: rgba(255,0,0,0.8);">
-        <div class="col-12 ">
-            <h2>Main Header</h2>
+    <div class="row fixed-top main-header">
+        <div class="col-5 box">
+            <div style="font-size: 1.5rem">MaMaLuck</div>
+        </div>
+        <div class="col-7 box">
+            <div style="font-size: 1rem">
+                <button type="button" class="btn btn-primary float-right">login</button>
+                <span class="float-right">accountName</span>
+            </div>
         </div>
     </div>
 
     <!--Main space-->
-    <div class="row border" style="padding-top: 42px; background-color: rgba(0,255,0,0.1);">
+    <div class="row border" style="padding-top: 36px; background-color: #0f6d39; color: white">
         <div class="col-12 ">
             <!--Messages-->
-            <div class="row border" style="max-height: 42px;">
-                <h3>Messages</h3>
+            <div class="row border" style="max-height: 30px;">
+                <h5>...Messages........Messages........</h5>
             </div>
             <!--Desk-->
-            <div class="row" style="padding-bottom: 50px;">
+            <div class="row" style="text-shadow: 1px 1px #212529; padding-bottom: 50px;">
                 <div class="col-1" style="max-width: 45px">
                     <div>
                         <p>History</p>12<br>3<br>0<br>35
                     </div>
                 </div>
-                <div class="col-9" style="max-width: 200px; overflow-y:scroll; border:1px solid chocolate !important; padding:0; background-color: rgba(0,0,255,0.1);">
+                <div class="col-9 box" style="max-width: 200px; overflow-y:scroll; padding:0;">
                     <img src="full-felt.jpg" width=200 height=460>
                 </div>
-                <div class="col-1 col-sm-1" style="min-width: 113px; padding:0; border:1px solid red !important">
-                    <div class="container" style="min-height:120px; border:1px solid blue !important">
+                <div class="col-1 box" style="min-width: 113px; padding:0;">
+                    <div class="container" style="min-height:180px;">
                         <ul class="list-group">
-                            <i class="fa fa-dot-circle-o list-group-item"> player 1</i>
-                            <i class="fa fa-dot-circle-o list-group-item"> player 2</i>
-                            <i class="fa fa-dot-circle-o list-group-item"> player 3<br> bet:0.3</i>
-                            <i class="fa fa-dot-circle-o list-group-item"> player 4</i>
+                            <li><i class="fa fa-dot-circle-o list-group-item"> </i>player 1</li>
+                            <li><i class="fa fa-dot-circle-o list-group-item"></i>player 2</li>
+                            <li><i class="fa fa-dot-circle-o list-group-item"></i>player 3<br> bet:0.3</li>
+                            <li><i class="fa fa-dot-circle-o list-group-item"></i>player 4</li>
                         </ul>
                     </div>
-                    <div class="container" style="min-height:120px; position: absolute; bottom: 0; border:1px solid green !important">
-                        <div style="border: 1px solid gray; margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
+                    <div class="container bonus-box">
+                    </div>
+                    <div class="container" style="padding: 2px; min-height:0px;">
+                        Luck charge: <i class="fa fa-battery-half" aria-hidden="true"></i>
+                    </div>
+                    <div class="container" style="text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
+                        <div style="margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
                         <div style="font-size: 120%">drag token to bet</div>
-                        <i class="fa fa-dot-circle-o fa-4x" aria-hidden="true"></i>
-                        <div style="border: 1px solid gray; margin-top: 4px; text-align: center;">Token =<BR> 0.5 EOS</div>
+                        <i class="fa fa-dot-circle-o fa-3x" aria-hidden="true"></i><span>0.5 EOS</span>
+                        <div style="margin-top: 4px; text-align: center;">Token =<BR> 0.5 EOS</div>
                     </div>
                 </div>
 
             </div>
             <!--Betting Area-->
-            <div class="row border" style="height: 50px; position: absolute; bottom: 0; width: 100%; padding: 2px">
+            <div class="row betting-box">
                 <div style="height: 20px; max-width:120px; min-width:120px; padding: 8px">
                     <p>Balance: 234.5 EOS</p>
                 </div>
@@ -85,7 +128,7 @@
 
 
     <!--Bottom Drop-->
-    <div class="row border">
+    <div class="row box">
         <div class="col-12 ">
             <h2>Bottom Drop</h2>
             <h3>Bottom Drop</h3>
