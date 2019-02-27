@@ -10,7 +10,7 @@
     <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/layout.css"></link>
+    <link rel="stylesheet" href="css/layout.css"/>
 </head>
 <body>
 <div class="container">
@@ -22,7 +22,7 @@
         <div class="col-7 box">
             <div style="font-size: 1rem;">
                 <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
-                <button type="button" class="btn btn-primary float-right header-element">login</button>
+                <button type="button" class="btn btn-primary float-right header-element" data-tippy="used to login">login</button>
                 <span class="float-right header-element">accountName</span>
             </div>
         </div>
@@ -70,7 +70,9 @@
                     <div class="container" style="text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
                         <div style="margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
                         <div style="font-size: 120%">drag token to bet</div>
-                        <i class="fa fa-dot-circle-o fa-3x" aria-hidden="true"></i><span>0.5 EOS</span>
+                        <i class="token fa fa-dot-circle-o fa-3x" aria-hidden="true" data-tippy="Tooltip">
+                        </i>
+                        <span>0.5 EOS</span>
                         <div style="margin-top: 4px; text-align: center;">Token =<BR> 0.5 EOS</div>
                     </div>
                 </div>
@@ -83,7 +85,7 @@
                 </div>
                 <div style="height: 20px; padding: 8px">
                     <button type="button" class="btn btn-primary" disabled>clear tokens</button>
-                    <button type="button" class="btn btn-primary">Repeat last bet</button>
+                    <button type="button" class="btn btn-primary" data-tippy="xxxx">Repeat last bet</button>
                 </div>
             </div>
 
@@ -110,18 +112,35 @@
 
 </div>
 
+<script src="https://unpkg.com/popper.js@1/dist/umd/popper.min.js"></script>
+<script src="https://unpkg.com/tippy.js@4"></script>
+<script>
+    // tippy('button')
+    // tippy('.token')
+    tippy.setDefaults({
+        animation: 'fade',
+        arrow: true,
+        duration: 200,
+        delay: [50, 500],
+        size: "large",
+        touchHold: false,
+        a11y: false,
+        trigger: "mouseenter focus"
+    })
+
+</script>
 
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script crossorigin="anonymous"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script crossorigin="anonymous"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-<script crossorigin="anonymous"
-        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-        src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<!--<script crossorigin="anonymous"-->
+        <!--integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"-->
+        <!--src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>-->
+<!--<script crossorigin="anonymous"-->
+        <!--integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"-->
+        <!--src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>-->
+<!--<script crossorigin="anonymous"-->
+        <!--integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"-->
+        <!--src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>-->
 </body>
 </html>
