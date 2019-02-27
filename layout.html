@@ -18,6 +18,7 @@
         }
         ul {
             list-style-type: none;
+            padding: 0;
         }
         i.fa.fa-dot-circle-o.list-group-item{
             padding: 0.1pt 3pt;;
@@ -31,6 +32,59 @@
         .btn{
             padding: 0;
             line-height: normal;
+        }
+        .main-header{
+            height: 36px;
+            background-color: rgba(0, 200, 0, 0.5);
+            color: whitesmoke;
+        }
+        .header-element{
+            padding: 0 2px;
+        }
+        .messages-box{
+             max-height: 30px;
+        }
+        .desk{
+            text-shadow: 1px 1px #212529;
+            padding-bottom: 50px;
+        }
+        .history-box{
+            max-width: 34px;
+            padding: 1px;
+            border-radius: 10px;
+            border: 4px solid black;
+            background-color: green;
+            margin: 12px 4px;
+            max-height: 41vh;
+        }
+        .history-box li {
+            font-size: 120%;
+        }
+        li.black {
+            text-align: right;
+            color: black;
+            text-shadow: 2px 2px 0px lightslategrey;
+        }
+        li.red {
+            text-align: left;
+            color: red;
+        }
+        .felt-box{
+            max-width: 200px;
+            padding:0;
+        }
+        .main-space{
+            padding-top: 36px;
+            background-color: #0f6d39;
+            color: white
+        }
+        .main-right{
+            min-width: 113px;
+            padding:5px;
+        }
+        .players-box{
+            max-height:113px;
+            padding: 2px
         }
         .bonus-box{
             min-height:80px;
@@ -46,14 +100,32 @@
             width: 100%;
             padding: 2px
         }
-        .main-header{
-            height: 36px;
-            background-color: rgba(0, 200, 0, 0.5);
-            color: whitesmoke;
-        }
         .box{
             /*border: 1px dashed yellow;*/
             /*border-radius: 10px;*/
+        }
+        .rotate {
+            /* Safari */
+            -webkit-transform: rotate(15deg);
+            /* Firefox */
+            -moz-transform: rotate(15deg);
+            /* IE */
+            -ms-transform: rotate(15deg);
+            /* Opera */
+            -o-transform: rotate(15deg);
+            /* Internet Explorer */
+            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+        }
+
+        /*smaller than 360px*/
+        @media screen and (max-width: 359px){
+            .history-box{
+                display: none;
+            }
+            .main-right{
+                min-width: 113px;
+                padding:0;
+            }
         }
     </style>
 </head>
@@ -65,32 +137,40 @@
             <div style="font-size: 1.5rem">MaMaLuck</div>
         </div>
         <div class="col-7 box">
-            <div style="font-size: 1rem">
-                <button type="button" class="btn btn-primary float-right">login</button>
-                <span class="float-right">accountName</span>
+            <div style="font-size: 1rem;">
+                <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
+                <button type="button" class="btn btn-primary float-right header-element">login</button>
+                <span class="float-right header-element">accountName</span>
             </div>
         </div>
     </div>
 
     <!--Main space-->
-    <div class="row border" style="padding-top: 36px; background-color: #0f6d39; color: white">
+    <div class="row main-space">
         <div class="col-12 ">
             <!--Messages-->
-            <div class="row border" style="max-height: 30px;">
+            <div class="row messages-box">
                 <h5>...Messages........Messages........</h5>
             </div>
             <!--Desk-->
-            <div class="row" style="text-shadow: 1px 1px #212529; padding-bottom: 50px;">
-                <div class="col-1" style="max-width: 45px">
+            <div class="row desk">
+                <div class="col-1 history-box">
                     <div>
-                        <p>History</p>12<br>3<br>0<br>35
+                        <p class="rotate">Last</p>
+                        <ul>
+                            <li class="red">12</li>
+                            <li class="black">31</li>
+                            <li class="black">5</li>
+                            <li class="red">36</li>
+                            <li class="black">17</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="col-9 box" style="max-width: 200px; overflow-y:scroll; padding:0;">
+                <div class="col-9 felt-box">
                     <img src="full-felt.jpg" width=200 height=460>
                 </div>
-                <div class="col-1 box" style="min-width: 113px; padding:0;">
-                    <div class="container" style="min-height:180px;">
+                <div class="col-1 main-right">
+                    <div class="container players-box">
                         <ul class="list-group">
                             <li><i class="fa fa-dot-circle-o list-group-item"> </i>player 1</li>
                             <li><i class="fa fa-dot-circle-o list-group-item"></i>player 2</li>
@@ -128,7 +208,7 @@
 
 
     <!--Bottom Drop-->
-    <div class="row box">
+    <div class="row">
         <div class="col-12 ">
             <h2>Bottom Drop</h2>
             <h3>Bottom Drop</h3>
