@@ -10,124 +10,7 @@
     <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <style>
-        body{
-            font-size: 9pt;
-            font-weight: bold;
-            font-family: sans-serif;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        i.fa.fa-dot-circle-o.list-group-item{
-            padding: 0.1pt 3pt;;
-            margin: 0;
-        }
-        .list-group-item{
-            padding: .65rem .25rem;
-            background-color: transparent;
-            border: none;
-        }
-        .btn{
-            padding: 0;
-            line-height: normal;
-        }
-        .main-header{
-            height: 36px;
-            background-color: rgba(0, 200, 0, 0.5);
-            color: whitesmoke;
-        }
-        .header-element{
-            padding: 0 2px;
-        }
-        .messages-box{
-             max-height: 30px;
-        }
-        .desk{
-            text-shadow: 1px 1px #212529;
-            padding-bottom: 50px;
-        }
-        .history-box{
-            max-width: 34px;
-            padding: 1px;
-            border-radius: 10px;
-            border: 4px solid black;
-            background-color: green;
-            margin: 12px 4px;
-            max-height: 41vh;
-        }
-        .history-box li {
-            font-size: 120%;
-        }
-        li.black {
-            text-align: right;
-            color: black;
-            text-shadow: 2px 2px 0px lightslategrey;
-        }
-        li.red {
-            text-align: left;
-            color: red;
-        }
-        .felt-box{
-            max-width: 200px;
-            padding:0;
-        }
-        .main-space{
-            padding-top: 36px;
-            background-color: #0f6d39;
-            color: white
-        }
-        .main-right{
-            min-width: 113px;
-            padding:5px;
-        }
-        .players-box{
-            max-height:113px;
-            padding: 2px
-        }
-        .bonus-box{
-            min-height:80px;
-            max-height:80px;
-            min-width:80px;
-            max-width:80px;
-        }
-        .betting-box{
-            font-size: 14px;
-            height: 50px;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 2px
-        }
-        .box{
-            /*border: 1px dashed yellow;*/
-            /*border-radius: 10px;*/
-        }
-        .rotate {
-            /* Safari */
-            -webkit-transform: rotate(45deg);
-            /* Firefox */
-            -moz-transform: rotate(45deg);
-            /* IE */
-            -ms-transform: rotate(45deg);
-            /* Opera */
-            -o-transform: rotate(45deg);
-            /* Internet Explorer */
-            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
-        }
-
-        /*smaller than 360px*/
-        @media screen and (max-width: 359px){
-            .history-box{
-                display: none;
-            }
-            .main-right{
-                min-width: 113px;
-                padding:0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/layout.css"></link>
 </head>
 <body>
 <div class="container">
@@ -156,7 +39,7 @@
             <div class="row desk">
                 <div class="col-1 history-box">
                     <div>
-                        <p class="rotate" style="padding-top: 6px">Last</p>
+                        <p class="rotate" style="padding-top: 4px">Last</p>
                         <ul>
                             <li class="red">12</li>
                             <li class="black">31</li>
