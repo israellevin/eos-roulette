@@ -73,13 +73,10 @@ li.red {
     min-width: 113px;
     padding:5px;
 }
-<<<<<<< HEAD
 .hint-button{
     float:right;
     color: blue;
 }
-=======
->>>>>>> refs/remotes/origin/master
 .players-box{
     max-height:113px;
     padding: 2px
@@ -98,16 +95,14 @@ li.red {
     width: 100%;
     padding: 2px
 }
-<<<<<<< HEAD
-div{
+div {
     margin: -1px;
     border: 1px dashed yellow;
     border-radius: 10px;
-=======
+}
 .box{
     /*border: 1px dashed yellow;*/
     /*border-radius: 10px;*/
->>>>>>> refs/remotes/origin/master
 }
 .rotate {
     /* Safari */
