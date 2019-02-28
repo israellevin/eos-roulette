@@ -34,6 +34,7 @@ i.fa.fa-dot-circle-o.list-group-item{
 }
 .messages-box{
     max-height: 30px;
+    overflow: hidden;
 }
 .desk{
     text-shadow: 1px 1px #212529;
@@ -62,6 +63,7 @@ li.red {
 }
 .felt-box{
     max-width: 200px;
+    min-height: 460px;
     padding:0;
 }
 .main-space{
@@ -96,9 +98,9 @@ li.red {
     padding: 2px
 }
 div {
-    margin: -1px;
-    border: 1px dashed yellow;
-    border-radius: 10px;
+    /*margin: -1px;*/
+    /*border: 1px dashed yellow;*/
+    /*border-radius: 10px;*/
 }
 .box{
     /*border: 1px dashed yellow;*/
@@ -126,4 +128,55 @@ div {
         min-width: 113px;
         padding:0;
     }
+}
+
+#layout td{
+    border: 1px solid #ffc96b;
+    text-align: center;
+    font-size: 14px;
+    min-width: 32px;
+    max-width: 32px;
+    height: 29px;
+    z-index: 1;
+    position: relative;
+    text-shadow: none;
+}
+
+#layout td.highlight{
+    background-color: #ffee0045;
+}
+
+td.rotate {
+    transform: rotate(-90deg);
+}
+
+td.red:before {
+    color: darkred;
+    content: ' \25CF';
+    line-height: 0;
+    font-size: 51px;
+    position: absolute;
+    top: 11px;
+    left: 0px;
+    z-index: -1;
+}
+td.black:before {
+    color: black;
+    content: ' \25CF';
+    line-height: 0;
+    font-size: 51px;
+    position: absolute;
+    top: 11px;
+    left: 0px;
+    z-index: -1;
+}
+td.green:before {
+    color: darkgreen;
+    content: ' \25CF';
+    line-height: 0;
+    font-size: 51px;
+    position: absolute;
+    top: 11px;
+    left: 32px;
+    z-index: -1;
 }
