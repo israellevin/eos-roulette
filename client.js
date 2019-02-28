@@ -27,6 +27,7 @@
 
         // Spin updater.
         (async function updateSpin(spin){
+            return;
             let now = Math.round(new Date() / 1000);
             if(spin && now < spin.maxbettime){
                 console.log('current spin good for', spin.maxbettime - now, (await roulette.getBets(spin.hash)));
@@ -36,8 +37,41 @@
             }
             setTimeout(function(){updateSpin(roulette.spin);}, 1000);
         })();
-
     });
+
+    // Get selected numbers from a mouse event on the layout.
+    window.getSelection = function getSelection(mouseEvent){
+        let cell = mouseEvent.target;
+        let col = parseInt(cell.dataset.col, 10);
+        let row = parseInt(cell.parentNode.dataset.row, 10);
+
+        // Outer bets.
+        if(col > 3){
+            console.log('outer');
+            return [];
+        }
+
+        // Inner bets.
+        if(row === 0) return [0];
+
+        let selection = [(row - 1) * 3 + col];
+        let rect = cell.getBoundingClientRect();
+        let width = cell.offsetWidth;
+        let height = cell.offsetHeight;
+        let relativeX = (mouseEvent.clientX - rect.left) / width - 0.5;
+        let relativeY = (mouseEvent.clientY - rect.top) / height - 0.5;
+        if(relativeX > 0.3 && col < 3){
+            selection.push(selection[0] + 1);
+        }else if(relativeX < -0.3 && col > 1){
+            selection.push(selection[0] - 1);
+        }
+        if(relativeY > 0.3 && row < 12){
+            selection = selection.concat(selection.map(function(x){return x + 3;}));
+        }else if(relativeY < -0.3 && row > 1){
+            selection = selection.concat(selection.map(function(x){return x - 3;}));
+        }
+        return selection;
+    }
 
     // Place a bet.
     window.processBet = async function(layoutForm){
