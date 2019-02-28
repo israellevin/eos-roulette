@@ -21,11 +21,10 @@
             <div style="font-size: 1.5rem">MaMaLuck</div>
         </div>
         <div class="col-7 box">
-            <div style="font-size: 1rem;">
+            <div>
                 <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
                 <button type="button" class="btn btn-primary float-right header-element"
-                        data-tippy="used to login"
-                data-intro="Connect to your EOS wallet, using scatter for example">
+                        data-intro="Connect to your EOS wallet, using scatter for example">
                     Connect
                 </button>
                 <span class="float-right header-element" id="user">accountName</span>
@@ -134,9 +133,9 @@
                             <td class="red" data-bet="36">36</td>
                         </tr>
                         <tr>
-                            <td data-bet="1,4,7,10,13,16,19,22,25,28,31,34">left</td>
-                            <td data-bet="2,5,8,11,14,17,20,23,26,29,32,35">mid</td>
-                            <td data-bet="3,6,9,12,15,18,21,24,27,30,33,36">right</td>
+                            <td data-bet="1,4,7,10,13,16,19,22,25,28,31,34">1:2</td>
+                            <td data-bet="2,5,8,11,14,17,20,23,26,29,32,35">1:2</td>
+                            <td data-bet="3,6,9,12,15,18,21,24,27,30,33,36">1:2</td>
                         </tr>
                     </table>
                 </div>
@@ -166,7 +165,6 @@
                         <div style="margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
                         <div style="font-size: 120%">drag token to bet</div>
                         <i class="token fa fa-dot-circle-o fa-3x" aria-hidden="true"
-                           data-tippy="Tooltip"
                            data-intro="click your token to start betting"
                            data-position="top"
                         >
@@ -221,31 +219,13 @@
 
 
 <script src="https://unpkg.com/popper.js@1/dist/umd/popper.min.js"></script>
-<script src="https://unpkg.com/tippy.js@4"></script>
 <script>
-    // tippy('button')
-    // tippy('.token')
-    tippy.setDefaults({
-        animation: 'fade',
-        arrow: true,
-        duration: 200,
-        delay: [50, 500],
-        size: "large",
-        touchHold: false,
-        a11y: false,
-        trigger: "mouseenter focus"
-    })
-
     function stratIntro(){
         introJs().start()
     }
-</script>
-<script>
-    document.getElementById('layout').onclick = function(e){
-        console.log(getSelection(e));
-    };
+
     document.getElementById('layout').onmousemove = function(e){
-        getSelection(e).forEach(function(number){
+        getCoverage(e).forEach(function(number){
             document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.add('highlight');
         });
     };
@@ -253,9 +233,12 @@
         document.querySelectorAll('[data-bet]').forEach(function(element){
             element.classList.remove('highlight');
         });
-        getSelection(e).forEach(function(number){
+        getCoverage(e).forEach(function(number){
             document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.remove('highlight');
         });
+    };
+    document.getElementById('layout').onclick = function(e){
+        processBet(getCoverage(e), parseInt(document.getElementById('larimers').value, 10));
     };
 </script>
 <script>

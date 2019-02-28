@@ -6,6 +6,7 @@ body {
     max-width: 360px;
     margin-left: calc(50vw - 180px);
     background-color: rgba(15,109,57,0.9);
+    cursor:crosshair;
 }
 ul {
     list-style-type: none;
@@ -55,7 +56,7 @@ i.fa.fa-dot-circle-o.list-group-item{
 li.black {
     text-align: right;
     color: black;
-    text-shadow: 2px 2px 0px lightslategrey;
+    text-shadow: 1px 1px 2px #ffffee80;
 }
 li.red {
     text-align: left;
@@ -69,7 +70,7 @@ li.red {
 .main-space{
     padding-top: 36px;
     background-color: #0f6d39;
-    color: white
+    color: #ffffee
 }
 .main-right{
     min-width: 113px;
@@ -131,7 +132,7 @@ div {
 }
 
 #layout td{
-    border: 1px solid #ffc96b;
+    border: 1px solid #ffe9c4;
     text-align: center;
     font-size: 14px;
     min-width: 32px;
@@ -140,10 +141,12 @@ div {
     z-index: 1;
     position: relative;
     text-shadow: none;
+    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+
 }
 
 #layout td.highlight{
-    background-color: #ffee0045;
+    background-color: #ded44dc4;
 }
 
 td.rotate {
@@ -152,31 +155,34 @@ td.rotate {
 
 td.red:before {
     color: darkred;
-    content: ' \25CF';
+    content: ' \2B24';
     line-height: 0;
-    font-size: 51px;
+    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    font-size: 21px;
     position: absolute;
-    top: 11px;
-    left: 0px;
+    top: 12px;
+    right: 4px;
     z-index: -1;
 }
 td.black:before {
     color: black;
-    content: ' \25CF';
+    content: ' \2B24';
     line-height: 0;
-    font-size: 51px;
+    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    font-size: 21px;
     position: absolute;
-    top: 11px;
-    left: 0px;
+    top: 12px;
+    right: 4px;
     z-index: -1;
 }
 td.green:before {
     color: darkgreen;
-    content: ' \25CF';
+      content: ' \2B24';
     line-height: 0;
-    font-size: 51px;
+    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    font-size: 21px;
     position: absolute;
-    top: 11px;
-    left: 32px;
+    top: 12px;
+    right: 36px;
     z-index: -1;
 }
