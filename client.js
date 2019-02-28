@@ -42,36 +42,31 @@
     // Get selected numbers from a mouse event on the layout.
     window.getSelection = function getSelection(mouseEvent){
         let cell = mouseEvent.target;
-        let col = parseInt(cell.dataset.col, 10);
-        let row = parseInt(cell.parentNode.dataset.row, 10);
+        if(!('bet' in cell.dataset && cell.dataset.bet)) return [];
+        let selection = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
 
         // Outer bets.
-        if(col > 3){
-            console.log('outer');
-            return [];
+        if(selection.length > 1 || selection[0] === 0){
+            return selection;
         }
 
-        // Inner bets.
-        if(row === 0) return [0];
-
-        let selection = [(row - 1) * 3 + col];
         let rect = cell.getBoundingClientRect();
         let width = cell.offsetWidth;
         let height = cell.offsetHeight;
         let relativeX = (mouseEvent.clientX - rect.left) / width - 0.5;
         let relativeY = (mouseEvent.clientY - rect.top) / height - 0.5;
-        if(relativeX > 0.3 && col < 3){
+        if(relativeX > 0.3 && selection[0] % 3 !== 0){
             selection.push(selection[0] + 1);
-        }else if(relativeX < -0.3 && col > 1){
+        }else if(relativeX < -0.3 && selection[0] % 3 !== 2){
             selection.push(selection[0] - 1);
         }
-        if(relativeY > 0.3 && row < 12){
+        if(relativeY > 0.3 && selection[0] < 34){
             selection = selection.concat(selection.map(function(x){return x + 3;}));
-        }else if(relativeY < -0.3 && row > 1){
+        }else if(relativeY < -0.3 && selection[0] > 3){
             selection = selection.concat(selection.map(function(x){return x - 3;}));
         }
         return selection;
-    }
+    };
 
     // Place a bet.
     window.processBet = async function(layoutForm){
