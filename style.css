@@ -11,3 +11,7 @@ option{
 .coverage{
     height: 1.4em;
 }
+
+table td{
+ border: 1px solid black;
+}
