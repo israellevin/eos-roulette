@@ -156,6 +156,9 @@
             });
         };
         document.getElementById('layout').onmouseout = function(e){
+            document.querySelectorAll('[data-bet]').forEach(function(element){
+                element.classList.remove('highlight');
+            });
             getSelection(e).forEach(function(number){
                 document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.remove('highlight');
             });
