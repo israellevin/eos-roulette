@@ -79,6 +79,7 @@
                          data-intro="click this to show more help"
                          data-step="5"
                     >
+                        <button class="btn btn-primary" type="button" onclick="stratIntro()">inro</button>
                         <i class="fa fa-question-circle-o" aria-hidden="true"></i>
                     </div>
                     <div class="container" style="text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
@@ -155,9 +156,12 @@
         trigger: "mouseenter focus"
     })
 
+    function stratIntro(){
+        introJs().start()
+    }
 </script>
 <script>
-    introJs().start();
+    // introJs().start();
     introJs().addHints();
 </script>
 
