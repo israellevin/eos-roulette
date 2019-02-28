@@ -189,12 +189,3 @@ td.green:before {
     /*border: 1px dashed yellow;*/
     /*border-radius: 10px;*/
 /*}*/
-
-@document url("http://http://localhost:63342") {
-  .selector {
-     color:lime;
-      background-color: red;
-  }
-}
-
-
