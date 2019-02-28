@@ -73,6 +73,10 @@ li.red {
     min-width: 113px;
     padding:5px;
 }
+.hint-button{
+    float:right;
+    color: blue;
+}
 .players-box{
     max-height:113px;
     padding: 2px
@@ -90,6 +94,11 @@ li.red {
     bottom: 0;
     width: 100%;
     padding: 2px
+}
+div {
+    margin: -1px;
+    border: 1px dashed yellow;
+    border-radius: 10px;
 }
 .box{
     /*border: 1px dashed yellow;*/
