@@ -27,7 +27,6 @@
 
         // Spin updater.
         (async function updateSpin(spin){
-            return;
             let now = Math.round(new Date() / 1000);
             if(spin && now < spin.maxbettime){
                 console.log('current spin good for', spin.maxbettime - now, (await roulette.getBets(spin.hash)));
