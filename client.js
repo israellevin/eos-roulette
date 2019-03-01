@@ -2,7 +2,7 @@
 (function(){
     'use strict';
 
-    var spin = null;
+    window.spin = null;
 
     // Place a bet.
     async function processBet(coverage, larimers){
@@ -12,30 +12,30 @@
         }
 
         try{
-            window.roulette.poll(spin, -1, function(result){
+            window.roulette.poll(window.spin, -1, function(result){
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + window.roulette.account.account_name + ' ';
                 if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
                     message += ' lost...';
                 }
-                document.getElementById('wheel').innerText = message;
+                document.getElementById('message').innerText = message;
             });
 
             let hash = (await window.roulette.bet(
-                spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                window.spin.hash, coverage, parseInt(larimers, 10), +new Date()
             )).processed.action_traces[0].act.data.hash;
 
             if(hash){
                 if(hash.name && hash.name === 'TypeError'){
                     console.error(hash);
-                    document.getElementById('wheel').innerText = 'Could not place bet - aborting...';
+                    document.getElementById('message').innerText = 'Could not place bet - aborting...';
                 }else{
-                    document.getElementById('wheel').innerText = 'Roulette is spinning... ' + window.roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+                    document.getElementById('message').innerText = 'Roulette is spinning... ' + window.roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
                     console.log(hash);
                 }
             }else{
-                document.getElementById('wheel').innerText = 'Could not connect to roulette - retrying...';
+                document.getElementById('message').innerText = 'Could not connect to roulette - retrying...';
                 setTimeout(function(){processBet(mouseEvent, larimers);}, 1000);
             }
         }catch(e){
@@ -62,7 +62,7 @@
         let relativeY = (mouseEvent.clientY - rect.top) / height - 0.5;
         if(relativeX > 0.3 && selection[0] % 3 !== 0){
             selection.push(selection[0] + 1);
-        }else if(relativeX < -0.3 && selection[0] % 3 !== 2){
+        }else if(relativeX < -0.3 && selection[0] % 3 !== 1){
             selection.push(selection[0] - 1);
         }
         if(relativeY > 0.3 && selection[0] < 34){
@@ -78,22 +78,19 @@
     function init(layout){
 
         // Highlight on mouse movement.
-        layout.onmousemove = function(e){
-            getCoverage(e).forEach(function(number){
+        layout.onmousemove = function(mouseEvent){
+            document.querySelectorAll('[data-bet]').forEach(function(element){
+                element.classList.remove('highlight');
+            });
+            mouseEvent.target.classList.add('highlight');
+            getCoverage(mouseEvent).forEach(function(number){
                 document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.add('highlight');
             });
         };
 
-        // Remove highlights on mouse leave.
-        layout.onmouseout = function(e){
-            document.querySelectorAll('[data-bet]').forEach(function(element){
-                element.classList.remove('highlight');
-            });
-        };
-
         // Place a bet on mouse click.
-        layout.onclick = function(e){
-            processBet(getCoverage(e), parseInt(document.getElementById('larimers').value, 10));
+        layout.onclick = function(mouseEvent){
+            processBet(getCoverage(mouseEvent), 50);
         };
     }
 
@@ -126,7 +123,7 @@
             if(spin && now < spin.maxbettime){
                 console.log('current spin good for', spin.maxbettime - now, (await window.roulette.getBets(spin.hash)));
             }else{
-                spin = await window.roulette.getSpin(now + 30);
+                window.spin = spin = await window.roulette.getSpin(now + 30);
                 console.log('got spin', spin);
             }
             setTimeout(function(){updateSpin(spin);}, 1000);
