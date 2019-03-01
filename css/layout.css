@@ -66,6 +66,7 @@ i.fa.fa-dot-circle-o.list-group-item{
     position: absolute;
     top: 34px;
     overflow: hidden;
+    font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,serif;
 }
 .history-box li {
     font-size: 120%;
@@ -78,6 +79,10 @@ i.fa.fa-dot-circle-o.list-group-item{
 .history-box li.red {
     text-align: left;
     color: darkred;
+}
+.history-box li.zero {
+    text-align: center;
+    color: #ffffee  ;
 }
 .felt-box{
     max-width: 200px;
@@ -153,7 +158,7 @@ i.fa.fa-dot-circle-o.list-group-item{
     z-index: 1;
     position: relative;
     text-shadow: none;
-    font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,serif;
     background-repeat: no-repeat;
     background-position: center center;
     background-size: 28px 28px;
