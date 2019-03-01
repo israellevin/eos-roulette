@@ -145,13 +145,16 @@ li.red {
     border: 1px solid #ffe9c4;
     text-align: center;
     font-size: 11pt;
-    min-width: 28pt;
-    max-width: 28pt;
+    min-width: 30pt;
+    max-width: 30pt;
     height: 24pt;
     z-index: 1;
     position: relative;
     text-shadow: none;
     font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 28px 28px;
 
 }
 
@@ -165,15 +168,12 @@ td.rotate {
 
 td.red{
     background-image: url(../red.png);
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 28px 28px;
 }
 td.black{
     background-image: url(../black.png);
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 28px 28px;
+}
+td.green{
+    background-image: url(../green.png);
 }
 
 /*div {*/
