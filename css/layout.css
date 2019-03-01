@@ -163,26 +163,17 @@ td.rotate {
     transform: rotate(-90deg);
 }
 
-td.red:before,
-td.black:before,
-td.green:before {
-    content: ' \2B24';
-    line-height: 0;
-    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
-    position: absolute;
-    font-size: 19pt;
-    top: 10.5pt;
-    left: calc(50% - 11pt);
-    z-index: -1;
+td.red{
+    background-image: url(../red.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 28px 28px;
 }
-td.red:before {
-    color: darkred;
-}
-td.black:before {
-    color: black;
-}
-td.green:before {
-    color: darkgreen;
+td.black{
+    background-image: url(../black.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 28px 28px;
 }
 
 /*div {*/
