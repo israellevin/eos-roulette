@@ -54,26 +54,28 @@ i.fa.fa-dot-circle-o.list-group-item{
     font-size: 2rem;
 }
 .history-box{
-    max-width: 34px;
+    min-width: 36px;
+    max-width: 36px;
     padding: 1px;
     border: 2px solid #4c0f0f;
-    border-radius: 15px;
+    border-radius: 11px;
     background-color: green;
     margin: 12px 4px;
     max-height: 240px;
     min-height: 240px;
     position: absolute;
-    top: 38px;
+    top: 34px;
+    overflow: hidden;
 }
 .history-box li {
     font-size: 120%;
 }
-li.black {
+.history-box li.black {
     text-align: right;
     color: black;
     text-shadow: 1px 1px 2px #ffffee80;
 }
-li.red {
+.history-box li.red {
     text-align: left;
     color: darkred;
 }
