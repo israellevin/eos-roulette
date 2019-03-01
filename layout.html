@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.css">
     <link rel="stylesheet" href="css/layout.css"/>
-</head>
+    <link href="https://fonts.googleapis.com/css?family=Libre+Baskerville:700|Old+Standard+TT:700" rel="stylesheet"></head>
 <body>
 <div class="container">
     <!--Main Header-->
     <div class="row main-header">
-        <div class="col-5 box">
+        <div class="col-5 header-title">
             <div style="font-size: 1.5rem">MaMaLuck</div>
         </div>
         <div class="col-7 box">
@@ -33,7 +33,7 @@
     </div>
 
     <!--Main space-->
-    <div class="row main-space">
+    <div class="row main-space noselect">
         <div class="col-12 ">
             <!--Messages-->
             <div class="row messages-box"
@@ -46,9 +46,17 @@
             </div>
             <!--Desk-->
             <div class="row desk">
-                <div class="col-1 history-box">
+                <div class="col-1 main-left">
+                    <div class="hint-button"
+                         data-intro="click this to show more help"
+                         data-step="5"
+                         onclick="stratIntro()"
+                    >
+                        <i class="fa fa-question-circle-o" aria-hidden="true"></i>
+                    </div>                    <div class="history-box">
+
                     <div>
-                        <p class="rotate" style="padding-top: 4px">Last</p>
+                        <p class="rotate" style="margin: 4px 1px;">Last</p>
                         <ul>
                             <li class="red">12</li>
                             <li class="black">31</li>
@@ -56,6 +64,7 @@
                             <li class="red">36</li>
                             <li class="black">17</li>
                         </ul>
+                    </div>
                     </div>
                 </div>
                 <div class="col-9 felt-box">
@@ -154,13 +163,6 @@
                     <div class="container" data-intro="play to get more luck charge!" style="padding: 2px; min-height:0px;">
                         Luck charge: <i class="fa fa-battery-half" aria-hidden="true"></i>
                     </div>
-                    <div class="hint-button"
-                         data-intro="click this to show more help"
-                         data-step="5"
-                    >
-                        <button class="btn btn-primary" type="button" onclick="stratIntro()">inro</button>
-                        <i class="fa fa-question-circle-o" aria-hidden="true"></i>
-                    </div>
                     <div class="container" style="text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
                         <div style="margin-top: 4px; text-align: center;">Your balance: 45.34 EOS</div>
                         <div style="font-size: 120%">drag token to bet</div>
@@ -218,7 +220,6 @@
 
 
 
-<script src="https://unpkg.com/popper.js@1/dist/umd/popper.min.js"></script>
 <script>
     function stratIntro(){
         introJs().start()
