@@ -36,6 +36,7 @@ i.fa.fa-dot-circle-o.list-group-item{
     padding: 0 2px;
 }
 .header-title {
+    font-family: Libre Baskerville, 'Old Standard TT', lucida grande, lucida sans, Helvetica, Arial, Tahoma, Verdana, sans-serif;
     text-shadow: 2px 2px 3px black;
 }
 .messages-box{
@@ -55,8 +56,8 @@ i.fa.fa-dot-circle-o.list-group-item{
 .history-box{
     max-width: 34px;
     padding: 1px;
-    border-radius: 10px;
-    border: 4px solid black;
+    border: 2px solid #4c0f0f;
+    border-radius: 15px;
     background-color: green;
     margin: 12px 4px;
     max-height: 240px;
@@ -74,7 +75,7 @@ li.black {
 }
 li.red {
     text-align: left;
-    color: red;
+    color: darkred;
 }
 .felt-box{
     max-width: 200px;
@@ -150,7 +151,7 @@ li.red {
     z-index: 1;
     position: relative;
     text-shadow: none;
-    font-family: lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
+    font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,sans-serif;
 
 }
 
@@ -189,3 +190,84 @@ td.green:before {
     /*border: 1px dashed yellow;*/
     /*border-radius: 10px;*/
 /*}*/
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+
+/* INTRO */
+
+.introjs-tooltip {
+    background-color: #0f6d39;
+    color: #fff;
+    border: 2px solid #4c0f0f;
+    border-radius: 15px;
+}
+
+.introjs-button,
+.introjs-button:hover, .introjs-button:focus, .introjs-button:active,
+.introjs-disabled, .introjs-disabled:focus, .introjs-disabled:hover {
+  outline: none;
+  background-image: none;
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 50px;
+  box-shadow: none;
+  border-shadow: none;
+  text-shadow: none;
+}
+
+.introjs-button:hover, .introjs-button:focus, .introjs-button:active {
+  border: 1px solid #fff
+}
+.introjs-disabled, .introjs-disabled:focus, .introjs-disabled:hover {
+  color: #ccc;
+  border: 1px solid transparent;
+}
+
+.introjs-arrow {
+  border: 10px solid #fff;
+}
+.introjs-arrow.top, .introjs-arrow.top-middle, .introjs-arrow.top-right {
+  border-color: transparent transparent rgba(000, 0, 0, 0.5);
+  top: -20px;
+  left: 20px;
+}
+.introjs-arrow.bottom, .introjs-arrow.bottom-middle, .introjs-arrow.bottom-right {
+  border-color: rgba(000, 0, 0, 0.5) transparent transparent;
+  bottom: -20px;
+  left: 20px;
+}
+.introjs-arrow.left, .introjs-arrow.right {
+    top: 20px;
+}
+.introjs-arrow.left-bottom, .introjs-arrow.right-bottom {
+    bottom: 20px;
+}
+
+.introjs-arrow.left, .introjs-arrow.left-bottom {
+  left: -20px;
+  border-color: transparent rgba(000, 0, 0, 0.5) transparent transparent;
+}
+.introjs-arrow.right, .introjs-arrow.right-bottom {
+  right: -20px;
+  border-color: transparent transparent transparent rgba(000, 0, 0, 0.5);
+}
+
+
+.introjs-hint-dot{
+    border: 10px solid rgba(215, 189, 23, 0.86);
+}
+
+.introjs-hint-pulse {
+    border: 5px solid rgba(215, 189, 23, 0.65);
+    /*background-color: rgba(139, 0, 0, 0.5);*/
+}
