@@ -13,6 +13,7 @@
 
         try{
             window.roulette.poll(window.spin, -1, function(result){
+                addResultToHistory(result.winning_number)
                 let message = 'Roulette stops on ' + result.winning_number + '! ' + window.roulette.account.account_name + ' ';
                 if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
@@ -20,6 +21,7 @@
                     message += ' lost...';
                 }
                 document.getElementById('message').innerText = message;
+                addLogLine(message)
             });
 
             let hash = (await window.roulette.bet(
@@ -31,8 +33,9 @@
                     console.error(hash);
                     document.getElementById('message').innerText = 'Could not place bet - aborting...';
                 }else{
-                    document.getElementById('message').innerText = 'Roulette is spinning... ' + window.roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
-                    console.log(hash);
+                    // document.getElementById('message').innerText = 'Roulette is spinning... ' + window.roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win...';
+                    addLogLine(window.roulette.account.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win.')
+                    console.log(hash + '->' + coverage);
                 }
             }else{
                 document.getElementById('message').innerText = 'Could not connect to roulette - retrying...';
@@ -88,7 +91,7 @@
 
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
-            processBet(getCoverage(mouseEvent), 50);
+            processBet(getCoverage(mouseEvent), 5000);
         };
     }
 
@@ -108,11 +111,11 @@
         (async function updateStats(){
             let cpu = (await window.roulette.getAccount()).cpu_limit;
             let net = (await window.roulette.getAccount()).net_limit;
-            document.getElementById('cpu').innerText = 'used:' + cpu.used + ' available:' + cpu.available +
-                ' max:' + cpu.max + '.  ' + 100*cpu.used/cpu.available + '%';
-            document.getElementById('net').innerText = 'used:' + net.used + ' available:' + net.available +
-                ' max:' + net.max + '.  ' + 100*net.used/net.available + '%';
-            setTimeout(updateStats, 1000);
+            // document.getElementById('cpu').innerText = 'used:' + cpu.used + ' available:' + cpu.available +
+            //     ' max:' + cpu.max + '.  ' + 100*cpu.used/cpu.available + '%';
+            // document.getElementById('net').innerText = 'used:' + net.used + ' available:' + net.available +
+            //     ' max:' + net.max + '.  ' + 100*net.used/net.available + '%';
+            // setTimeout(updateStats, 1000);
         })();
 
         // Spin updater.
@@ -134,4 +137,18 @@
         // Initialize roulette.
         init(document.getElementById('layout'));
     });
+
+    // add log line.
+    function addLogLine(line){
+        document.getElementById('log').innerHTML = line + '<p>' + document.getElementById('log').innerHTML
+    }
+
+    // add result to history.
+    function addResultToHistory(rolled){
+        const node = document.createElement('LI');                 // Create a <li> node
+        const textnode = document.createTextNode(rolled);         // Create a text node
+        node.appendChild(textnode);                              // Append the text to <li>
+        var list = document.getElementById("history-ul")
+        list.insertBefore(node, list.childNodes[0]);     // Append <li> to <ul> with id="myList"
+    }
 }());
