@@ -49,7 +49,7 @@
                  data-intro="make sure to read these messages"
             >
                 <p>
-                    your balance is: <span id="balance">???</span> - cpu:<span id="cpu">???</span> - net:<span id="net">???</span>
+                    cpu:<span id="cpu">???</span> - net:<span id="net">???</span>
                 </p>
                 <p id="message"></p>
             </div>
@@ -65,8 +65,18 @@
                     </div>                    <div class="history-box">
 
                     <div>
-                        <p class="rotate" style="margin: 4px 1px;">Last</p>
-                        <ul>
+                        <div style="font-size: 65%; padding-top: 6px;">history</div>
+                        <ul id="history-ul">
+                            <li class="red">12</li>
+                            <li class="black">31</li>
+                            <li class="black">5</li>
+                            <li class="red">36</li>
+                            <li class="black">17</li>
+                            <li class="red">12</li>
+                            <li class="black">31</li>
+                            <li class="black">5</li>
+                            <li class="red">36</li>
+                            <li class="black">17</li>
                             <li class="red">12</li>
                             <li class="black">31</li>
                             <li class="black">5</li>
@@ -188,7 +198,7 @@
             <!--Betting Area-->
             <div class="row betting-box">
                 <div style="height: 20px; max-width:120px; min-width:120px; padding: 8px">
-                    <p>Balance: 234.5 EOS</p>
+                    <p>Balance: <span id="balance">???</span> EOS</p>
                 </div>
                 <div style="height: 20px; padding: 8px">
                     <button type="button" class="btn btn-primary" disabled>clear tokens</button>
@@ -199,17 +209,9 @@
     </div>
 
     <div class="row">
-        <div class="col-12 ">
-            <h2>Bottom Drop</h2>
-            <h3>Bottom Drop</h3>
-            <h4>Bottom Drop</h4>
-            <h4 data-intro="scrolling down" data-position="auto">Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
-            <h4>Bottom Drop</h4>
+        <div class="col-12">
+            <h2>LOG</h2>
+            <div id="log">dummy line<br>another log record</div>
         </div>
     </div>
 </div>
