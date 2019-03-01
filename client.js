@@ -106,6 +106,13 @@ function toggleHints(){
             });
         };
 
+        //remove all highlights when leaving the felt
+        layout.onmouseleave = function(mouseEvent){
+            document.querySelectorAll('[data-bet]').forEach(function(element){
+                element.classList.remove('highlight');
+            });
+        }
+
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
             processBet(getCoverage(mouseEvent), 5000);
