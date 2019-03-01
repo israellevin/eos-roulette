@@ -42,8 +42,7 @@
             console.error(e);
             return e;
         }
-    };
-
+    }
     // Get selected numbers from a mouse event on the layout.
     function getCoverage(mouseEvent){
         let cell = mouseEvent.target;
@@ -71,8 +70,7 @@
             selection = selection.concat(selection.map(function(x){return x - 3;}));
         }
         return selection;
-    };
-
+    }
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
     function init(layout){
@@ -121,10 +119,14 @@
         (async function updateSpin(spin){
             let now = Math.round(new Date() / 1000);
             if(spin && now < spin.maxbettime){
-                console.log('current spin good for', spin.maxbettime - now, (await window.roulette.getBets(spin.hash)));
+                // console.log('current spin good for', spin.maxbettime - now, (await window.roulette.getBets(spin.hash)));
+                document.getElementById('sec-left').innerText = spin.maxbettime - now
+
             }else{
                 window.spin = spin = await window.roulette.getSpin(now + 30);
                 console.log('got spin', spin);
+                document.getElementById('log').innerHTML =
+                    'got spin ' + spin.id + '<p>' +  document.getElementById('log').innerHTML
             }
             setTimeout(function(){updateSpin(spin);}, 1000);
         })();
