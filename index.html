@@ -56,7 +56,7 @@
                     <div class="hint-button"
                          data-intro="click this to show more help"
                          data-step="5"
-                         onclick="stratIntro()"
+                         onclick="toggleHints()"
                     >
                         <i class="fa fa-question-circle-o" aria-hidden="true"></i>
                     </div>                    <div class="history-box">
@@ -136,7 +136,7 @@
                             <td data-bet="25,26,27,28,29,30,31,32,33,34,35,36" rowspan="4">
                                 <div class="outside-label">3rd12</div></td>
                             <td data-bet="1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35" rowspan="2">
-                                <!--<div class="outside-label">Odd</div></td>-->
+                                <div class="outside-label">Odd</div></td>
                         </tr>
                         <tr>
                             <td class="black" data-bet="28">28</td>
@@ -211,10 +211,9 @@
     </div>
 </div>
 <script>
-    function stratIntro(){
-        introJs().start()
-    }
+
     introJs().addHints();
+    introJs().hideHints();
 </script>
 </body>
 </html>

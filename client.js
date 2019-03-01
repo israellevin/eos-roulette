@@ -1,4 +1,21 @@
 // jshint esversion: 8
+function stratIntro(){
+    introJs().start()
+}
+
+let hintsShown = false;
+
+function toggleHints(){
+    console.log(hintsShown)
+    if (hintsShown) {
+        introJs().hideHints();
+    } else {
+        introJs().showHints();
+    }
+    hintsShown = !hintsShown;
+}
+
+
 (function(){
     'use strict';
 
@@ -13,8 +30,8 @@
 
         try{
             window.roulette.poll(window.spin, -1, function(result){
-                addResultToHistory(result.winning_number)
-                let message = 'Roulette stops on ' + result.winning_number + '! ' + window.roulette.account.account_name + ' ';
+                addResultToHistory(result.winning_number);
+                let message = 'Roulette stops on ' + result.winning_number + '! You ';
                 if(coverage.indexOf(parseInt(result.winning_number, 10)) > -1){
                     message += ' won ' + (larimers * 36 / coverage.length) + ' larimers! Congrats!';
                 }else{
