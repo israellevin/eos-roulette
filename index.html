@@ -12,17 +12,18 @@
     <script src="js/eosjs-jssig.js"></script>
     <script src="js/eosjs-chainid.js"></script>
     <script src="roulette.js"></script>
-    <link rel="stylesheet" href="style.css"></link>
+    <script src="client.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="status">
         Hello <span id="user">???</span>, your balance is: <span id="balance">???</span><br> - cpu:<span id="cpu">???</span><br> - net:<span id="net">???</span>
     </div>
     <div id="status"></div>
-    <div id="wheel-gif"><img src='Roulette_spinning.gif'></div>
+    <div id="wheel-gif"><img src='Roulette_spinning.gif' alt='spinning roulette'></div>
     <div id="wheel"></div>
     <div>
-        <input id="larimers" type="number" min="1" value="10"></input>
+        <input id="larimers" type="number" min="1" value="10">
         <table id="layout">
             <tr>
                 <td data-bet="0" colspan=3>0</td>
@@ -103,26 +104,5 @@
             </tr>
         </table>
     </div>
-
-    <script>
-        document.getElementById('layout').onmousemove = function(e){
-            getCoverage(e).forEach(function(number){
-                document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.add('highlight');
-            });
-        };
-        document.getElementById('layout').onmouseout = function(e){
-            document.querySelectorAll('[data-bet]').forEach(function(element){
-                element.classList.remove('highlight');
-            });
-            getCoverage(e).forEach(function(number){
-                document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.remove('highlight');
-            });
-        };
-        document.getElementById('layout').onclick = function(e){
-            processBet(getCoverage(e), parseInt(document.getElementById('larimers').value, 10));
-        };
-    </script>
-
-    <script src="client.js"></script>
 </body>
 </html>

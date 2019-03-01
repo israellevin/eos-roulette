@@ -81,6 +81,28 @@
         });
     }
 
+    // Poll user actions to get notifications.
+    // FIXME This will probably not work without history plugin.
+    async function poll(spin, after, callback){
+        if(after < 0){
+            after = (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq;
+        }
+        let actions = (await eos.getActions(window.roulette.scatterAccount, after, 1)).actions;
+        if(actions.length === 2){
+            let action = actions[1].action_trace.act;
+            if(
+                action.account === 'roulette' &&
+                action.name === 'notify' &&
+                action.data.hash === spin.hash
+            ){
+                console.log(action.data);
+                return callback(action.data);
+            }
+            after = actions[1].account_action_seq;
+        }
+        setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
+    }
+
     // Bet on an existing spin.
     async function bet(hash, coverage, larimers, salt){
         try{
@@ -110,6 +132,7 @@
         }
     }
 
+    // Expose some functionality.
     window.roulette = {
         chainid: window.roulette.chainid,
         login: login,
@@ -118,45 +141,8 @@
         getBalance: getBalance,
         getSpin: getSpin,
         getBets: getBets,
-        bet: bet,
-        poll: async function(spin, after, callback){
-            if(after < 0){
-                after = (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq;
-            }
-            let actions = (await eos.getActions(window.roulette.scatterAccount, after, 1)).actions;
-            if(actions.length === 2){
-                let action = actions[1].action_trace.act;
-                if(
-                    action.account === 'roulette' &&
-                    action.name === 'notify' &&
-                    action.data.hash === spin.hash
-                ){
-                    console.log(action.data);
-                    return callback(action.data);
-                }
-                after = actions[1].account_action_seq;
-            }
-            setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
-        },
-        autoBet: async function(coverage, larimers, callback){
-            if(! window.roulette.account){
-                console.error('not connected to scatter');
-                return false;
-            }
-            let spin = await getSpin(Math.round(new Date() / 1000) + 10);
-            if(! spin){
-                console.error('no spin found');
-                return false;
-            }
-            window.roulette.poll(spin, -1, callback);
-            try{
-                return (await bet(
-                    spin.hash, coverage, parseInt(larimers, 10), +new Date()
-                )).processed.action_traces[0].act.data.hash;
-            }catch(e){
-                console.error(e);
-                return e;
-            }
-        }
+        poll: poll,
+        bet: bet
     };
+
 }());
