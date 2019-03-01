@@ -124,15 +124,17 @@ i.fa.fa-dot-circle-o.list-group-item{
     /*border: 1px dashed yellow;*/
     /*border-radius: 10px;*/
 }
-.rotate {
+.outside-label {
+    pointer-events: none;
+
     /* Safari */
-    -webkit-transform: rotate(45deg);
+    -webkit-transform: rotate(-90deg);
     /* Firefox */
-    -moz-transform: rotate(45deg);
+    -moz-transform: rotate(-90deg);
     /* IE */
-    -ms-transform: rotate(45deg);
+    -ms-transform: rotate(-90deg);
     /* Opera */
-    -o-transform: rotate(45deg);
+    -o-transform: rotate(-90deg);
     /* Internet Explorer */
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
 }
@@ -167,10 +169,6 @@ i.fa.fa-dot-circle-o.list-group-item{
 
 #layout td.highlight{
     background-color: #ded44dc4;
-}
-
-td.rotate {
-    transform: rotate(-90deg);
 }
 
 td.red{
