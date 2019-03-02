@@ -203,7 +203,7 @@ td.green{
 
 /* Chips */
 
-.pokerchip{
+.chip{
     margin: .5em;
     font-size: 1em;
     position: relative;
@@ -216,20 +216,28 @@ td.green{
     background: #ffd6b9;
     border-radius: 50%;
     border: .3em dashed #252833;
-    transition: all .5s ease;
+    transition: all .3s ease;
     backface-visibility: hidden;
 }
 
-.pokerchip.iso{
-  transform: perspective(3000px) rotateX(55deg) rotateZ(-40deg);
-  box-shadow:
-    -1px 1px 0px #ffd6b930,
-    -2px 3px 0px #ffd6b930,
-    -3px 4px 0px #ffd6b930,
-    -4px 5px 0px #ffd6b930,
-    -5px 6px 0px #ffd6b930,
-    /*-6px 6px 10px #555;*/
-    -6px 10px 10px #222
+.chip:hover {
+    transform: rotate(30deg);
+}
+
+.chip.iso{
+    transform: perspective(3000px) rotateX(55deg);
+    box-shadow: 0 1px 0px #ffd6b930, 0 2px 0px #ffd6b930, 0px 3px 0px #ffd6b930, 0px 4px 0px #ffd6b930, 0px 5px 0px #ffd6b930, 0px 9px 6px #222;
+}
+
+.chip.small {
+    font-size: 4px;
+}
+.chip.iso.small {
+    transform: perspective(3000px) rotateX(55deg);
+    box-shadow:
+            0px 1px 0px #ffd6b930,
+            0px 3px 0px #ffd6b930,
+            0px 3px 6px #222;
 }
 
 
