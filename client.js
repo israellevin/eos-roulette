@@ -168,8 +168,8 @@
         coverage: [],
         hintsShown: false,
         toggleHints: function(){
-            rouletteClient.hintsShown = !rouletteClient.hintsShown;
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
+            rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
         startIntro: function(){introJs().start();}
     };
