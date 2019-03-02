@@ -1,36 +1,17 @@
 // jshint esversion: 8
-function stratIntro(){
-    introJs().start()
-}
-
-let hintsShown = false;
-
-function toggleHints(){
-    console.log(hintsShown)
-    if (hintsShown) {
-        introJs().hideHints();
-    } else {
-        introJs().showHints();
-    }
-    hintsShown = !hintsShown;
-}
-
-
 (function(){
     'use strict';
 
-    window.spin = null;
-
     // Add log line.
     function addLogLine(line){
-        document.getElementById('log').innerHTML = line + '<p>' + document.getElementById('log').innerHTML
+        document.getElementById('log').innerHTML = line + '<p>' + document.getElementById('log').innerHTML;
     }
 
     // add a roulette winning number to the history.
     function addResultToHistory(winning_number){
         const entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
-        let list = document.getElementById("history-ul")
+        let list = document.getElementById("history-ul");
         list.insertBefore(entry, list.childNodes[0]);
     }
 
@@ -70,8 +51,8 @@ function toggleHints(){
             return false;
         }
         try{
-            let hash = (await window.roulette.bet(
-                window.spin.hash, coverage, parseInt(larimers, 10), +new Date()
+            let hash = (await roulette.bet(
+                rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
             )).processed.action_traces[0].act.data.hash;
 
             if(hash){
@@ -79,7 +60,8 @@ function toggleHints(){
                     console.error(hash);
                     document.getElementById('message').innerText = 'Could not place bet - aborting...';
                 }else{
-                    addLogLine(window.roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win.')
+                    rouletteClient.coverage = coverage;
+                    addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win');
                     console.log(hash + '->' + coverage);
                 }
             }else{
@@ -111,7 +93,7 @@ function toggleHints(){
             document.querySelectorAll('[data-bet]').forEach(function(element){
                 element.classList.remove('highlight');
             });
-        }
+        };
 
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
@@ -127,39 +109,60 @@ function toggleHints(){
 
         // Balance updater.
         (async function updateBalance(){
-            document.getElementById('balance').innerText = (await window.roulette.getBalance()).rows[0].balance;
+            document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
             setTimeout(updateBalance, 1000);
         })();
 
         // Spin updater.
-        (async function updateSpin(spin){
+        (async function updateSpin(){
             let now = Math.round(new Date() / 1000);
-            if(spin && now < spin.maxbettime){
-                document.getElementById('sec-left').innerText = spin.maxbettime - now
+            if(rouletteClient.spin){
+                if(now < rouletteClient.spin.maxbettime){
+                    document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
+                }
             }else{
-                window.spin = spin = await window.roulette.getSpin(now + 5);
-                if(spin){
-                    addLogLine('got spin ' + spin.hash);
-                    window.roulette.poll(window.spin, -1, function(result){
-                        let message = 'Roulette stops on ' + result.winning_number + '!';
-                        document.getElementById('message').innerText = message;
-                        addLogLine(message)
-                        addResultToHistory(result.winning_number)
-                        // FIXME Get winning resolution here if a bet was made.
+                rouletteClient.spin = await roulette.getSpin(now + 15);
+                if(rouletteClient.spin){
+                    addLogLine('got spin ' + rouletteClient.spin.hash);
+                    roulette.poll(rouletteClient.spin, -1, function(result){
+                        addLogLine('Roulette stops on ' + result.winning_number + '!');
+                        addResultToHistory(result.winning_number);
+                        if(rouletteClient.coverage.indexOf(result.winning_number) > -1){
+                            let message = roulette.account_name + ' won ' + (
+                                5000 * (36 / rouletteClient.coverage.length)
+                            ) + ' larimers';
+                            document.getElementById('message').innerText = message;
+                            addLogLine(message);
+                        }
+                        rouletteClient.spin = false;
+                        rouletteClient.coverage = [];
                     });
                 }else{
                     console.error('no available spins');
                 }
             }
-            setTimeout(function(){updateSpin(spin);}, 1000);
+            setTimeout(function(){updateSpin();}, 1000);
         })();
     }
 
     // Login to roulette.
-    window.roulette.login(function(accountName){
-        if(accountName){
-            document.getElementById('user').innerText = accountName;
+    roulette.login(function(account_name){
+        if(account_name){
+            document.getElementById('user').innerText = account_name;
             init();
         }
     });
+
+    // Expose some functionality.
+    window.rouletteClient = {
+        spin: false,
+        coverage: [],
+        hintsShown: false,
+        toggleHints: function(){
+            rouletteClient.hintsShown = !rouletteClient.hintsShown;
+            introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
+        },
+        startIntro: function(){introJs().start();}
+    };
+
 }());

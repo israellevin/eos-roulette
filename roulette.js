@@ -2,18 +2,17 @@
 (function(){
     'use strict';
 
+    // Move from main scope and initialize.
     const scatterjs = ScatterJS;
     window.ScatterJS = null;
     scatterjs.plugins(new ScatterEOS());
-
     const network = scatterjs.Network.fromJson({
         blockchain: 'eos',
-        chainId: window.roulette.chainid,
+        chainId: roulette.chainid,
         host: '127.0.0.1',
         port: 8888,
         protocol: 'http'
     });
-
     const rpc = new eosjs_jsonrpc.default(network.protocol + '://' + network.host + ':' + network.port);
     const eos = scatterjs.eos(network, Eos, {rpc, beta3:true});
 
@@ -22,8 +21,8 @@
         scatterjs.connect('roulette', {network}).then(connected => {
             if(!connected) return false;
             scatterjs.scatter.login().then(async function(){
-                window.roulette.account_name = scatterjs.account('eos').name;
-                success(window.roulette.account_name);
+                roulette.account_name = scatterjs.account('eos').name;
+                success(roulette.account_name);
             });
         });
     }
@@ -31,15 +30,15 @@
     // Logout of scatter.
     function logout(success){
         scatterjs.scatter.logout().then(function(){
-            delete window.roulette.account_name;
+            delete roulette.account_name;
             success();
         });
     }
 
     // Get current user's account details.
     async function getAccountDetails(){
-        window.roulette.accountDetails = await eos.getAccount(window.roulette.account_name);
-        return window.roulette.accountDetails;
+        roulette.accountDetails = await eos.getAccount(roulette.account_name);
+        return roulette.accountDetails;
     }
 
     // Get current user's balance.
@@ -47,7 +46,7 @@
         return await eos.getTableRows({
             json: true,
             code: 'eosio.token',
-            scope: window.roulette.account_name,
+            scope: roulette.account_name,
             table: 'accounts',
             limit: 10,
         });
@@ -101,7 +100,7 @@
             });
             after = after + actions.length;
         }
-        setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
+        setTimeout(function(){roulette.poll(spin, after, callback);}, 1000);
     }
 
     // Bet on an existing spin.
@@ -112,11 +111,11 @@
                     account: 'roulette',
                     name: 'bet',
                     authorization: [{
-                        actor: window.roulette.account_name,
+                        actor: roulette.account_name,
                         permission: 'active',
                     }],
                     data: {
-                        user: window.roulette.account_name,
+                        user: roulette.account_name,
                         hash: hash,
                         coverage: coverage,
                         larimers: larimers,
@@ -135,7 +134,7 @@
 
     // Expose some functionality.
     window.roulette = {
-        chainid: window.roulette.chainid,
+        chainid: roulette.chainid,
         login: login,
         logout: logout,
         getAccountDetails: getAccountDetails,
