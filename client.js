@@ -97,7 +97,16 @@
 
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
+            console.log(mouseEvent);
             processBet(getCoverage(mouseEvent), 5000);
+
+            //playing with chips
+            var chip = document.getElementById('chip1').cloneNode(true);
+            chip.id = 'new';
+            chip.style.left = (mouseEvent.clientX-2)+'px';
+            chip.style.top = (mouseEvent.clientY-7)+'px';
+            chip.style.backgroundColor = "#"+((1<<24)*Math.random()|0).toString(16);
+            document.body.appendChild(chip);
         };
     }
 

@@ -93,7 +93,8 @@ i.fa.fa-dot-circle-o.list-group-item{
 .main-space{
     padding-top: 36px;
     background-color: #0f6d39;
-    color: #ffffee
+    color: #ffffee;
+    cursor: url(../hand_pointer_32.png) 9 1, auto;
 }
 .main-right{
     min-width: 113px;
@@ -204,6 +205,7 @@ td.green{
 /* Chips */
 
 .chip{
+    text-shadow: none;
     margin: .5em;
     font-size: 1em;
     position: relative;
@@ -218,6 +220,7 @@ td.green{
     border: .3em dashed #252833;
     transition: all .3s ease;
     backface-visibility: hidden;
+    z-index: 1;
 }
 
 .chip:hover {
@@ -226,7 +229,13 @@ td.green{
 
 .chip.iso{
     transform: perspective(3000px) rotateX(55deg);
-    box-shadow: 0 1px 0px #ffd6b930, 0 2px 0px #ffd6b930, 0px 3px 0px #ffd6b930, 0px 4px 0px #ffd6b930, 0px 5px 0px #ffd6b930, 0px 9px 6px #222;
+    box-shadow:
+            0 1px 0 #ffd6b930,
+            0 2px 0 #ffd6b930,
+            0 3px 0 #ffd6b930,
+            0 4px 0 #ffd6b930,
+            0 5px 0 #ffd6b930,
+            0 9px 6px #222;
 }
 
 .chip.small {
@@ -235,9 +244,9 @@ td.green{
 .chip.iso.small {
     transform: perspective(3000px) rotateX(55deg);
     box-shadow:
-            0px 1px 0px #ffd6b930,
-            0px 3px 0px #ffd6b930,
-            0px 3px 6px #222;
+            0 1px 0 #ffd6b930,
+            0 3px 0 #ffd6b930,
+            0 3px 6px #222;
 }
 
 
