@@ -19,7 +19,7 @@ read
 
 secret=$(openssl rand -hex 32)
 hash="$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')"
-cleos push action roulette spin '["'$hash'", 1, '$(date -d '+5 seconds' +%s)']' -p roulette@owner
+cleos push action roulette spin '["'$hash'", 1, '$(date -d '+6 seconds' +%s)']' -p roulette@owner
 
 for i in {0..100}; do
     cleos push action roulette bet '["alice", "'$hash'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $i]" -p alice@active

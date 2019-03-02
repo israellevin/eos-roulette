@@ -100,15 +100,12 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     saltedsecret.salts.push_back(bets_iterator->salt);
                 }
 
-                // Calculate winning number.
+                // Calculate winning number and publish it.
                 uint8_t winning_number = calculate_winning_number(saltedsecret);
+                SEND_INLINE_ACTION(*this, publish, {_self, "active"_n}, {hash, winning_number});
 
-                // Handle bettors.
+                // Pay lucky bettors.
                 for(auto bets_iterator = bets_spin_index.find(hash); bets_iterator != bets_spin_index.end(); bets_iterator++){
-                    // Notifify bettor.
-                    SEND_INLINE_ACTION(*this, notify, {_self, "active"_n}, {bets_iterator->user, winning_number, hash});
-
-                    // Pay if bettor chose winning number.
                     uint64_t winnings = bets_iterator->larimers * 36 / bets_iterator->coverage.size();
                     for(auto const& bet_number: bets_iterator->coverage){
                         if(bet_number == winning_number){
@@ -133,10 +130,9 @@ class [[eosio::contract]] roulette : public eosio::contract{
             }
 
         [[eosio::action]]
-            // Send spin result to bettor.
-            void notify(name user, uint8_t winning_number, checksum256 hash){
+            // Publish spin result.
+            void publish(checksum256 hash, uint8_t winning_number){
                 require_auth(_self);
-                require_recipient(user);
             }
 
         [[eosio::action]]
@@ -159,14 +155,6 @@ class [[eosio::contract]] roulette : public eosio::contract{
             // Hash a hex string
             void gethash(checksum256 secret){
                 print(checksum256_to_hex(sha256((const char*)&secret, sizeof(secret))));
-            }
-
-        [[eosio::action]]
-            // Calculate a winning number from a hash, for testing
-            void calcwin(checksum256 secret){
-                saltedsecret_struct saltedsecret;
-                saltedsecret.secret = secret;
-                print(calculate_winning_number(saltedsecret));
             }
 
     private:
@@ -239,4 +227,4 @@ class [[eosio::contract]] roulette : public eosio::contract{
         }
 };
 
-EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(notify)(deleteall)(gethash)(calcwin))
+EOSIO_DISPATCH(roulette, (spin)(bet)(pay)(publish)(deleteall)(gethash))
