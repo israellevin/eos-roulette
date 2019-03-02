@@ -22,8 +22,8 @@
         scatterjs.connect('roulette', {network}).then(connected => {
             if(!connected) return false;
             scatterjs.scatter.login().then(async function(){
-                window.roulette.scatterAccount = scatterjs.account('eos').name;
-                success(window.roulette.scatterAccount);
+                window.roulette.account_name = scatterjs.account('eos').name;
+                success(window.roulette.account_name);
             });
         });
     }
@@ -31,15 +31,15 @@
     // Logout of scatter.
     function logout(success){
         scatterjs.scatter.logout().then(function(){
-            delete window.roulette.account;
+            delete window.roulette.account_name;
             success();
         });
     }
 
     // Get current user's account details.
-    async function getAccount(){
-        window.roulette.account = await eos.getAccount(window.roulette.scatterAccount);
-        return window.roulette.account;
+    async function getAccountDetails(){
+        window.roulette.accountDetails = await eos.getAccount(window.roulette.account_name);
+        return window.roulette.accountDetails;
     }
 
     // Get current user's balance.
@@ -47,7 +47,7 @@
         return await eos.getTableRows({
             json: true,
             code: 'eosio.token',
-            scope: window.roulette.scatterAccount,
+            scope: window.roulette.account_name,
             table: 'accounts',
             limit: 10,
         });
@@ -85,20 +85,21 @@
     // FIXME This will probably not work without history plugin.
     async function poll(spin, after, callback){
         if(after < 0){
-            after = (await eos.getActions(window.roulette.scatterAccount, -1, -1)).actions[0].account_action_seq;
+            after = (await eos.getActions('roulette', -1, -1)).actions[0].account_action_seq;
         }
-        let actions = (await eos.getActions(window.roulette.scatterAccount, after, 1)).actions;
-        if(actions.length === 2){
-            let action = actions[1].action_trace.act;
-            if(
-                action.account === 'roulette' &&
-                action.name === 'notify' &&
-                action.data.hash === spin.hash
-            ){
-                console.log(action.data);
-                return callback(action.data);
-            }
-            after = actions[1].account_action_seq;
+        let actions = (await eos.getActions('roulette', after, 100)).actions;
+        if(actions.length > 0){
+            actions.forEach(function(action){
+                action = action.action_trace.act;
+                if(
+                    action.account === 'roulette' &&
+                    action.name === 'publish' &&
+                    action.data.hash === spin.hash
+                ){
+                    return callback(action.data);
+                }
+            });
+            after = after + actions.length;
         }
         setTimeout(function(){window.roulette.poll(spin, after, callback);}, 1000);
     }
@@ -111,11 +112,11 @@
                     account: 'roulette',
                     name: 'bet',
                     authorization: [{
-                        actor: window.roulette.scatterAccount,
+                        actor: window.roulette.account_name,
                         permission: 'active',
                     }],
                     data: {
-                        user: window.roulette.scatterAccount,
+                        user: window.roulette.account_name,
                         hash: hash,
                         coverage: coverage,
                         larimers: larimers,
@@ -137,7 +138,7 @@
         chainid: window.roulette.chainid,
         login: login,
         logout: logout,
-        getAccount: getAccount,
+        getAccountDetails: getAccountDetails,
         getBalance: getBalance,
         getSpin: getSpin,
         getBets: getBets,
