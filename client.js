@@ -177,6 +177,18 @@
     // FIXME Just for debug.
     window.onload = function(){
         initLayout(document.getElementById('layout'));
+
+        const wheel = document.getElementsByTagName('td')[0];
+        let currentAngle = 0;
+        function spin(){
+            currentAngle += 360;
+            wheel.style.transform = 'rotate(' + currentAngle + 'deg)';
+        }
+        wheel.ontransitionend = function(e){
+            spin();
+        }
+        wheel.style.transition = 'all 1s linear';
+        spin();
     }
 
 }());
