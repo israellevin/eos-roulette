@@ -206,11 +206,11 @@ td.green{
 
 .chip{
     --chip-face: #ffd6b9;
+    --chip-side: #ffd6b930;
     --chip-mark: #252833;
     color: var(--chip-mark);
     text-shadow: none;
     text-align: center;
-    margin: .5em;
     font-size: 1em;
     position: relative;
     display: inline-block;
@@ -225,6 +225,8 @@ td.green{
     transition: all .3s ease;
     backface-visibility: hidden;
     z-index: 1;
+    float: left;
+    margin: 2px;
 }
 
 .chip:hover {
@@ -237,11 +239,11 @@ td.green{
 .chip.iso{
     transform: perspective(3000px) rotateX(55deg);
     box-shadow:
-            0 1px 0 #ffd6b930,
-            0 2px 0 #ffd6b930,
-            0 3px 0 #ffd6b930,
-            0 4px 0 #ffd6b930,
-            0 5px 0 #ffd6b930,
+            0 1px 0 var(--chip-side),
+            0 2px 0 var(--chip-side),
+            0 3px 0 var(--chip-side),
+            0 4px 0 var(--chip-side),
+            0 5px 0 var(--chip-side),
             0 9px 6px #222;
 }
 
@@ -251,8 +253,8 @@ td.green{
 .chip.iso.small {
     transform: perspective(3000px) rotateX(55deg);
     box-shadow:
-            0 1px 0 #ffd6b930,
-            0 3px 0 #ffd6b930,
+            0 1px 0 var(--chip-side),
+            0 3px 0 var(--chip-side),
             0 3px 6px #222;
 }
 
