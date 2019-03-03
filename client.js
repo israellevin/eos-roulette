@@ -170,6 +170,7 @@
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
+            rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
         startIntro: function(){introJs().start();}
     };
