@@ -1,5 +1,5 @@
 // jshint esversion: 8
-let larimers = 5000;
+let larimers = null;
 (function(){
     'use strict';
 
@@ -99,15 +99,12 @@ let larimers = 5000;
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
             console.log(mouseEvent);
-            processBet(getCoverage(mouseEvent), larimers);
+            if (larimers) {
+                processBet(getCoverage(mouseEvent), larimers);
+            } else {
+                addLogLine("choose token first")
+            }
 
-            //playing with chips
-            var chip = document.getElementById('chip1').cloneNode(true);
-            chip.id = 'new';
-            chip.style.left = (mouseEvent.clientX-2)+'px';
-            chip.style.top = (mouseEvent.clientY-7)+'px';
-            chip.style.backgroundColor = "#"+((1<<24)*Math.random()|0).toString(16);
-            document.body.appendChild(chip);
         };
     }
 
