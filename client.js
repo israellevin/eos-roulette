@@ -154,25 +154,42 @@
         })();
     }
 
-    // Login to roulette.
-    roulette.login(function(account_name){
-        if(account_name){
-            document.getElementById('user').innerText = account_name;
-            init();
-        }
-    });
-
     // Expose some functionality.
     window.rouletteClient = {
         spin: false,
         coverage: [],
         hintsShown: false,
+        startIntro: function(){introJs().start();},
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
-        startIntro: function(){introJs().start();}
+        login: function(){
+            roulette.login(function(account_name){
+                if(account_name){
+                    document.getElementById('user').innerText = account_name;
+                    init();
+                }
+            });
+        }
     };
+
+    // FIXME Just for debug.
+    window.onload = function(){
+        initLayout(document.getElementById('layout'));
+
+        const wheel = document.getElementsByTagName('td')[0];
+        let currentAngle = 0;
+        function spin(){
+            currentAngle += 360;
+            wheel.style.transform = 'rotate(' + currentAngle + 'deg)';
+        }
+        wheel.ontransitionend = function(e){
+            spin();
+        }
+        wheel.style.transition = 'all 1s linear';
+        spin();
+    }
 
 }());

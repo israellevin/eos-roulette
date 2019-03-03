@@ -37,9 +37,14 @@ class [[eosio::contract]] roulette : public eosio::contract{
         [[eosio::action]]
             // Bet larimers on a coverage of numbers in spin hash and add a salt.
             void bet(name user, checksum256 hash, std::vector<uint8_t> coverage, uint64_t larimers, uint64_t salt){
-                require_auth(user);
+                name payer = user;
+                if(has_auth(_self)){
+                    payer = _self;
+                }else{
+                    require_auth(user);
+                }
 
-                //// Try to get the spin.
+                // Try to get the spin.
                 spins_indexed spins(_code, _code.value);
                 auto spins_hash_index = spins.get_index<"hash"_n>();
                 auto spins_iterator = spins_hash_index.find(hash);
@@ -52,14 +57,16 @@ class [[eosio::contract]] roulette : public eosio::contract{
                 eosio_assert(n < spins_iterator->maxbettime, "betting ended");
 
                 // Accept bet.
-                action(
-                    permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
-                    std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string("Roulette bets"))
-                ).send();
+                if(user == payer){
+                    action(
+                        permission_level{user, "active"_n}, "eosio.token"_n, "transfer"_n,
+                        std::make_tuple(user, _self, asset(larimers, EOS_SYMBOL), std::string("Roulette bets"))
+                    ).send();
+                }
 
                 // Write in table.
                 bets_indexed bets(_code, _code.value);
-                bets.emplace(user, [&](auto& row){
+                bets.emplace(payer, [&](auto& row){
                     row.id = bets.available_primary_key();
                     row.hash = hash;
                     row.coverage = coverage;
