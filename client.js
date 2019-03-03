@@ -79,21 +79,21 @@
     function initLayout(layout){
 
         // Highlight on mouse movement.
-        layout.onmousemove = function(mouseEvent){
+        layout.addEventListener('mousemove', function(mouseEvent){
             document.querySelectorAll('[data-bet]').forEach(function(element){
                 element.classList.remove('highlight');
             });
             getCoverage(mouseEvent).forEach(function(number){
                 document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.add('highlight');
             });
-        };
+        });
 
         //remove all highlights when leaving the felt
-        layout.onmouseleave = function(mouseEvent){
+        layout.addEventListener('mouseleave', function(mouseEvent){
             document.querySelectorAll('[data-bet]').forEach(function(element){
                 element.classList.remove('highlight');
             });
-        };
+        });
 
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
@@ -184,9 +184,10 @@
             currentAngle += 360;
             wheel.style.transform = 'rotate(' + currentAngle + 'deg)';
         }
-        wheel.ontransitionend = function(e){
+        wheel.addEventListener('transitionend', function(){
             spin();
-        }
+        });
+
         wheel.style.transition = 'all 1s linear';
         spin();
     }
