@@ -1,4 +1,5 @@
 // jshint esversion: 8
+let larimers = 5000;
 (function(){
     'use strict';
 
@@ -98,7 +99,7 @@
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
             console.log(mouseEvent);
-            processBet(getCoverage(mouseEvent), 5000);
+            processBet(getCoverage(mouseEvent), larimers);
 
             //playing with chips
             var chip = document.getElementById('chip1').cloneNode(true);
@@ -160,9 +161,20 @@
         coverage: [],
         hintsShown: false,
         startIntro: function(){introJs().start();},
+        selectToken: function(element, value){
+            larimers = value * 10000;
+            // add iso to all
+            document.getElementById("chip-selector").querySelectorAll(".chip").forEach(
+                function (chip) { chip.classList.add("iso") }
+            );
+            // remove iso from chosen
+            element.classList.remove("iso");
+            let msg = "Each token now worth " + value + " EOS"
+            addLogLine(msg);
+            document.getElementById('message').innerText = msg;
+        },
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
-            rouletteClient.hintsShown = !rouletteClient.hintsShown;
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
         login: function(){

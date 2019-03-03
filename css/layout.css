@@ -229,9 +229,6 @@ td.green{
     margin: 2px;
 }
 
-.chip:hover {
-    transform: rotate(30deg);
-}
 .chip.iso:hover {
     transform: none;
     box-shadow: 1px 2px 3px var(--chip-face);
@@ -246,7 +243,6 @@ td.green{
             0 5px 0 var(--chip-side),
             0 9px 6px #222;
 }
-
 .chip.small {
     font-size: 5px;
 }
