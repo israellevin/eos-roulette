@@ -7,7 +7,22 @@ body {
     margin-left: calc(50vw - 180px);
     background-color: rgba(15,109,57,0.9);
     cursor:crosshair;
+    position: relative;
 }
+
+#wheel{
+    position: absolute;
+    z-index: 10;
+    top: 72px;
+    left: 26px;
+}
+
+#ball{
+    position: fixed;
+    top: 0;
+    left: 0px;
+}
+
 ul {
     list-style-type: none;
     padding: 0;

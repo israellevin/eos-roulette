@@ -186,22 +186,43 @@ let larimers = null;
         }
     };
 
+    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ]
+    function spin(turns, win){
+
+        turns = 2;
+        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
+        const shift =  Math.floor(Math.random() * 360); // random shift of wheel
+        const wheelTrunDur = 1.5; // seconds per turn
+        console.log("Land on " + win);
+        const wheel = document.getElementById('wheel');
+        const ball = document.getElementById('ball');
+
+        // turn wheel counterclockwise 360 deg turns plus some random shift
+        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
+        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
+        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
+        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
+        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)';
+        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
+
+        wheel.addEventListener('transitionend', function(){
+            //victory lap - show ball stationary on winning number
+            console.log('done');
+            // extra turn w ball
+            wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
+            wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
+        });
+
+    }
+
     // FIXME Just for debug.
     window.onload = function(){
         initLayout(document.getElementById('layout'));
 
-        const wheel = document.getElementsByTagName('td')[0];
-        let currentAngle = 0;
-        function spin(){
-            currentAngle += 360;
-            wheel.style.transform = 'rotate(' + currentAngle + 'deg)';
-        }
-        wheel.addEventListener('transitionend', function(){
-            spin();
-        });
+        // setInterval(spin, 2000);
+        spin(2, Math.floor(Math.random() * 37))
 
-        wheel.style.transition = 'all 1s linear';
-        spin();
-    }
+
+    };
 
 }());
