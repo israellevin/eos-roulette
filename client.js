@@ -190,9 +190,8 @@ let larimers = null;
     function spin(turns, win){
 
         const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
-        const shift =  0*Math.floor(Math.random() * 360); // random shift of wheel
+        const shift =  Math.floor(Math.random() * 360); // random shift of wheel
         const wheelTrunDur = 1.5; // seconds per turn
-        turns = 2;
         console.log("Land on " + win);
         const wheel = document.getElementById('wheel');
         const ball = document.getElementById('ball');
@@ -210,9 +209,8 @@ let larimers = null;
             // extra turn w ball
             wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
             wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
-            ball.style.transition = 'all 0.5s ease-in';
+            ball.style.transition = 'all 0.4s ease-in';
             ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg) translateY(36px)';
-
         });
 
     }
