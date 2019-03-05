@@ -14,7 +14,7 @@ spin(){
     secret=$(openssl rand -hex 32)
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
-    spun+=("$(cleos push action roulette spin '["'$hash'", '$(date +%s)', '$1']' -p roulette@owner)")
+    spun+=("$(cleos push action roulette spin '["'$hash'", '$(($(date +%s) - 10))', '$1']' -p roulette@owner)")
     sleep 0.5
     bet $hash
 }
