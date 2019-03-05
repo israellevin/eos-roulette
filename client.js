@@ -161,7 +161,10 @@ let larimers = null;
         selectToken: function(element, value){
             larimers = value * 10000;
             let selector = document.getElementById("chip-selector");
-            selector.scrollTo(element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, 0, 'smooth')
+            selector.scrollTo({
+                left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
+                behavior: 'smooth'
+            });
             // add iso to all
             selector.querySelectorAll(".chip").forEach(
                 function (chip) { chip.classList.add("iso") }
