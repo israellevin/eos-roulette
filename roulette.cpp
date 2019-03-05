@@ -127,13 +127,16 @@ class [[eosio::contract]] roulette : public eosio::contract{
                     }
                 }
 
-                // Erase the bets and the spin.
-                for(
-                    auto bets_iterator = bets_spin_index.find(hash);
-                    bets_iterator != bets_spin_index.end();
-                    bets_iterator = bets_spin_index.erase(bets_iterator)
-                );
+                // Erase the spin and its bets.
                 spins_hash_index.erase(spins_iterator);
+                auto bets_iterator = bets_spin_index.find(hash);
+                while(bets_iterator != bets_spin_index.end()){
+                    if(bets_iterator->hash == hash){
+                        bets_iterator = bets_spin_index.erase(bets_iterator);
+                    }else{
+                        bets_iterator++;
+                    }
+                }
             }
 
         [[eosio::action]]

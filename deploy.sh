@@ -37,8 +37,8 @@ cleos set contract eosio ./eosio.contracts/eosio.system/ -p eosio@active
 # Create token and distribute.
 cleos push action eosio.token create '["eosio", "10000000000.0000 EOS"]' -p eosio.token@active
 cleos push action eosio.token issue '["eosio", "10000000000.0000 EOS", "issue eos"]' -p eosio@active
-cleos push action eosio.token transfer '{"from":"eosio","to":"roulette","quantity":"10000.0000 EOS","memo":"funding roulette"}' -p eosio@active
-cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":"10000.0000 EOS","memo":"funding alice"}' -p eosio@active
+cleos push action eosio.token transfer '{"from":"eosio","to":"roulette","quantity":"1000000.0000 EOS","memo":"funding roulette"}' -p eosio@active
+cleos push action eosio.token transfer '{"from":"eosio","to":"alice","quantity":"1000000.0000 EOS","memo":"funding alice"}' -p eosio@active
 
 # This init call is required, and can only happen after token is issued.
 cleos push action eosio init '[0, "4,EOS"]' -p eosio@active

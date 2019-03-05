@@ -135,7 +135,6 @@ let larimers = null;
                     playersBox.replaceChild(newUL, playersBoxUl); // replace with new UL
                     // add all fellows to new UL
                     fellows.forEach( function (fellow) {
-                        console.log(fellow.user);
                         const playerEntry = document.createElement('li');
                         playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
                             fellow.user +
