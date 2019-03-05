@@ -12,6 +12,7 @@ let larimers = null;
     function addResultToHistory(winning_number){
         const entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
+        entry.classList.add(getColor(winning_number))
         let list = document.getElementById("history-ul");
         list.insertBefore(entry, list.childNodes[0]);
     }
@@ -171,7 +172,7 @@ let larimers = null;
             );
             // remove iso from chosen
             element.classList.remove("iso");
-            let msg = "Each token now worth " + value + " EOS"
+            let msg = "Each token now worth " + value + " EOS";
             addLogLine(msg);
             document.getElementById('message').innerText = msg;
         },
@@ -189,9 +190,20 @@ let larimers = null;
         }
     };
 
-    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ]
-    function spin(turns, win){
+    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ];
+    const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    const blacks = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
+    const greens= [0];
 
+    function getColor(number){
+        if (greens.includes(number))
+            return 'gree';
+        if (reds.includes(number))
+            return 'red';
+        return 'black';
+    }
+
+    function spin(turns, win){
         const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
         const shift =  Math.floor(Math.random() * 360); // random shift of wheel
         const wheelTrunDur = 1.5; // seconds per turn
