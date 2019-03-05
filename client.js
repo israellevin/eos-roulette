@@ -146,7 +146,7 @@ let larimers = null;
 
                 }
             }else{
-                rouletteClient.spin = await roulette.getSpin(now + 15);
+                rouletteClient.spin = await roulette.getSpin(now + 9);
                 if(rouletteClient.spin){
                     addLogLine('got spin ' + rouletteClient.spin.hash);
                     roulette.poll(rouletteClient.spin, -1, function(result){
@@ -253,11 +253,7 @@ let larimers = null;
     // FIXME Just for debug.
     window.onload = function(){
         initLayout(document.getElementById('layout'));
-
-        // setInterval(spin, 2000);
-        spin(2, Math.floor(Math.random() * 37))
-
-
+        rouletteClient.login();
     };
 
 }());
