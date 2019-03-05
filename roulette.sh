@@ -4,7 +4,7 @@ secretsdir=secrets
 mkdir -p "$secretsdir"
 paid=()
 spun=()
-errors=()
+bets=()
 
 pay(){
     paid+=("$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)")
@@ -14,7 +14,14 @@ spin(){
     secret=$(openssl rand -hex 32)
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
-    spun+=("$(cleos push action roulette spin '["'$hash'", '$(date +%s)', '$1']' -p roulette@owner)")
+    spun+=("$(cleos push action roulette spin '["'$hash'", '$(($(date +%s) - 10))', '$1']' -p roulette@owner)")
+    bet $hash > errors.txt
+}
+
+bet(){
+    bets+=("$(cleos push action roulette bet '["eosio.token", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active)")
+    bets+=("$(cleos push action roulette bet '["eosio.stake", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active)")
+    bets+=("$(cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active)")
 }
 
 
@@ -37,9 +44,11 @@ done
 
 
 echo ${#spun[@]} spun
+echo ${#bets[@]} bets
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
 cat errors.txt
 > errors.txt
 printf '%s\n' "${paid[@]}"
 printf '%s\n' "${spun[@]}"
+printf '%s\n' "${bets[@]}"

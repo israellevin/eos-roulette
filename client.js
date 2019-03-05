@@ -12,6 +12,7 @@ let larimers = null;
     function addResultToHistory(winning_number){
         const entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
+        entry.classList.add(getColor(winning_number))
         let list = document.getElementById("history-ul");
         list.insertBefore(entry, list.childNodes[0]);
     }
@@ -162,7 +163,21 @@ let larimers = null;
                 if(now < rouletteClient.spin.maxbettime){
                     document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
                 }else{
-                    document.getElementById('sec-left').style.display = 'none';
+                    document.getElementById('timer').style.display = 'none';
+                    let fellows = await roulette.getBets(rouletteClient.spin.hash);
+                    let playersBox = document.getElementById('players-box');
+                    let playersBoxUl = playersBox.children[0];
+                    let newUL = playersBoxUl.cloneNode(false);
+                    playersBox.replaceChild(newUL, playersBoxUl); // replace with new UL
+                    // add all fellows to new UL
+                    fellows.forEach( function (fellow) {
+                        const playerEntry = document.createElement('li');
+                        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
+                            fellow.user +
+                            '<BR>bet:' + fellow.larimers/10000;
+                        // playerEntry.appendChild(document.createTextNode(fellow.user));
+                        newUL.appendChild(playerEntry);
+                    });
                 }
             }else{
                 rouletteClient.spin = await roulette.getSpin(now + 9);
@@ -225,6 +240,49 @@ let larimers = null;
             });
         }
     };
+
+    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ];
+    const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    const blacks = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
+    const greens= [0];
+
+    function getColor(number){
+        if (greens.includes(number))
+            return 'gree';
+        if (reds.includes(number))
+            return 'red';
+        return 'black';
+    }
+
+    function spin(turns, win){
+        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
+        const shift =  Math.floor(Math.random() * 360); // random shift of wheel
+        const wheelTrunDur = 1.5; // seconds per turn
+        console.log("Land on " + win);
+        const wheel = document.getElementById('wheel');
+        const ball = document.getElementById('ball');
+
+        // turn wheel counterclockwise 360 deg turns plus some random shift
+        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
+        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
+        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
+        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
+        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
+
+        const transition_end = function(){
+            wheel.removeEventListener('transitionend', transition_end);
+            //victory lap - show ball stationary on winning number
+            console.log('done');
+            // extra turn w ball
+            wheel.style.transition = 'all ' + wheelTrunDur * (2 + turns) + 's ease-out';
+            wheel.style.transform = 'rotate(' + ((2 + turns) * -360 + shift) + 'deg)';
+            ball.style.transition = 'all 0.4s ease-in';
+            ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg) translateY(36px)';
+            // wheel.style.opacity = '0.5';
+        };
+        wheel.addEventListener('transitionend', transition_end);
+
+    }
 
     // FIXME Just for debug.
     window.onload = function(){

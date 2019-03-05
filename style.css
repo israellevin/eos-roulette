@@ -29,11 +29,11 @@ ul {
     list-style-type: none;
     padding: 0;
 }
-i.fa.fa-dot-circle-o.list-group-item{
+i.fa.fa-dot-circle-o.players-list-item{
     padding: 0.1pt 3pt;;
     margin: 0;
 }
-.list-group-item{
+.players-list-item{
     padding: .65rem .25rem;
     background-color: transparent;
     border: none;
@@ -111,7 +111,7 @@ i.fa.fa-dot-circle-o.list-group-item{
     padding-top: 36px;
     background-color: #0f6d39;
     color: #ffffee;
-    cursor: url(../hand_pointer_32.png) 9 1, auto;
+    cursor: url(hand_pointer.png) 9 1, auto;
 }
 .main-right{
     min-width: 113px;
@@ -121,9 +121,10 @@ i.fa.fa-dot-circle-o.list-group-item{
     max-width: 44px;
     padding: 0;
 }
-.players-box{
+#players-box{
     max-height:113px;
-    padding: 2px
+    padding: 2px;
+    font-size: 10px;
 }
 .bonus-box{
     min-height:80px;
@@ -191,13 +192,13 @@ i.fa.fa-dot-circle-o.list-group-item{
 }
 
 td.red{
-    background-image: url(../red.png);
+    background-image: url(red.png);
 }
 td.black{
-    background-image: url(../black.png);
+    background-image: url(black.png);
 }
 td.green{
-    background-image: url(../green.png);
+    background-image: url(green.png);
 }
 
 /*div {*/
