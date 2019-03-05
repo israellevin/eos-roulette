@@ -75,6 +75,42 @@ let larimers = null;
         }
     }
 
+    function spinRoulette(win){
+        console.log("Land on " + win);
+        const wheelOrder = [
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
+            10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+        ];
+        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
+        const shift =  0*Math.floor(Math.random() * 360); // random shift of wheel
+        const wheelTrunDur = 1.5; // seconds per turn
+        const wheel = document.getElementById('wheel');
+        const ball = document.getElementById('ball');
+        let turns = 2;
+
+
+        wheel.style.opacity = 1;
+        // turn wheel counterclockwise 360 deg turns plus some random shift
+        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
+        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
+        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
+        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
+        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
+
+        wheel.addEventListener('transitionend', function(){
+            //victory lap - show ball stationary on winning number
+            console.log('done');
+            // extra turn w ball
+            wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
+            wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
+            ball.style.transition = 'rotation 0.5s ease-in';
+            ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg) translateY(36px)';
+            wheel.style.opacity = 0;
+            wheel.style.transition = 'opacity 0.5s';
+        });
+    }
+
+
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
     function initLayout(layout){
@@ -102,9 +138,8 @@ let larimers = null;
             if (larimers) {
                 processBet(getCoverage(mouseEvent), larimers);
             } else {
-                addLogLine("choose token first")
+                addLogLine("choose token first");
             }
-
         };
     }
 
@@ -126,12 +161,16 @@ let larimers = null;
             if(rouletteClient.spin){
                 if(now < rouletteClient.spin.maxbettime){
                     document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
+                }else{
+                    document.getElementById('sec-left').style.display = 'none';
                 }
             }else{
-                rouletteClient.spin = await roulette.getSpin(now + 15);
+                rouletteClient.spin = await roulette.getSpin(now + 9);
                 if(rouletteClient.spin){
                     addLogLine('got spin ' + rouletteClient.spin.hash);
+                    document.getElementById('sec-left').style.display = 'block';
                     roulette.poll(rouletteClient.spin, -1, function(result){
+                        spinRoulette(result.winning_number);
                         addLogLine('Roulette stops on ' + result.winning_number + '!');
                         addResultToHistory(result.winning_number);
                         if(rouletteClient.coverage.indexOf(result.winning_number) > -1){
@@ -166,12 +205,10 @@ let larimers = null;
                 behavior: 'smooth'
             });
             // add iso to all
-            selector.querySelectorAll(".chip").forEach(
-                function (chip) { chip.classList.add("iso") }
-            );
+            selector.querySelectorAll(".chip").forEach(function(chip){chip.classList.add("iso");});
             // remove iso from chosen
             element.classList.remove("iso");
-            let msg = "Each token now worth " + value + " EOS"
+            let msg = "Each token now worth " + value + " EOS";
             addLogLine(msg);
             document.getElementById('message').innerText = msg;
         },
@@ -189,45 +226,10 @@ let larimers = null;
         }
     };
 
-    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ]
-    function spin(turns, win){
-
-        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
-        const shift =  0*Math.floor(Math.random() * 360); // random shift of wheel
-        const wheelTrunDur = 1.5; // seconds per turn
-        turns = 2;
-        console.log("Land on " + win);
-        const wheel = document.getElementById('wheel');
-        const ball = document.getElementById('ball');
-
-        // turn wheel counterclockwise 360 deg turns plus some random shift
-        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
-        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
-        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
-        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
-        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
-
-        wheel.addEventListener('transitionend', function(){
-            //victory lap - show ball stationary on winning number
-            console.log('done');
-            // extra turn w ball
-            wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
-            wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
-            ball.style.transition = 'all 0.5s ease-in';
-            ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg) translateY(36px)';
-
-        });
-
-    }
-
     // FIXME Just for debug.
     window.onload = function(){
         initLayout(document.getElementById('layout'));
-
-        // setInterval(spin, 2000);
-        spin(2, Math.floor(Math.random() * 37))
-
-
+        rouletteClient.login();
     };
 
 }());
