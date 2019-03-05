@@ -30,7 +30,7 @@
     // Logout of scatter.
     function logout(success){
         scatterjs.scatter.logout().then(function(){
-            delete roulette.account_name;
+            roulette.account_name = null;
             success();
         });
     }
@@ -135,6 +135,7 @@
     // Expose some functionality.
     window.roulette = {
         chainid: roulette.chainid,
+        account_name: null,
         login: login,
         logout: logout,
         getAccountDetails: getAccountDetails,

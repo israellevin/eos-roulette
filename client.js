@@ -1,5 +1,4 @@
 // jshint esversion: 8
-let larimers = null;
 (function(){
     'use strict';
 
@@ -8,11 +7,18 @@ let larimers = null;
         document.getElementById('log').innerHTML = line + '<p>' + document.getElementById('log').innerHTML;
     }
 
+    // Get color of number.
+    function getColor(number){
+        if(document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.contains('red')) return 'red';
+        if(document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.contains('black')) return 'black';
+        return 'green';
+    }
+
     // add a roulette winning number to the history.
     function addResultToHistory(winning_number){
         const entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
-        entry.classList.add(getColor(winning_number))
+        entry.classList.add(getColor(winning_number));
         let list = document.getElementById("history-ul");
         list.insertBefore(entry, list.childNodes[0]);
     }
@@ -46,8 +52,39 @@ let larimers = null;
         return selection;
     }
 
+    // Animate a spinning roulette.
+    function spinRoulette(winning_number){
+        const LAYOUT_NUMBERS = [
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
+            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+        ];
+        const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
+        const shift =  Math.floor(Math.random() * 360);
+        const secondsPerTurn = 1.5;
+        const wheel = document.getElementById('wheel');
+        const ball = document.getElementById('ball');
+        let turns = 2;
+
+        wheel.style.transition = 'all ' + secondsPerTurn * turns + 's linear';
+        wheel.style.transform = 'rotate(' + (turns * -360 + shift) + 'deg)';
+        ball.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+        ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg)  translateY(0px)';
+
+        const transition_end = function(){
+            wheel.removeEventListener('transitionend', transition_end);
+            wheel.style.transition = 'all ' + secondsPerTurn * (2 + turns) + 's ease-out';
+            wheel.style.transform = 'rotate(' + ((2 + turns) * -360 + shift) + 'deg)';
+            ball.style.transition = 'all 0.4s ease-in';
+            ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg) translateY(36px)';
+        };
+        wheel.addEventListener('transitionend', transition_end);
+    }
+
     // Place a bet.
     async function processBet(coverage, larimers){
+        if(rouletteClient.spin === null){
+            return console.error('no spin to bet on');
+        }
         if(36 % coverage.length !== 0){
             console.error('coverage size must divide 36');
             return false;
@@ -71,46 +108,10 @@ let larimers = null;
                 setTimeout(function(){processBet(mouseEvent, larimers);}, 1000);
             }
         }catch(e){
-            console.error(e);
+            console.error('unable to place bet');
             return e;
         }
     }
-
-    function spinRoulette(win){
-        console.log("Land on " + win);
-        const wheelOrder = [
-            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
-            10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-        ];
-        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
-        const shift =  0*Math.floor(Math.random() * 360); // random shift of wheel
-        const wheelTrunDur = 1.5; // seconds per turn
-        const wheel = document.getElementById('wheel');
-        const ball = document.getElementById('ball');
-        let turns = 2;
-
-
-        wheel.style.opacity = 1;
-        // turn wheel counterclockwise 360 deg turns plus some random shift
-        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
-        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
-        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
-        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
-        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
-
-        wheel.addEventListener('transitionend', function(){
-            //victory lap - show ball stationary on winning number
-            console.log('done');
-            // extra turn w ball
-            wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
-            wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
-            ball.style.transition = 'rotation 0.5s ease-in';
-            ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg) translateY(36px)';
-            wheel.style.opacity = 0;
-            wheel.style.transition = 'opacity 0.5s';
-        });
-    }
-
 
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
@@ -135,159 +136,129 @@ let larimers = null;
 
         // Place a bet on mouse click.
         layout.onclick = function(mouseEvent){
-            console.log(mouseEvent);
-            if (larimers) {
-                processBet(getCoverage(mouseEvent), larimers);
-            } else {
-                addLogLine("choose token first");
+            if(rouletteClient.bet_size === null){
+                return console.error('no bet size selected');
             }
+            processBet(getCoverage(mouseEvent), rouletteClient.bet_size);
         };
     }
 
-    // Initialize roulette. Assumes user is logged in with scatter.
-    function init(){
+    // Update the user's balance.
+    async function updateBalance(){
+        if(roulette.account_name === null){
+            return console.error('can not get balance when disconnected');
+        }
+        document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
+    }
 
-        // Initialize layout.
-        initLayout(document.getElementById('layout'));
+    // Update the bettors on a spin.
+    async function updateBettors(hash){
+        let bettors = await roulette.getBets(hash);
+        let playersBox = document.getElementById('players-box');
+        let playersBoxUl = playersBox.children[0];
+        let newUL = playersBoxUl.cloneNode(false);
+        bettors.forEach( function (fellow) {
+            const playerEntry = document.createElement('li');
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
+                fellow.user +
+                '<BR>bet:' + fellow.larimers/10000;
+            newUL.appendChild(playerEntry);
+        });
+        playersBox.replaceChild(newUL, playersBoxUl);
+    }
 
-        // Balance updater.
-        (async function updateBalance(){
-            document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
-            setTimeout(updateBalance, 1000);
-        })();
-
-        // Spin updater.
-        (async function updateSpin(){
-            let now = Math.round(new Date() / 1000);
-            if(rouletteClient.spin){
-                if(now < rouletteClient.spin.maxbettime){
-                    document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
-                }else{
-                    document.getElementById('timer').style.display = 'none';
-                    let fellows = await roulette.getBets(rouletteClient.spin.hash);
-                    let playersBox = document.getElementById('players-box');
-                    let playersBoxUl = playersBox.children[0];
-                    let newUL = playersBoxUl.cloneNode(false);
-                    playersBox.replaceChild(newUL, playersBoxUl); // replace with new UL
-                    // add all fellows to new UL
-                    fellows.forEach( function (fellow) {
-                        const playerEntry = document.createElement('li');
-                        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
-                            fellow.user +
-                            '<BR>bet:' + fellow.larimers/10000;
-                        // playerEntry.appendChild(document.createTextNode(fellow.user));
-                        newUL.appendChild(playerEntry);
-                    });
-                }
+    // Update the spin data.
+    async function updateSpin(){
+        let now = Math.round(new Date() / 1000);
+        if(rouletteClient.spin){
+            if(now < rouletteClient.spin.maxbettime){
+                document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
+                updateBettors(rouletteClient.spin.hash);
             }else{
-                rouletteClient.spin = await roulette.getSpin(now + 9);
-                if(rouletteClient.spin){
-                    addLogLine('got spin ' + rouletteClient.spin.hash);
-                    document.getElementById('sec-left').style.display = 'block';
-                    roulette.poll(rouletteClient.spin, -1, function(result){
-                        spinRoulette(result.winning_number);
-                        addLogLine('Roulette stops on ' + result.winning_number + '!');
-                        addResultToHistory(result.winning_number);
-                        if(rouletteClient.coverage.indexOf(result.winning_number) > -1){
-                            let message = roulette.account_name + ' won ' + (
-                                5000 * (36 / rouletteClient.coverage.length)
-                            ) + ' larimers';
-                            document.getElementById('message').innerText = message;
-                            addLogLine(message);
-                        }
-                        rouletteClient.spin = false;
-                        rouletteClient.coverage = [];
-                    });
-                }else{
-                    console.error('no available spins');
-                }
+                document.getElementById('timer').style.display = 'none';
             }
-            setTimeout(function(){updateSpin();}, 1000);
-        })();
+        }else{
+            rouletteClient.spin = await roulette.getSpin(now + 15);
+            if(rouletteClient.spin){
+                addLogLine('got spin ' + rouletteClient.spin.hash);
+                document.getElementById('sec-left').style.display = 'block';
+                roulette.poll(rouletteClient.spin, -1, function(result){
+                    spinRoulette(result.winning_number);
+                    addLogLine('Roulette stops on ' + result.winning_number + '!');
+                    addResultToHistory(result.winning_number);
+                    if(rouletteClient.coverage.indexOf(result.winning_number) > -1){
+                        let message = roulette.account_name + ' won ' + (
+                            5000 * (36 / rouletteClient.coverage.length)
+                        ) + ' larimers';
+                        document.getElementById('message').innerText = message;
+                        addLogLine(message);
+                    }
+                    rouletteClient.spin = null;
+                    rouletteClient.coverage = [];
+                });
+            }else{
+                console.error('no available spins');
+            }
+        }
+    }
+
+    // Select a token to set the bet size.
+    function selectToken(element, value){
+        rouletteClient.bet_size = value * 10000;
+        let selector = document.getElementById("chip-selector");
+        selector.scrollTo({
+            left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
+            behavior: 'smooth'
+        });
+        selector.querySelectorAll(".chip").forEach(function(chip){chip.classList.add("iso");});
+        element.classList.remove("iso");
+        let msg = "Each token now worth " + value + " EOS";
+        addLogLine(msg);
+        document.getElementById('message').innerText = msg;
     }
 
     // Expose some functionality.
     window.rouletteClient = {
-        spin: false,
+        spin: null,
+        bet_size: null,
         coverage: [],
         hintsShown: false,
+        selectToken: selectToken,
         startIntro: function(){introJs().start();},
-        selectToken: function(element, value){
-            larimers = value * 10000;
-            let selector = document.getElementById("chip-selector");
-            selector.scrollTo({
-                left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
-                behavior: 'smooth'
-            });
-            // add iso to all
-            selector.querySelectorAll(".chip").forEach(function(chip){chip.classList.add("iso");});
-            // remove iso from chosen
-            element.classList.remove("iso");
-            let msg = "Each token now worth " + value + " EOS";
-            addLogLine(msg);
-            document.getElementById('message').innerText = msg;
-        },
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
         login: function(){
+            if(roulette.account_name !== null){
+                return console.error('already logged in');
+            }
             roulette.login(function(account_name){
                 if(account_name){
                     document.getElementById('user').innerText = account_name;
-                    init();
+                    document.getElementById('connectBtn').style.display = 'none';
+                    document.getElementById('chip-selector').getElementsByClassName('chip')[0].click();
+                    rouletteClient.updater = setInterval(function(){updateBalance(); updateSpin();}, 1000);
                 }
+            });
+        },
+        logout: function(){
+            if(roulette.account_name === null){
+                return console.error('not logged in');
+            }
+            roulette.logout(function(){
+                console.log('111', roulette.account_name);
+                clearInterval(rouletteClient.updater);
+                document.getElementById('user').innerText = '';
+                document.getElementById('connectBtn').style.display = 'block';
             });
         }
     };
 
-    const wheelOrder = [ 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26 ];
-    const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
-    const blacks = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
-    const greens= [0];
-
-    function getColor(number){
-        if (greens.includes(number))
-            return 'gree';
-        if (reds.includes(number))
-            return 'red';
-        return 'black';
-    }
-
-    function spin(turns, win){
-        const winSlotDeg = 360/37*wheelOrder.indexOf(win); // location of win number
-        const shift =  Math.floor(Math.random() * 360); // random shift of wheel
-        const wheelTrunDur = 1.5; // seconds per turn
-        console.log("Land on " + win);
-        const wheel = document.getElementById('wheel');
-        const ball = document.getElementById('ball');
-
-        // turn wheel counterclockwise 360 deg turns plus some random shift
-        wheel.style.transform = 'rotate(' + (turns*-360+shift) + 'deg)';
-        wheel.style.transition = 'all ' + wheelTrunDur*turns + 's linear';
-        // turn ball clockwise on top of wheel twice as fat plus winSlotDeg for winning number
-        ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
-        ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
-
-        const transition_end = function(){
-            wheel.removeEventListener('transitionend', transition_end);
-            //victory lap - show ball stationary on winning number
-            console.log('done');
-            // extra turn w ball
-            wheel.style.transition = 'all ' + wheelTrunDur * (2 + turns) + 's ease-out';
-            wheel.style.transform = 'rotate(' + ((2 + turns) * -360 + shift) + 'deg)';
-            ball.style.transition = 'all 0.4s ease-in';
-            ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg) translateY(36px)';
-            // wheel.style.opacity = '0.5';
-        };
-        wheel.addEventListener('transitionend', transition_end);
-
-    }
-
-    // FIXME Just for debug.
+    // Initialize.
     window.onload = function(){
-        initLayout(document.getElementById('layout'));
         rouletteClient.login();
+        initLayout(document.getElementById('layout'));
     };
 
 }());

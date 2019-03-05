@@ -31,7 +31,7 @@
         <div class="col-7 box">
             <div>
                 <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
-                <button type="button" class="btn btn-primary float-right header-element" onclick="rouletteClient.login()"
+                <button id="connectBtn" type="button" class="btn btn-primary float-right header-element" onclick="rouletteClient.login()"
                         data-intro="Connect to your EOS wallet, using scatter for example">
                     Connect
                 </button>
@@ -187,7 +187,7 @@
                         Luck charge: <i class="fa fa-battery-half" aria-hidden="true"></i>
                     </div>
                     <div class="container" style="padding: 4px; text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
-                        <div style="margin: 8px 0;">Time to bet: <span id="sec-left">00</span></div>
+                        <div id="timer" style="margin: 8px 0;">Time to bet: <span id="sec-left">00</span></div>
                         <div>Select bet size</div>
                         <div id='chip-selector' style="width: 100%;overflow-x: scroll; display: inline-block;">
                             <div style="min-width: 200px; display: inline-flex">
