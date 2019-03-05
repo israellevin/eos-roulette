@@ -110,7 +110,7 @@ i.fa.fa-dot-circle-o.list-group-item{
     padding-top: 36px;
     background-color: #0f6d39;
     color: #ffffee;
-    cursor: url(../hand_pointer_32.png) 9 1, auto;
+    cursor: url(hand_pointer.png) 9 1, auto;
 }
 .main-right{
     min-width: 113px;
@@ -190,13 +190,13 @@ i.fa.fa-dot-circle-o.list-group-item{
 }
 
 td.red{
-    background-image: url(../red.png);
+    background-image: url(red.png);
 }
 td.black{
-    background-image: url(../black.png);
+    background-image: url(black.png);
 }
 td.green{
-    background-image: url(../green.png);
+    background-image: url(green.png);
 }
 
 /*div {*/

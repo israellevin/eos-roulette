@@ -206,15 +206,18 @@ let larimers = null;
         ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg)  translateY(0px)';
         ball.style.transition = 'all ' + wheelTrunDur*turns + 's ease-out';
 
-        wheel.addEventListener('transitionend', function(){
+        const transition_end = function(){
+            wheel.removeEventListener('transitionend', transition_end);
             //victory lap - show ball stationary on winning number
             console.log('done');
             // extra turn w ball
-            wheel.style.transition = 'all ' + wheelTrunDur*(2+turns) + 's ease-out';
-            wheel.style.transform = 'rotate(' + ((2+turns)*-360+shift) + 'deg)';
+            wheel.style.transition = 'all ' + wheelTrunDur * (2 + turns) + 's ease-out';
+            wheel.style.transform = 'rotate(' + ((2 + turns) * -360 + shift) + 'deg)';
             ball.style.transition = 'all 0.4s ease-in';
-            ball.style.transform = 'rotate(' + (1.5*turns*360+winSlotDeg) + 'deg) translateY(36px)';
-        });
+            ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg) translateY(36px)';
+            // wheel.style.opacity = '0.5';
+        };
+        wheel.addEventListener('transitionend', transition_end);
 
     }
 
