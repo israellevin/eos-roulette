@@ -1,2 +1,13 @@
+.gitignore
 *.wasm
 *.abi
+*.log
+.idea/
+blockchain/
+chainid.txt
+eosio.contracts/
+secrets/
+errors.txt
+js/eosjs-chainid.js
+password.txt
+*key.txt
