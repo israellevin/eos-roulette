@@ -15,6 +15,14 @@ spin(){
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
     spun+=("$(cleos push action roulette spin '["'$hash'", '$(date +%s)', '$1']' -p roulette@owner)")
+    sleep 0.1
+    bet $hash
+}
+
+bet(){
+    cleos push action roulette bet '["eosio.token", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
+    cleos push action roulette bet '["eosio.stake", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
+    cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
 }
 
 

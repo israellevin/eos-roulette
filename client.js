@@ -126,6 +126,7 @@ let larimers = null;
             if(rouletteClient.spin){
                 if(now < rouletteClient.spin.maxbettime){
                     document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
+                    console.log('fellow bettors', await roulette.getBets(rouletteClient.spin.hash));
                 }
             }else{
                 rouletteClient.spin = await roulette.getSpin(now + 15);
