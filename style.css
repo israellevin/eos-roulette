@@ -28,11 +28,11 @@ ul {
     list-style-type: none;
     padding: 0;
 }
-i.fa.fa-dot-circle-o.list-group-item{
+i.fa.fa-dot-circle-o.players-list-item{
     padding: 0.1pt 3pt;;
     margin: 0;
 }
-.list-group-item{
+.players-list-item{
     padding: .65rem .25rem;
     background-color: transparent;
     border: none;
@@ -120,9 +120,10 @@ i.fa.fa-dot-circle-o.list-group-item{
     max-width: 44px;
     padding: 0;
 }
-.players-box{
+#players-box{
     max-height:113px;
-    padding: 2px
+    padding: 2px;
+    font-size: 10px;
 }
 .bonus-box{
     min-height:80px;

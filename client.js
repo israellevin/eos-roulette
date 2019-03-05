@@ -127,7 +127,21 @@ let larimers = null;
             if(rouletteClient.spin){
                 if(now < rouletteClient.spin.maxbettime){
                     document.getElementById('sec-left').innerText = rouletteClient.spin.maxbettime - now;
-                    console.log('fellow bettors', await roulette.getBets(rouletteClient.spin.hash));
+                    let fellows = await roulette.getBets(rouletteClient.spin.hash);
+                    console.log(fellows.length, ' fellow bettors:', fellows);
+                    let playersBox = document.getElementById('players-box');
+                    let playersBoxUl = playersBox.children[0];
+                    let newUL = playersBoxUl.cloneNode(false);
+                    playersBox.replaceChild(newUL, playersBoxUl); // replace with new UL
+                    // add all fellows to new UL
+                    fellows.forEach( function (fellow) {
+                        console.log(fellow.user);
+                        const playerEntry = document.createElement('li');
+                        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' + fellow.user;
+                        // playerEntry.appendChild(document.createTextNode(fellow.user));
+                        newUL.appendChild(playerEntry);
+                    });
+
                 }
             }else{
                 rouletteClient.spin = await roulette.getSpin(now + 15);

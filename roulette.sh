@@ -15,7 +15,7 @@ spin(){
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
     spun+=("$(cleos push action roulette spin '["'$hash'", '$(date +%s)', '$1']' -p roulette@owner)")
-    sleep 0.1
+    sleep 0.5
     bet $hash
 }
 
