@@ -20,9 +20,9 @@ spin(){
 }
 
 bet(){
-    cleos push action roulette bet '["eosio.token", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
-    cleos push action roulette bet '["eosio.stake", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
-    cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $((RANDOM % 10 + 1)), $RANDOM]" -p roulette@active
+    cleos push action roulette bet '["eosio.token", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active
+    cleos push action roulette bet '["eosio.stake", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active
+    cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active
 }
 
 

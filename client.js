@@ -137,7 +137,9 @@ let larimers = null;
                     fellows.forEach( function (fellow) {
                         console.log(fellow.user);
                         const playerEntry = document.createElement('li');
-                        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' + fellow.user;
+                        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
+                            fellow.user +
+                            '<BR>bet:' + fellow.larimers/10000;
                         // playerEntry.appendChild(document.createTextNode(fellow.user));
                         newUL.appendChild(playerEntry);
                     });
