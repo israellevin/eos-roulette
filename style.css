@@ -129,6 +129,15 @@ i.fa.fa-dot-circle-o.players-list-item{
     min-width:80px;
     max-width:80px;
 }
+.bonus-box {
+    width: 40px;
+    height: 40px;
+    border: 1px solid darkolivegreen;
+    border-radius: 5px;
+    float: left;
+    opacity: 0.2;
+}
+
 .betting-box{
     font-size: 14px;
     height: 50px;
@@ -216,7 +225,13 @@ td.green{
 }
 
 
-
+#chip-selector::-webkit-scrollbar-button{
+    color: blue;
+}
+#chip-selector::-webkit-scrollbar{
+    background: #0f6d39;
+    color: yellow;
+}
 
 /* Chips */
 
@@ -342,4 +357,16 @@ td.green{
 .introjs-hint-pulse {
     border: 5px solid rgba(215, 189, 23, 0.65);
     /*background-color: rgba(139, 0, 0, 0.5);*/
+}
+
+#table-top {
+    transform: rotateX(55deg);
+    position: absolute;
+    z-index: 1;
+    opacity: 1;
+}
+
+#table-top.hidden {
+    opacity: 0.1;
+    transition: all 1s;
 }
