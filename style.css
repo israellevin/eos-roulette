@@ -73,9 +73,6 @@ i.fa.fa-dot-circle-o.players-list-item{
     min-width: 36px;
     max-width: 36px;
     padding: 1px;
-    border: 2px solid #4c0f0f;
-    border-radius: 11px;
-    background-color: green;
     margin: 12px 4px;
     max-height: 240px;
     min-height: 240px;
@@ -120,7 +117,9 @@ i.fa.fa-dot-circle-o.players-list-item{
     padding: 0;
 }
 #players-box{
-    max-height:113px;
+    min-height:16em;
+    max-height:16em;
+    overflow: hidden;
     padding: 2px;
     font-size: 10px;
 }
@@ -139,8 +138,9 @@ i.fa.fa-dot-circle-o.players-list-item{
     padding: 2px
 }
 .box{
-    /*border: 1px dashed yellow;*/
-    /*border-radius: 10px;*/
+    border: 2px solid #4c0f0f;
+    border-radius: 11px;
+    background-color: green;
 }
 .outside-label {
     pointer-events: none;
