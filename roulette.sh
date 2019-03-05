@@ -15,8 +15,7 @@ spin(){
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
     spun+=("$(cleos push action roulette spin '["'$hash'", '$(($(date +%s) - 10))', '$1']' -p roulette@owner)")
-    sleep 0.5
-    bet $hash
+    bet $hash > errors.txt
 }
 
 bet(){
@@ -39,7 +38,7 @@ done
 echo ${#paid[@]} paid
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
-for i in $(seq 10 10 60); do
+for i in $(seq 10 5 30); do
     spin $(date -d "+$i second" +%s) 2>errors.txt
 done
 
