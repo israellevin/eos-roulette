@@ -66,34 +66,6 @@
         return selection;
     }
 
-    // Animate a spinning roulette.
-    function spinRoulette(winning_number){
-        const LAYOUT_NUMBERS = [
-            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
-            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-        ];
-        const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
-        const shift =  Math.floor(Math.random() * 360);
-        const secondsPerTurn = 1.5;
-        const wheel = document.getElementById('wheel');
-        const ball = document.getElementById('ball');
-        let turns = 2;
-
-        wheel.style.transition = 'all ' + secondsPerTurn * turns + 's linear';
-        wheel.style.transform = 'rotate(' + (turns * -360 + shift) + 'deg)';
-        ball.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-        ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg)  translateY(0px)';
-
-        const transition_end = function(){
-            wheel.removeEventListener('transitionend', transition_end);
-            wheel.style.transition = 'all ' + secondsPerTurn * (2 + turns) + 's ease-out';
-            wheel.style.transform = 'rotate(' + ((2 + turns) * -360 + shift) + 'deg)';
-            ball.style.transition = 'all 0.4s ease-in';
-            ball.style.transform = 'rotate(' + (1.5 * turns * 360 + winSlotDeg) + 'deg) translateY(36px)';
-        };
-        wheel.addEventListener('transitionend', transition_end);
-    }
-
     // Place a bet.
     async function processBet(coverage, larimers){
         if(rouletteClient.spin === null){
@@ -183,13 +155,6 @@
         document.getElementById('message').innerText = msg;
     }
 
-
-
-
-
-
-
-
     // Hide the roulette.
     function hideRoulette(){
         document.getElementById('wheel').style.opacity = 0;
@@ -265,22 +230,69 @@
 
     // Drop the ball and reveal the winner.
     function dropBall(winning_number){
-        addResultToHistory(winning_number);
-        if(rouletteClient.coverage.indexOf(winning_number) > -1){
-            showMessage(roulette.account_name + ' won ' + (
-                5000 * (36 / rouletteClient.coverage.length)
-            ) + ' larimers');
-        }
+        const LAYOUT_NUMBERS = [
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
+            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+        ];
+        const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
+        const shift =  Math.floor(Math.random() * 360);
+        const ball = document.getElementById('ball');
+        const secondsPerTurn = 1.5;
+        const turns = 2;
+        ball.style.opacity = 1;
+        return new Promise(function(resolve){
+            function done(){
+                ball.removeEventListener('transitionend', done);
+                addResultToHistory(winning_number);
+                if(rouletteClient.coverage.indexOf(winning_number) > -1){
+                    showMessage(roulette.account_name + ' won ' + (
+                        5000 * (36 / rouletteClient.coverage.length)
+                    ) + ' larimers');
+                }
+                setTimeout(resolve, 5000);
+            }
+            ball.addEventListener('transitionend', done);
+            ball.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            ball.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
+        });
     }
 
+    // Our lifeCycle.
     async function lifeCycle(){
         hideRoulette();
         rouletteClient.spin = await getSpin();
-        rouletteClient.spin.maxbettime -= 5;
+        rouletteClient.spin.maxbettime -= 3;
         await updateFelt(rouletteClient.spin);
         showRoulette();
         await dropBall(await getResult(rouletteClient.spin));
         lifeCycle();
+    }
+
+    // Login to scatter.
+    function login(){
+        if(roulette.account_name !== null){
+            return showMessage('already logged in');
+        }
+        roulette.login(function(account_name){
+            if(account_name){
+                document.getElementById('user').innerText = account_name;
+                document.getElementById('connectBtn').style.display = 'none';
+                document.getElementById('chip-selector').getElementsByClassName('chip')[0].click();
+                rouletteClient.updater = setInterval(updateBalance, 1000);
+            }
+        });
+    }
+
+    // Logout of scatter.
+    function logout(){
+        if(roulette.account_name === null){
+            return showMessage('not logged in');
+        }
+        roulette.logout(function(){
+            clearInterval(rouletteClient.updater);
+            document.getElementById('user').innerText = '';
+            document.getElementById('connectBtn').style.display = 'block';
+        });
     }
 
     // Initialize.
@@ -294,36 +306,15 @@
         spin: null,
         bet_size: null,
         coverage: [],
-        hintsShown: false,
+        login: login,
+        logout: logout,
         selectToken: selectToken,
+        hintsShown: false,
         startIntro: function(){introJs().start();},
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
-        login: function(){
-            if(roulette.account_name !== null){
-                return showMessage('already logged in');
-            }
-            roulette.login(function(account_name){
-                if(account_name){
-                    document.getElementById('user').innerText = account_name;
-                    document.getElementById('connectBtn').style.display = 'none';
-                    document.getElementById('chip-selector').getElementsByClassName('chip')[0].click();
-                    rouletteClient.updater = setInterval(updateBalance, 1000);
-                }
-            });
-        },
-        logout: function(){
-            if(roulette.account_name === null){
-                return showMessage('not logged in');
-            }
-            roulette.logout(function(){
-                clearInterval(rouletteClient.updater);
-                document.getElementById('user').innerText = '';
-                document.getElementById('connectBtn').style.display = 'block';
-            });
-        }
     };
 
 }());
