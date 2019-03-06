@@ -1,10 +1,16 @@
 // jshint esversion: 8
 (function(){
+
+    // Initialize.
+    let theChipSelector;
+    let theLog;
+    let theBall;
+    let theWheel;
     'use strict';
 
     // Add log line.
     function addLogLine(line){
-        document.getElementById('log').innerHTML = line + '<p>' + document.getElementById('log').innerHTML;
+        theLog.innerHTML = line + '<p>' + theLog.innerHTML;
     }
 
     // Show a message.
@@ -184,7 +190,7 @@
     // Select a token to set the bet size.
     function selectToken(element, value){
         rouletteClient.bet_size = value * 10000;
-        let selector = document.getElementById('chip-selector');
+        let selector = theChipSelector;
         selector.scrollTo({
             left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
             behavior: 'smooth'
@@ -197,10 +203,10 @@
 
     // Hide the roulette.
     function hideRoulette(){
-        document.getElementById('wheel').style.opacity = '0';
-        document.getElementById('ball').style.transitionDelay = '3s';
-        document.getElementById('ball').style.opacity = '0';
-        document.getElementById('ball').style.transform = 'rotate(0deg)';
+        theWheel.style.opacity = '0';
+        theBall.style.transitionDelay = '3s';
+        theBall.style.opacity = '0';
+        theBall.style.transform = 'rotate(0deg)';
         changeClass(document.getElementById('layout'), 'eventless', false);
     }
 
@@ -260,7 +266,7 @@
     function showRoulette(){
         showMessage('No more bets please');
         changeClass(document.getElementById('layout'), 'eventless', true);
-        document.getElementById('wheel').style.opacity = '1';
+        theWheel.style.opacity = '1';
     }
 
     // Get the result of a spin.
@@ -280,13 +286,12 @@
         ];
         const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
         const shift =  Math.floor(Math.random() * 360);
-        const ball = document.getElementById('ball');
         const secondsPerTurn = 1.5;
         const turns = 2;
-        ball.style.opacity = 1;
+        theBall.style.opacity = 1;
         return new Promise(function(resolve){
             function done(){
-                ball.removeEventListener('transitionend', done);
+                theBall.removeEventListener('transitionend', done);
                 addResultToHistory(winning_number);
                 if(rouletteClient.coverage.indexOf(winning_number) > -1){
                     showMessage(roulette.account_name + ' won ' + (
@@ -295,9 +300,9 @@
                 }
                 setTimeout(resolve, 5000);
             }
-            ball.addEventListener('transitionend', done);
-            ball.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-            ball.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
+            theBall.addEventListener('transitionend', done);
+            theBall.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            theBall.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
         });
     }
 
@@ -321,7 +326,7 @@
             if(account_name){
                 document.getElementById('user').innerText = account_name;
                 document.getElementById('connectBtn').style.display = 'none';
-                document.getElementById('chip-selector').getElementsByClassName('chip')[0].click();
+                theChipSelector.getElementsByClassName('chip')[0].click();
                 rouletteClient.updater = setInterval(updateBalance, 1000);
             }
         });
@@ -339,8 +344,11 @@
         });
     }
 
-    // Initialize.
     window.onload = function(){
+        theWheel = document.getElementById('wheel');
+        theBall = document.getElementById('ball');
+        theLog = document.getElementById('log');
+        theChipSelector = document.getElementById('chip-selector');
         initLayout(document.getElementById('layout'));
         lifeCycle();
     };
