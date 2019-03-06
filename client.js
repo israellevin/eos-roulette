@@ -157,7 +157,7 @@
 
     // Hide the roulette.
     function hideRoulette(){
-        document.getElementById('wheel').style.opacity = 0;
+        document.getElementById('wheel').style.opacity = '0';
         document.getElementById('layout').classList.remove('eventless');
     }
 
@@ -173,7 +173,7 @@
             }
             if(spin){
                 showMessage('Connected to spin ' + spin.hash.substr(0, 4));
-                document.getElementById('timer').style.display = 'block';
+                // document.getElementById('timer').style.display = 'table-cell';
                 resolve(spin);
             }else{
                 showMessage('No spins found, will retry shortly');
@@ -191,14 +191,14 @@
         bettors.forEach( function (fellow) {
             const playerEntry = document.createElement('li');
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
-                fellow.user +
-                '<BR>bet:' + fellow.larimers/10000;
+                fellow.user + '<BR>bet:' + fellow.larimers/10000;
             newUL.appendChild(playerEntry);
         });
         playersBox.replaceChild(newUL, playersBoxUl);
 
         let now = Math.round(new Date() / 1000);
         return new Promise(function(resolve){
+            //TODO explain this if with comment
             if(oldResolve){
                 resolve = oldResolve;
             }
@@ -215,8 +215,8 @@
     function showRoulette(){
         showMessage('No more bets please');
         document.getElementById('layout').classList.add('eventless');
-        document.getElementById('wheel').style.opacity = 1;
-        document.getElementById('timer').style.display = 'none';
+        document.getElementById('wheel').style.opacity = '1';
+        // document.getElementById('timer').style.display = 'none';
     }
 
     // Get the result of a spin.

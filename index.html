@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:700|Old+Standard+TT:700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cute+Font|Libre+Baskerville:700|Old+Standard+TT:700">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -75,6 +75,8 @@
                     <table id="layout">
                         <tr>
                             <td class="green" data-bet="0" colspan=3>0</td>
+                            <td id="timer" colspan=2 style="border:none">
+                                <span id="sec-left">-</span></td>
                         </tr>
                         <tr>
                             <td class="red" data-bet="1">1</td>
@@ -181,7 +183,6 @@
                         Luck charge: <i class="fa fa-battery-half" aria-hidden="true"></i>
                     </div>
                     <div class="container" style="padding: 4px; text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
-                        <div id="timer" style="margin: 8px 0;">Time to bet: <span id="sec-left">00</span></div>
                         <div>Select bet size</div>
                         <div id='chip-selector' style="width: 100%;overflow-x: scroll; display: inline-block;">
                             <div style="min-width: 200px; display: inline-flex">

@@ -379,3 +379,9 @@ td.green{
     opacity: 0.1;
     transition: all 1s;
 }
+
+#sec-left {
+    font-family: Cute Font, monospace;
+    font-size:20px;
+    color: #ccb917;
+}
