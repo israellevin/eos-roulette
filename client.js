@@ -20,12 +20,22 @@
         return 'green';
     }
 
+    // Add or remove class to an element or an HTMLCollection.
+    function changeClass(elements, className, add){
+        if(elements.classList){
+            elements = [elements];
+        }
+        for(let element of elements){
+            element.classList[add ? 'add' : 'remove'](className);
+        }
+    }
+
     // add a roulette winning number to the history.
     function addResultToHistory(winning_number){
         showMessage('Roulette stops on ' + winning_number + '!');
         let entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
-        entry.classList.add(getColor(winning_number));
+        changeClass(entry, getColor(winning_number), true);
         let list = document.getElementById('history-ul');
         list.insertBefore(entry, list.childNodes[0]);
     }
@@ -37,31 +47,67 @@
         let selection = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
 
         // Outer bets.
-        if(selection.length > 1 || selection[0] === 0){
+        if(selection.length > 1){
             return selection;
         }
 
         // Inner bets. Do the math.
-        // TODO Add sixes.
         let rect = cell.getBoundingClientRect();
         let width = cell.offsetWidth;
         let height = cell.offsetHeight;
         let relativeX = (mouseEvent.clientX - rect.left) / width - 0.5;
         let relativeY = (mouseEvent.clientY - rect.top) / height - 0.5;
 
-        // Right edges of left two cols.
-        if(relativeX > 0.3 && selection[0] % 3 !== 0){
-            selection.push(selection[0] + 1);
-        // Left edges of right two cols.
-        }else if(relativeX < -0.3 && selection[0] % 3 !== 1){
-            selection.push(selection[0] - 1);
-        }
-        // Bottom edges of upper 34 rows.
-        if(relativeY > 0.3 && selection[0] < 34){
-            selection = selection.concat(selection.map(function(x){return x + 3;}));
-        // Top edges of lower 34 rows.
-        }else if(relativeY < -0.3 && selection[0] > 3){
-            selection = selection.concat(selection.map(function(x){return x - 3;}));
+        // Special handling for zero, to allow for baskets and trios.
+        if(selection[0] === 0){
+            if(relativeY > 0.3){
+                let interval = 0.5 / 6;
+                if(relativeX < interval * -5 || relativeX > interval * 5){
+                    selection.push(1);
+                    selection.push(2);
+                    selection.push(3);
+                }else if(relativeX < -interval && relativeX > interval * -2){
+                    selection.push(1);
+                    selection.push(2);
+                }else if(relativeX > interval && relativeX < interval * 2){
+                    selection.push(2);
+                    selection.push(3);
+                }
+            }
+        }else{
+            let column = (selection[0] - 1) % 3 + 1;
+            // Left side of cell.
+            if(relativeX < -0.3){
+                // Street.
+                if(column === 1){
+                    selection.push(selection[0] + 1);
+                    selection.push(selection[1] + 1);
+                // Split.
+                }else{
+                    selection.push(selection[0] - 1);
+                }
+            // Right side of cell.
+            }else if(relativeX > 0.3){
+                // Street.
+                if(column === 3){
+                    selection.push(selection[0] - 1);
+                    selection.push(selection[1] - 1);
+                // Split.
+                }else{
+                    selection.push(selection[0] + 1);
+                }
+            }
+
+            // First fours and trios.
+            if(relativeY < -0.3 && selection[0] in [1, 2, 3]){
+                selection.push(0);
+            // Bottom edges of upper 34 rows.
+            }else if(relativeY > 0.3 && selection[0] < 34){
+                selection = selection.concat(selection.map(function(x){return x + 3;}));
+            // Top edges of lower 34 rows.
+            }else if(relativeY < -0.3 && selection[0] > 3){
+                selection = selection.concat(selection.map(function(x){return x - 3;}));
+            }
         }
         return selection;
     }
@@ -81,15 +127,14 @@
 
             if(hash){
                 if(hash.name && hash.name === 'TypeError'){
-                    console.error(hash);
-                    document.getElementById('message').innerText = 'Could not place bet - aborting...';
+                    showMessage('Could not place bet - aborting...');
                 }else{
                     rouletteClient.coverage = coverage;
                     addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win');
-                    console.log(hash + '->' + coverage);
+                    console.debug(hash + '->' + coverage);
                 }
             }else{
-                document.getElementById('message').innerText = 'Could not connect to roulette - retrying...';
+                showMessage('Could not connect to roulette - retrying...');
                 setTimeout(function(){processBet(mouseEvent, larimers);}, 1000);
             }
         }catch(e){
@@ -104,19 +149,15 @@
 
         // Highlight on mouse movement.
         layout.addEventListener('mousemove', function(mouseEvent){
-            document.querySelectorAll('[data-bet]').forEach(function(element){
-                element.classList.remove('highlight');
-            });
+            changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
             getCoverage(mouseEvent).forEach(function(number){
-                document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.add('highlight');
+                changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
             });
         });
 
         //remove all highlights when leaving the felt
         layout.addEventListener('mouseleave', function(mouseEvent){
-            document.querySelectorAll('[data-bet]').forEach(function(element){
-                element.classList.remove('highlight');
-            });
+            changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
         });
 
         // Place a bet on mouse click.
@@ -143,25 +184,29 @@
     // Select a token to set the bet size.
     function selectToken(element, value){
         rouletteClient.bet_size = value * 10000;
-        let selector = document.getElementById("chip-selector");
+        let selector = document.getElementById('chip-selector');
         selector.scrollTo({
             left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
             behavior: 'smooth'
         });
-        selector.querySelectorAll(".chip").forEach(function(chip){chip.classList.add("iso");});
-        element.classList.remove("iso");
-        let msg = "Each token now worth " + value + " EOS";
-        addLogLine(msg);
-        document.getElementById('message').innerText = msg;
+
+        changeClass(selector.querySelectorAll(".chip"), 'iso', true);
+        changeClass(element, 'iso', false);
+        showMessage('Each token now worth ' + value + ' EOS');
     }
 
     // Hide the roulette.
     function hideRoulette(){
         document.getElementById('wheel').style.opacity = '0';
-        document.getElementById('layout').classList.remove('eventless');
+        document.getElementById('ball').style.transitionDelay = '3s';
+        document.getElementById('ball').style.opacity = '0';
+        document.getElementById('ball').style.transform = 'rotate(0deg)';
+        changeClass(document.getElementById('layout'), 'eventless', false);
     }
 
     // Get a spin, preserving the resolve function across retries.
+    // The oldResolve argument is used to maintain resolve function
+    // persistance, and thus to keep a promise, across timeouts.
     async function getSpin(oldResolve){
         showMessage('Trying to get a spin...');
         const now = Math.round(new Date() / 1000);
@@ -173,7 +218,6 @@
             }
             if(spin){
                 showMessage('Connected to spin ' + spin.hash.substr(0, 4));
-                // document.getElementById('timer').style.display = 'table-cell';
                 resolve(spin);
             }else{
                 showMessage('No spins found, will retry shortly');
@@ -183,6 +227,8 @@
     }
 
     // Update the felt.
+    // The oldResolve argument is used to maintain resolve function
+    // persistance, and thus to keep a promise, across timeouts.
     async function updateFelt(spin, oldResolve){
         let bettors = await roulette.getBets(spin.hash);
         let playersBox = document.getElementById('players-box');
@@ -198,12 +244,11 @@
 
         let now = Math.round(new Date() / 1000);
         return new Promise(function(resolve){
-            //TODO explain this if with comment
             if(oldResolve){
                 resolve = oldResolve;
             }
+            document.getElementById('sec-left').innerText = spin.maxbettime - now;
             if(now < spin.maxbettime){
-                document.getElementById('sec-left').innerText = spin.maxbettime - now;
                 setTimeout(function(){updateFelt(spin, resolve);}, 1000);
             }else{
                 resolve();
@@ -214,9 +259,8 @@
     // Show the roulette.
     function showRoulette(){
         showMessage('No more bets please');
-        document.getElementById('layout').classList.add('eventless');
+        changeClass(document.getElementById('layout'), 'eventless', true);
         document.getElementById('wheel').style.opacity = '1';
-        // document.getElementById('timer').style.display = 'none';
     }
 
     // Get the result of a spin.
