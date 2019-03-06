@@ -232,18 +232,28 @@
         });
     }
 
+    // get players on a spin
+    async function getPlayers(hash){
+        return [
+            {user: 'Aliza', bets: [{larimers: 5000, coverage: [1,2] }, {larimers: 10000, coverage: [12]}]},
+            {user: 'Bob', bets: [{larimers: 5000, coverage: [30,33] }, {larimers: 10000, coverage: [19]}]},
+            {user: 'Charlie', bets: []},
+            {user: 'Dana', bets: []},
+        ];
+    }
+
     // Update the felt.
     // The oldResolve argument is used to maintain resolve function
     // persistance, and thus to keep a promise, across timeouts.
     async function updateFelt(spin, oldResolve){
-        let bettors = await roulette.getBets(spin.hash);
+        let Players = await getPlayers(spin.hash);
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
-        bettors.forEach( function (fellow) {
+        Players.forEach( function (player) {
             const playerEntry = document.createElement('li');
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>' +
-                fellow.user + '<BR>bet:' + fellow.larimers/10000;
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>'
+                + player.user + '<br>bets: ' + player.bets.reduce( (acc, cur) => acc + cur.larimers, 0)/10000 + ' EOS';
             newUL.appendChild(playerEntry);
         });
         playersBox.replaceChild(newUL, playersBoxUl);
