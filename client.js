@@ -1,16 +1,17 @@
 // jshint esversion: 8
 (function(){
-
-    // Initialize.
-    let theChipSelector;
-    let theLog;
-    let theBall;
-    let theWheel;
     'use strict';
+
+    // Global element constants, initialized in onload (so not technically constants).
+    let LOG;
+    let LAYOUT;
+    let WHEEL;
+    let BALL;
+    let CHIP_SELECTOR;
 
     // Add log line.
     function addLogLine(line){
-        theLog.innerHTML = line + '<p>' + theLog.innerHTML;
+        LOG.innerHTML = line + '<p>' + LOG.innerHTML;
     }
 
     // Show a message.
@@ -47,75 +48,85 @@
     }
 
     // Get selected numbers from a mouse event on the layout.
-    function getCoverage(mouseEvent){
+    function getPlacement(mouseEvent){
+        let placement = {coverage: [], x: 0, y: 0};
         let cell = mouseEvent.target;
-        if(!('bet' in cell.dataset && cell.dataset.bet)) return [];
-        let selection = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
+        if(!('bet' in cell.dataset && cell.dataset.bet)) return placement;
+        let rect = cell.getBoundingClientRect();
+        placement.coverage = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
+        placement.x = rect.left + rect.width / 2;
+        placement.y = rect.top + rect.height / 2;
 
         // Outer bets.
-        if(selection.length > 1){
-            return selection;
+        if(placement.coverage.length > 1){
+            return placement;
         }
 
         // Inner bets. Do the math.
-        let rect = cell.getBoundingClientRect();
-        let width = cell.offsetWidth;
-        let height = cell.offsetHeight;
-        let relativeX = (mouseEvent.clientX - rect.left) / width - 0.5;
-        let relativeY = (mouseEvent.clientY - rect.top) / height - 0.5;
+        let relativeX = (mouseEvent.clientX - rect.left) / rect.width - 0.5;
+        let relativeY = (mouseEvent.clientY - rect.top) / rect.height - 0.5;
 
         // Special handling for zero, to allow for baskets and trios.
-        if(selection[0] === 0){
+        if(placement.coverage[0] === 0){
             if(relativeY > 0.3){
-                let interval = 0.5 / 6;
-                if(relativeX < interval * -5 || relativeX > interval * 5){
-                    selection.push(1);
-                    selection.push(2);
-                    selection.push(3);
+                placement.y += rect.height / 2;
+                let interval = 1 / 9;
+                if(relativeX < interval * -4 || relativeX > interval * 4){
+                    placement.x += rect.width * (relativeX > 0 ? .5 : -.5);
+                    placement.coverage.push(1);
+                    placement.coverage.push(2);
+                    placement.coverage.push(3);
                 }else if(relativeX < -interval && relativeX > interval * -2){
-                    selection.push(1);
-                    selection.push(2);
+                    placement.x -= rect.width / 6;
+                    placement.coverage.push(1);
+                    placement.coverage.push(2);
                 }else if(relativeX > interval && relativeX < interval * 2){
-                    selection.push(2);
-                    selection.push(3);
+                    placement.x += rect.width / 6;
+                    placement.coverage.push(2);
+                    placement.coverage.push(3);
                 }
             }
         }else{
-            let column = (selection[0] - 1) % 3 + 1;
+            let column = (placement.coverage[0] - 1) % 3 + 1;
             // Left side of cell.
             if(relativeX < -0.3){
+                placement.x -= rect.width / 2;
                 // Street.
                 if(column === 1){
-                    selection.push(selection[0] + 1);
-                    selection.push(selection[1] + 1);
+                    placement.coverage.push(placement.coverage[0] + 1);
+                    placement.coverage.push(placement.coverage[1] + 1);
                 // Split.
                 }else{
-                    selection.push(selection[0] - 1);
+                    placement.coverage.push(placement.coverage[0] - 1);
                 }
             // Right side of cell.
             }else if(relativeX > 0.3){
+                placement.x += rect.width / 2;
                 // Street.
                 if(column === 3){
-                    selection.push(selection[0] - 1);
-                    selection.push(selection[1] - 1);
+                    placement.coverage.push(placement.coverage[0] - 1);
+                    placement.coverage.push(placement.coverage[1] - 1);
                 // Split.
                 }else{
-                    selection.push(selection[0] + 1);
+                    placement.coverage.push(placement.coverage[0] + 1);
                 }
             }
 
             // First fours and trios.
-            if(relativeY < -0.3 && selection[0] in [1, 2, 3]){
-                selection.push(0);
+            if(relativeY < -0.3 && placement.coverage[0] in [1, 2, 3] && placement.coverage.length > 1){
+                placement.y -= rect.height / 2;
+                placement.coverage.push(0);
             // Bottom edges of upper 34 rows.
-            }else if(relativeY > 0.3 && selection[0] < 34){
-                selection = selection.concat(selection.map(function(x){return x + 3;}));
+            }else if(relativeY > 0.3 && placement.coverage[0] < 34){
+                placement.y += rect.height / 2;
+                placement.coverage = placement.coverage.concat(placement.coverage.map(function(x){return x + 3;}));
             // Top edges of lower 34 rows.
-            }else if(relativeY < -0.3 && selection[0] > 3){
-                selection = selection.concat(selection.map(function(x){return x - 3;}));
+            }else if(relativeY < -0.3 && placement.coverage[0] > 3){
+                placement.y -= rect.height / 2;
+                placement.coverage = placement.coverage.concat(placement.coverage.map(function(x){return x - 3;}));
             }
         }
-        return selection;
+        return placement;
     }
 
     // Place a bet.
@@ -156,9 +167,15 @@
         // Highlight on mouse movement.
         layout.addEventListener('mousemove', function(mouseEvent){
             changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
-            getCoverage(mouseEvent).forEach(function(number){
+            let placement = getPlacement(mouseEvent);
+            placement.coverage.forEach(function(number){
                 changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
             });
+
+            // Temp illustration of the idea.
+            let market = document.getElementById('marker');
+            marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
+            marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
         });
 
         //remove all highlights when leaving the felt
@@ -174,7 +191,7 @@
             if(rouletteClient.bet_size === null){
                 return showMessage('No bet size selected');
             }
-            processBet(getCoverage(mouseEvent), rouletteClient.bet_size);
+            processBet(getPlacement(mouseEvent).coverage, rouletteClient.bet_size);
         };
     }
 
@@ -190,7 +207,7 @@
     // Select a token to set the bet size.
     function selectToken(element, value){
         rouletteClient.bet_size = value * 10000;
-        let selector = theChipSelector;
+        let selector = CHIP_SELECTOR;
         selector.scrollTo({
             left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
             behavior: 'smooth'
@@ -203,11 +220,11 @@
 
     // Hide the roulette.
     function hideRoulette(){
-        theWheel.style.opacity = '0';
-        theBall.style.transitionDelay = '3s';
-        theBall.style.opacity = '0';
-        theBall.style.transform = 'rotate(0deg)';
-        changeClass(document.getElementById('layout'), 'eventless', false);
+        WHEEL.style.opacity = '0';
+        BALL.style.transitionDelay = '3s';
+        BALL.style.opacity = '0';
+        BALL.style.transform = 'rotate(0deg)';
+        changeClass(LAYOUT, 'eventless', false);
     }
 
     // Get a spin, preserving the resolve function across retries.
@@ -265,8 +282,8 @@
     // Show the roulette.
     function showRoulette(){
         showMessage('No more bets please');
-        changeClass(document.getElementById('layout'), 'eventless', true);
-        theWheel.style.opacity = '1';
+        changeClass(LAYOUT, 'eventless', true);
+        WHEEL.style.opacity = '1';
     }
 
     // Get the result of a spin.
@@ -288,10 +305,10 @@
         const shift =  Math.floor(Math.random() * 360);
         const secondsPerTurn = 1.5;
         const turns = 2;
-        theBall.style.opacity = 1;
+        BALL.style.opacity = 1;
         return new Promise(function(resolve){
             function done(){
-                theBall.removeEventListener('transitionend', done);
+                BALL.removeEventListener('transitionend', done);
                 addResultToHistory(winning_number);
                 if(rouletteClient.coverage.indexOf(winning_number) > -1){
                     showMessage(roulette.account_name + ' won ' + (
@@ -300,9 +317,9 @@
                 }
                 setTimeout(resolve, 5000);
             }
-            theBall.addEventListener('transitionend', done);
-            theBall.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-            theBall.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
+            BALL.addEventListener('transitionend', done);
+            BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            BALL.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
         });
     }
 
@@ -326,7 +343,7 @@
             if(account_name){
                 document.getElementById('user').innerText = account_name;
                 document.getElementById('connectBtn').style.display = 'none';
-                theChipSelector.getElementsByClassName('chip')[0].click();
+                CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
                 rouletteClient.updater = setInterval(updateBalance, 1000);
             }
         });
@@ -345,11 +362,12 @@
     }
 
     window.onload = function(){
-        theWheel = document.getElementById('wheel');
-        theBall = document.getElementById('ball');
-        theLog = document.getElementById('log');
-        theChipSelector = document.getElementById('chip-selector');
-        initLayout(document.getElementById('layout'));
+        LOG = document.getElementById('log');
+        LAYOUT = document.getElementById('layout');
+        WHEEL = document.getElementById('wheel');
+        BALL = document.getElementById('ball');
+        CHIP_SELECTOR = document.getElementById('chip-selector');
+        initLayout(LAYOUT);
         lifeCycle();
     };
 
