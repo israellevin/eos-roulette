@@ -165,7 +165,7 @@
     async function getSpin(oldResolve){
         showMessage('Trying to get a spin...');
         const now = Math.round(new Date() / 1000);
-        const spin = await roulette.getSpin(now + (roulette.account_name ? 30 : 15));
+        const spin = await roulette.getSpin(now + (roulette.account_name ? 20 : 10));
 
         return new Promise(function(resolve){
             if(oldResolve){
