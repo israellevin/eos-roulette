@@ -200,9 +200,8 @@
         if(roulette.account_name === null){
             return console.error('can not get balance when disconnected');
         }
-        document.getElementById('balance').innerText = (await roulette.getBalance()).rows[0].balance;
+        document.getElementById('balance').innerText = await roulette.getBalance();
     }
-
 
     // Select a token to set the bet size.
     function selectToken(element, value){
