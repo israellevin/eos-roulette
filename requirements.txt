@@ -1,2 +1,6 @@
+Flask-SocketIO==3.3.1
+Flask==1.0.2
+py-demux-eos==0.0.1.dev1
+redis==3.2.0
 requests==2.21.0
-websocket-client==0.54.0
+requests==2.21.0

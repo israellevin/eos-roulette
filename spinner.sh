@@ -7,7 +7,9 @@ spun=()
 bets=()
 
 pay(){
-    paid+=("$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)")
+    result="$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)"
+    ./announce_winner.py $1 $(echo "$result" | grep -Po '(?<="winning_number":)\d*')
+    paid+=("$")
 }
 
 spin(){

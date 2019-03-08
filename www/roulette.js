@@ -18,13 +18,6 @@
     const RPC = new eosjs_jsonrpc.default(NETWORK.protocol + '://' + NETWORK.host + ':' + NETWORK.port);
     const SCATTER = SCATTERJS.eos(NETWORK, Eos, {RPC, beta3:true});
     const SOCKET = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-
-    // Send heartbeat while connected.
-    SOCKET.on('connect', function(){
-        setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name)}, 1000);
-    });
-
-    // Report disconnections.
     SOCKET.on('disconnect', function(){
         console.error('socket disconnected');
     });
@@ -36,6 +29,7 @@
             SCATTERJS.scatter.login().then(async function(){
                 roulette.account_name = SCATTERJS.account('eos').name;
                 success(roulette.account_name);
+                let interval = setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name);}, 1000);
             });
         });
     }
@@ -49,51 +43,38 @@
     }
 
     // Await reply on socket.
-    async function emit(call, data){
+    async function emit(call, data, call_back){
         return new Promise(function(resolve){
-            SOCKET.on(call, function(data){
+            SOCKET.once(call_back || call, function(data){
                 resolve(data);
             });
-            SOCKET.emit(call, data)
+            SOCKET.emit(call, data);
         });
     }
 
     // Get current user's balance.
     async function getBalance(){
-        return await emit('getBalance', roulette.account_name);
+        return await emit('get_balance', roulette.account_name, 'get_balance');
     }
 
     // Get the currently running spin with the smallest maxbettime larget than minMaxbettime.
     async function getSpin(minMaxbettime){
-        return await emit('getSpin', minMaxbettime);
+        return await emit('get_spin', minMaxbettime);
     }
 
     // Get a spin's bets.
     async function getBets(hash){
-        return await emit('getBets', hash);
+        return await emit('get_bets', hash);
     }
 
-    // Poll user actions to get notifications.
-    // FIXME This will probably not work without history plugin.
-    async function poll(spin, after, callback){
-        if(after < 0){
-            after = (await SCATTER.getActions('roulette', -1, -1)).actions[0].account_action_seq;
-        }
-        let actions = (await SCATTER.getActions('roulette', after, 100)).actions;
-        if(actions.length > 0){
-            actions.forEach(function(action){
-                action = action.action_trace.act;
-                if(
-                    action.account === 'roulette' &&
-                    action.name === 'publish' &&
-                    action.data.hash === spin.hash
-                ){
-                    return callback(action.data);
-                }
-            });
-            after = after + actions.length;
-        }
-        setTimeout(function(){roulette.poll(spin, after, callback);}, 1000);
+    // Register to listen on a spin.
+    async function monitorSpin(spin){
+        return await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.account_name}, 'bettor_joined');
+    }
+
+    // Wait for winning number.
+    async function getWinningNumber(spin){
+        return await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.account_name}, 'winning_number');
     }
 
     // Bet on an existing spin.
@@ -134,7 +115,8 @@
         getBalance: getBalance,
         getSpin: getSpin,
         getBets: getBets,
-        poll: poll,
+        monitorSpin: monitorSpin,
+        getWinningNumber: getWinningNumber,
         bet: bet
     };
 

@@ -241,6 +241,7 @@
             if(spin){
                 showMessage('Connected to spin ' + spin.hash.substr(0, 4));
                 resolve(spin);
+                roulette.monitorSpin(spin);
             }else{
                 showMessage('No spins found, will retry shortly');
                 setTimeout(function(){getSpin(resolve);}, 5000);
@@ -297,11 +298,7 @@
 
     // Get the result of a spin.
     async function getResult(spin){
-        return new Promise(function(resolve){
-            roulette.poll(spin, -1, function(result){
-                resolve(result.winning_number);
-            });
-        });
+        return await roulette.getWinningNumber(spin);
     }
 
     // Drop the ball and reveal the winner.
