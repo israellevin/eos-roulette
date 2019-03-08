@@ -57,7 +57,7 @@ cleos set account permission roulette active '{"threshold":1,"keys":[{"key":"'$p
 cleos set account permission alice active '{"threshold":1,"keys":[{"key":"'$pubkey'","weight":1}],"accounts":[{"permission":{"actor":"roulette","permission":"eosio.code"},"weight":1}]}' owner -p alice@owner
 
 # Put the chain ID in js file, for convenience.
-echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > js/eosjs-chainid.js
+echo "window.roulette = {chainid: '$(cat chainid.txt)'};" > www/js/eosjs-chainid.js
 
 echo "Chain ID is:"
 cat chainid.txt

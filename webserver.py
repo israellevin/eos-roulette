@@ -8,7 +8,7 @@ import flask_socketio
 import db
 import eos
 
-STATIC_DIRS = 'www'
+STATIC_DIRS = ['www']
 APP = flask.Flask('roulette')
 APP.config['SECRET_KEY'] = os.urandom(24)
 SOCKETIO = flask_socketio.SocketIO(APP, message_queue='redis://')
