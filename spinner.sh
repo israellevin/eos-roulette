@@ -5,10 +5,11 @@ mkdir -p "$secretsdir"
 paid=()
 spun=()
 bets=()
+exec 2>errors.txt
 
 pay(){
     result="$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)"
-    ./announce_winner.py $1 $(echo "$result" | grep -Po '(?<="winning_number":)\d*')
+    ./announce_winner.py $1 $(echo "$result" | grep -Po '(?<="winning_number":)\d*') 2>errors.txt
     paid+=("$")
 }
 
@@ -17,7 +18,7 @@ spin(){
     hash=$(cleos push action -j roulette gethash '["'$secret'"]' -p roulette@owner | grep -Po '(?<="console": ").*(?=\")')
     echo $secret > $secretsdir/$hash
     spun+=("$(cleos push action roulette spin '["'$hash'", '$(($(date +%s) - 10))', '$1']' -p roulette@owner)")
-    bet $hash > errors.txt
+    bet $hash
 }
 
 bet(){
@@ -34,14 +35,14 @@ while :; do
         cleos get table roulette roulette spins --index 3 --key-type i64 -U $(date +%s) -l1 |\
         grep -Po '(?<="hash": ").*(?=\")')
     [ "$payable" ] || break;
-    pay $payable 2>errors.txt
+    pay $payable
 done
 
 echo ${#paid[@]} paid
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
 for i in $(seq 10 5 30); do
-    spin $(date -d "+$i second" +%s) 2>errors.txt
+    spin $(date -d "+$i second" +%s)
 done
 
 
