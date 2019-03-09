@@ -8,15 +8,15 @@
 
     // Initialize.
     SCATTERJS.plugins(new ScatterEOS());
-    const NETWORK = SCATTERJS.Network.fromJson({
+    const eos_network = SCATTERJS.Network.fromJson({
         blockchain: 'eos',
         chainId: roulette.chainid,
         host: '127.0.0.1',
         port: 8888,
         protocol: 'http'
     });
-    const RPC = new eosjs_jsonrpc.default(NETWORK.protocol + '://' + NETWORK.host + ':' + NETWORK.port);
-    const SCATTER = SCATTERJS.eos(NETWORK, Eos, {RPC, beta3:true});
+    const RPC = new eosjs_jsonrpc.default(eos_network.protocol + '://' + eos_network.host + ':' + eos_network.port);
+    const SCATTER = SCATTERJS.eos(eos_network, Eos, {RPC, beta3:true});
     const SOCKET = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     SOCKET.on('disconnect', function(){
         console.error('socket disconnected');
@@ -24,7 +24,7 @@
 
     // Login to scatter.
     function login(success){
-        SCATTERJS.connect('roulette', {NETWORK}).then(connected => {
+        SCATTERJS.connect('roulette', {eos_network}).then(connected => {
             if(!connected) return false;
             SCATTERJS.scatter.login().then(async function(){
                 roulette.account_name = SCATTERJS.account('eos').name;
