@@ -9,4 +9,4 @@ SOCKETIO = flask_socketio.SocketIO(message_queue='redis://')
 
 
 if __name__ == '__main__':
-    SOCKETIO.emit('winning_number', sys.argv[2], room=sys.argv[1])
+    SOCKETIO.emit('winning_number', int(sys.argv[2]), room=sys.argv[1])
