@@ -1,6 +1,6 @@
+-e git://github.com/blockrepublictech/py-demux-eos.git#egg=py-demux-eos==0.0.1.dev1
 Flask-SocketIO==3.3.1
 Flask==1.0.2
-py-demux-eos==0.0.1.dev1
 redis==3.2.0
 requests==2.21.0
 requests==2.21.0
