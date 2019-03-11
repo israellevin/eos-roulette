@@ -11,7 +11,7 @@
 
     // Add log line.
     function addLogLine(line){
-        LOG.innerHTML = line + '<p>' + LOG.innerHTML;
+        LOG.innerHTML = line + '<br>' + LOG.innerHTML;
     }
 
     // Show a message.
@@ -313,17 +313,18 @@
         const turns = 2;
         BALL.style.opacity = 1;
         return new Promise(function(resolve){
-            function done(){
-                BALL.removeEventListener('transitionend', done);
+            // callback for completion of ball drop transition
+            function ballOnWinningNumber(){
+                BALL.removeEventListener('transitionend', ballOnWinningNumber);
                 addResultToHistory(winning_number);
-                if(rouletteClient.coverage.indexOf(winning_number) > -1){
+                if(rouletteClient.coverage.indexOf(winning_number) >=  0){
                     showMessage(roulette.account_name + ' won ' + (
                         5000 * (36 / rouletteClient.coverage.length)
                     ) + ' larimers');
                 }
                 setTimeout(resolve, 5000);
             }
-            BALL.addEventListener('transitionend', done);
+            BALL.addEventListener('transitionend', ballOnWinningNumber);
             BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
             BALL.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
         });
