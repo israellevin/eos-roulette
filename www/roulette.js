@@ -58,7 +58,7 @@
     }
 
     // Get the currently running spin with the smallest maxbettime larget than minMaxbettime.
-    async function getSpin(minMaxbettime){
+    async function selectSpin(minMaxbettime){
         return await emit('get_spin', minMaxbettime);
     }
 
@@ -113,7 +113,7 @@
         login: login,
         logout: logout,
         getBalance: getBalance,
-        getSpin: getSpin,
+        selectSpin: selectSpin,
         getBets: getBets,
         monitorSpin: monitorSpin,
         getWinningNumber: getWinningNumber,
