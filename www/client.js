@@ -7,6 +7,7 @@
     let LAYOUT;
     let WHEEL;
     let BALL;
+    let BLL;
     let CHIP_SELECTOR;
 
     // Add log line.
@@ -223,6 +224,7 @@
         BALL.style.transitionDelay = '3s';
         BALL.style.opacity = '0';
         BALL.style.transform = 'rotate(0deg)';
+        BLL.style.transform = 'rotate(0deg)';
         changeClass(LAYOUT, 'eventless', false);
     }
 
@@ -244,7 +246,7 @@
                 roulette.monitorSpin(spin);
             }else{
                 showMessage('No spins found, will retry shortly');
-                setTimeout(function(){getSpin(resolve);}, 5000);
+                setTimeout(function(){getSpin(resolve);}, 3000);
             }
         });
     }
@@ -298,6 +300,7 @@
 
     // Get the result of a spin.
     async function getResult(spin){
+        addLogLine("waiting for result")
         return await roulette.getWinningNumber(spin);
     }
 
@@ -308,10 +311,10 @@
             5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
         ];
         const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
-        const shift =  Math.floor(Math.random() * 360);
+        // const shift =  Math.floor(Math.random() * 360);
         const secondsPerTurn = 1.5;
         const turns = 2;
-        BALL.style.opacity = 1;
+        BALL.style.opacity = '1';
         return new Promise(function(resolve){
             // callback for completion of ball drop transition
             function ballOnWinningNumber(){
@@ -326,7 +329,10 @@
             }
             BALL.addEventListener('transitionend', ballOnWinningNumber);
             BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-            BALL.style.transform = 'rotate(' + (1.5 * turns * -360 + winSlotDeg) + 'deg)';
+            var targetDeg = 1.5 * turns * -360 + winSlotDeg;
+            BALL.style.transform = 'rotate(' + targetDeg + 'deg)';
+            BLL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            BLL.style.transform = 'rotate(' + -1*targetDeg + 'deg)';
         });
     }
 
@@ -373,6 +379,7 @@
         LAYOUT = document.getElementById('layout');
         WHEEL = document.getElementById('wheel');
         BALL = document.getElementById('ball');
+        BLL = document.getElementById('bll');
         CHIP_SELECTOR = document.getElementById('chip-selector');
         initLayout(LAYOUT);
         lifeCycle();

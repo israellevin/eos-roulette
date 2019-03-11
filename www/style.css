@@ -15,7 +15,7 @@ body{
 }
 
 #wheel{
-    position: absolute;
+    position: initial;
     z-index: 10;
     top: 72px;
     left: 26px;
@@ -28,6 +28,20 @@ body{
     top: 0;
     left: 0;
 }
+
+#bll {
+    display: block;
+    background: black;
+    border-radius: 50%;
+    height: 15px;
+    width: 15px;
+    position: fixed;
+    top: 23px;
+    left: calc(50% - 7px);
+    background: radial-gradient(circle at 5px 5px, #5cabff, #000);
+    animation: rotation 3s infinite linear reverse;
+}
+
 
 .eventless{
     pointer-events: none;
@@ -385,3 +399,4 @@ td.green{
     font-size:20px;
     color: #ccb917;
 }
+
