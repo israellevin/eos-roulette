@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <title>EOS Roulette</title>
+    <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-core.min.js"></script>
+    <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs.min.js"></script>
+    <script src="js/eosjs-chainid.js"></script>
+    <script>
+    ScatterJS.plugins(new ScatterEOS());
+
+    const network = ScatterJS.Network.fromJson({
+        blockchain:'eos',
+        chainId:roulette.chainid,
+        host:'127.0.0.1',
+        port:8888,
+        protocol:'http'
+    });
+
+    ScatterJS.connect('roulette', {network}).then(connected => {
+        if(!connected) return false;
+        console.log('connected');
+        ScatterJS.scatter.login().then(function(){
+            console.log('loggedin');
+            roulette.account_name = ScatterJS.account('eos').name;
+            success(roulette.account_name);
+        });
+    });
+    </script>
+</head>
+<body>
+    asdf
+</body>
+</html>
