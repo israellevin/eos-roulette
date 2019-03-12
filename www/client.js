@@ -161,23 +161,27 @@
         }
     }
 
+
+    function onMouseMove(mouseEvent) {
+        changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
+        let placement = getPlacement(mouseEvent);
+        placement.coverage.forEach(function(number){
+            changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
+        });
+
+        // Temp illustration of the idea.
+        let market = document.getElementById('marker');
+        marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
+        marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
+    }
+
+
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
     function initLayout(layout){
 
         // Highlight on mouse movement.
-        layout.addEventListener('mousemove', function(mouseEvent){
-            changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
-            let placement = getPlacement(mouseEvent);
-            placement.coverage.forEach(function(number){
-                changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
-            });
-
-            // Temp illustration of the idea.
-            let market = document.getElementById('marker');
-            marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
-            marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
-        });
+        layout.addEventListener('mousemove', onMouseMove);
 
         //remove all highlights when leaving the felt
         layout.addEventListener('mouseleave', function(mouseEvent){
@@ -349,6 +353,7 @@
 
     // Login to scatter.
     function login(){
+        console.log("click connect");
         if(roulette.account_name !== null){
             return showMessage('already logged in');
         }

@@ -25,11 +25,17 @@
     // Login to scatter.
     function login(success){
         SCATTERJS.connect('roulette', {eos_network}).then(connected => {
-            if(!connected) return false;
-            SCATTERJS.scatter.login().then(async function(){
+            if(!connected) {
+                console.error("FAIL TO CONNECT");
+                return false;
+            }
+            console.log("connected");
+            SCATTERJS.scatter.login().then(function(){
                 roulette.account_name = SCATTERJS.account('eos').name;
                 success(roulette.account_name);
                 let interval = setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name);}, 1000);
+            }).catch(error => {
+                console.error("FAIL LOGIN: " + error);
             });
         });
     }
