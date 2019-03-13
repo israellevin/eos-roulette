@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 'Roulette database manager.'
 import contextlib
+import json
 import sqlite3
 import time
 
@@ -30,7 +31,7 @@ def init_db():
         sql.execute('''
             CREATE TABLE IF NOT EXISTS actions(
                 block TEXT,
-                transaction TEXT,
+                txid TEXT,
                 action TEXT,
                 level INTEGER,
                 caller TEXT,
@@ -46,8 +47,10 @@ def heartbeat(user):
             sql.execute("INSERT INTO users(name, last_seen) VALUES(?, ?)", (user, now))
 
 
+# pylint: disable=too-many-arguments
 def action(txid, level, account, name, signer, data):
     'Insert an action.'
     with sql_connection() as sql:
         sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?, ?, ?)", (
             txid, level, account, name, signer, json.dumps(data)))
+# pylint: enable=too-many-arguments

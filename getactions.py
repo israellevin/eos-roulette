@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 'Get some EOS data.'
-import contextlib
-import json
-import sqlite3
-
 import requests
+
+import db
 
 TOKEN = (
     'eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NTMzMzQ2NzIsImp0aSI6I'
@@ -17,39 +15,14 @@ TOKEN = (
 BASE_URL = 'https://mainnet.eos.dfuse.io'
 
 
-@contextlib.contextmanager
-def sql_connection():
-    """Context manager for querying the database."""
-    try:
-        connection = sqlite3.connect('eos.db')
-        yield connection.cursor()
-        connection.commit()
-    except Exception as exception:
-        print('sqlite error', exception)
-        raise
-    finally:
-        if 'connection' in locals():
-            connection.close()
-
-
-def init_db():
-    'Initialize DB.'
-    with sql_connection() as sql:
-        sql.execute('''
-            CREATE TABLE IF NOT EXISTS actions
-            (txid text, level int, contract text, action text, caller text, kwargs text)''')
-
-
 def process_action(action, txid, level):
     'Parse an action and store it in the db.'
     print("{}{}->{}.{}({})".format(
         level * '-',
         action['authorization'][0]['actor'],
         action['account'], action['name'], action['data']))
-    with sql_connection() as sql:
-        sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?, ?, ?)", (
-            txid, level, action['account'], action['name'],
-            action['authorization'][0]['actor'], json.dumps(action['data'])))
+    db.action(
+        txid, level, action['account'], action['name'], action['authorization'][0]['actor'], action['data'])
 
 
 def process_traces(action, txid, level=0):
@@ -99,5 +72,4 @@ def populate_db(cursor=None):
     return None
 
 
-init_db()
 populate_db()
