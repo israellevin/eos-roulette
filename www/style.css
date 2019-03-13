@@ -203,8 +203,12 @@ i.fa.fa-dot-circle-o.players-list-item{
 
 #layout{
     position: relative;
+    overflow: hidden;
 }
 
+#layout tbody.zoom{
+    transform: scale(1.3);
+}
 #layout td{
     border: 1px solid #ffe9c4;
     text-align: center;
