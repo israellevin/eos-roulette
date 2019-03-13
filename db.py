@@ -24,15 +24,30 @@ def init_db():
     'Initialize DB.'
     with sql_connection() as sql:
         sql.execute('''
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS users(
                 name TEXT PRIMARY KEY,
                 last_seen INTEGER)''')
+        sql.execute('''
+            CREATE TABLE IF NOT EXISTS actions(
+                block TEXT,
+                transaction TEXT,
+                action TEXT,
+                level INTEGER,
+                caller TEXT,
+                kwargs TEXT)''')
 
 
 def heartbeat(user):
     'Upsert a user.'
     with sql_connection() as sql:
-        sql.execute("""
-            INSERT INTO users(name, last_seen) VALUES(?, ?)
-            ON CONFLICT(name) DO UPDATE SET last_seen=?
-        """, [user, ] + (2 * [int(time.time()), ]))
+        now = int(time.time())
+        sql.execute("UPDATE users SET last_seen = ? WHERE name = ?", (now, user))
+        if sql.rowcount != 1:
+            sql.execute("INSERT INTO users(name, last_seen) VALUES(?, ?)", (user, now))
+
+
+def action(txid, level, account, name, signer, data):
+    'Insert an action.'
+    with sql_connection() as sql:
+        sql.execute("INSERT INTO actions VALUES(?, ?, ?, ?, ?, ?)", (
+            txid, level, account, name, signer, json.dumps(data)))
