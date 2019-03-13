@@ -213,12 +213,28 @@
     }
 
 
+    let clickAllowed = false;
+
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
     function initLayout(layout){
 
         // Highlight on mouse movement.
         layout.addEventListener('mousemove', onMouseMove);
+        layout.addEventListener('mousedown', function(event){
+            clickAllowed = false;
+            setTimeout(function(){
+                console.log('now ok');
+                clickAllowed = true;
+            }, 500)
+        });
+        layout.addEventListener('mouseup', function(event){
+            if (clickAllowed){
+                onClick(event);
+            } else {
+                console.warn("click too short")
+            }
+        });
 
         //remove all highlights when leaving the felt
         layout.addEventListener('mouseleave', function(mouseEvent){
@@ -226,7 +242,7 @@
         });
 
         // Place a bet on mouse click.
-        layout.onclick = onClick;
+        // layout.onclick = onClick;
     }
 
     // Update the user's balance.
