@@ -70,9 +70,6 @@
                     </div>
                 </div>
                 <div class="col-9 felt-box">
-                    <div id="marker" class="chip iso" style="position: fixed; --chip-face: #86ff8b; --chip-side: #86ff8b30; --chip-mark: #252833;">
-                        <div class="chip-mark">:)</div>
-                    </div>
                     <table id="layout">
                         <tr>
                             <td class="green" data-bet="0" colspan=3>0</td>
@@ -186,18 +183,18 @@
                     </div>
                     <div class="container" style="padding: 4px; text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
                         <div>Select bet size</div>
-                        <div id='chip-selector' style="width: 100%;overflow-x: scroll; display: inline-block;">
+                        <div id='chip-selector'>
                             <div style="min-width: 200px; display: inline-flex">
                                 <div class="chip iso" onclick="rouletteClient.selectToken(this, 0.1)">
-                                    <div class="chip-mark">0.1</div></div>
+                                    <div class="chip-face">0.1</div></div>
                                 <div class="chip iso" style="--chip-face: #86ff8b; --chip-side: #86ff8b30; --chip-mark: #252833;"
-                                     onclick="rouletteClient.selectToken(this, 0.5)"><div class="chip-mark">0.5</div></div>
+                                     onclick="rouletteClient.selectToken(this, 0.5)"><div class="chip-face">0.5</div></div>
                                 <div class="chip iso" style="--chip-face: #93ebff; --chip-side: #93ebff60; --chip-mark: #252833;"
-                                     onclick="rouletteClient.selectToken(this, 1)"><div class="chip-mark">1</div></div>
+                                     onclick="rouletteClient.selectToken(this, 1)"><div class="chip-face">1</div></div>
                                 <div class="chip iso" style="--chip-face: #ffae6e; --chip-side: #ffae6e30; --chip-mark: #252833;"
-                                     onclick="rouletteClient.selectToken(this, 5)"><div class="chip-mark">5</div></div>
+                                     onclick="rouletteClient.selectToken(this, 5)"><div class="chip-face">5</div></div>
                                 <div class="chip iso" style="--chip-face: #5a61ff; --chip-side: #5a61ff30; --chip-mark: rgba(234,226,6,0.43);"
-                                     onclick="rouletteClient.selectToken(this, 10)"><div class="chip-mark">10</div></div>
+                                     onclick="rouletteClient.selectToken(this, 10)"><div class="chip-face">10</div></div>
                             </div>
                         </div>
                     </div>

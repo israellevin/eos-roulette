@@ -201,6 +201,10 @@ i.fa.fa-dot-circle-o.players-list-item{
     }
 }
 
+#layout{
+    position: relative;
+}
+
 #layout td{
     border: 1px solid #ffe9c4;
     text-align: center;
@@ -249,12 +253,11 @@ td.green{
 }
 
 
-#chip-selector::-webkit-scrollbar-button{
-    color: blue;
-}
-#chip-selector::-webkit-scrollbar{
-    background: #0f6d39;
-    color: yellow;
+#chip-selector{
+    width: 100%;
+    overflow: hidden;
+    display: inline-block;
+    padding: 1em 1em 0 2em;
 }
 
 /* Chips */
@@ -280,8 +283,7 @@ td.green{
     transition: all .3s ease;
     backface-visibility: hidden;
     z-index: 1;
-    float: left;
-    margin: 2px;
+    margin: -1.5em 1.8em 0.3em -1.5em;
 }
 
 .chip.iso:hover{
@@ -309,7 +311,7 @@ td.green{
             0 3px 6px #222;
 }
 
-.chip-mark{
+.chip-face{
     margin-top: 0.5em;
 }
 

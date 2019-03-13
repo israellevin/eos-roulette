@@ -54,9 +54,10 @@
         let cell = mouseEvent.target;
         if(!('bet' in cell.dataset && cell.dataset.bet)) return placement;
         let rect = cell.getBoundingClientRect();
+        // console.warn(cell.offsetTop, cell.offsetLeft);
         placement.coverage = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
-        placement.x = rect.left + rect.width / 2;
-        placement.y = rect.top + rect.height / 2;
+        placement.x = cell.offsetLeft + rect.width / 2;
+        placement.y = cell.offsetTop + rect.height / 2;
 
         // Outer bets.
         if(placement.coverage.length > 1){
@@ -181,6 +182,14 @@
 
     function showBet(size, placement) {
         console.log('show bet:' + size + 'on: ' + placement.x + ',' + placement.y)
+        let chip = document.createElement('DIV');
+        chip.classList.add('chip', 'iso', 'small');
+        chip.style.position = 'absolute';
+        chip.style.left = placement.x + 'px';
+        chip.style.top = placement.y + 'px';
+        chip.appendChild(document.createTextNode('!!!'));
+        LAYOUT.appendChild(chip);
+
     }
 
     function onClick(mouseEvent){
