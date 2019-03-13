@@ -1,11 +1,11 @@
 #!/bin/bash
+exec 2>errors.txt
 ./common.sh
 secretsdir=secrets
 mkdir -p "$secretsdir"
 paid=()
 spun=()
 bets=()
-exec 2>errors.txt
 
 pay(){
     result="$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)"
@@ -27,8 +27,11 @@ bet(){
     bets+=("$(cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active)")
 }
 
-
-# TODO display here the amount of funds in Roulette. At least we'll know that it's zero...
+IFS=. read balance _ <<<"$(cleos get currency balance eosio.token roulette)"
+echo roulette has $balance EOS
+if [ $balance -lt 100 ]; then
+    echo 'LOW FUNDS!!!'
+fi
 
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
