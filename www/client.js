@@ -131,7 +131,7 @@
     }
 
     // Place a bet.
-    async function processBet(coverage, larimers){
+    async function processBet(coverage, larimers, success){
         if(rouletteClient.spin === null){
             return showMessage('No spins currently in progress');
         }
@@ -148,15 +148,18 @@
                     showMessage('Could not place bet - aborting...');
                 }else{
                     rouletteClient.coverage = coverage;
-                    addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage + ' to win');
-                    console.debug(hash + '->' + coverage);
+                    addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage);
+                    console.log(hash + '->' + coverage);
+                    success();
                 }
             }else{
+                // TODO maybe limit how many retries? would it automatically fail when spins is gone?
+                // Maybe better to simply fail, or retry just once?
                 showMessage('Could not connect to roulette - retrying...');
-                setTimeout(function(){processBet(mouseEvent, larimers);}, 1000);
+                setTimeout(function(){processBet(mouseEvent, larimers, success);}, 1000); // fixme Is the callback is ok with the recursion??
             }
         }catch(e){
-            console.error('unable to place bet');
+            console.error('unable to place bet: ' + e);
             return e;
         }
     }
@@ -169,10 +172,35 @@
             changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
         });
 
-        // Temp illustration of the idea.
-        let market = document.getElementById('marker');
-        marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
-        marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
+        // // Temp illustration of the idea.
+        // let market = document.getElementById('marker');
+        // marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
+        // marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
+    }
+
+
+    function showBet(size, placement) {
+        console.log('show bet:' + size + 'on: ' + placement.x + ',' + placement.y)
+    }
+
+    function onClick(mouseEvent){
+        let placement = getPlacement(mouseEvent);
+        if (placement.coverage.length < 1) {
+            console.warn('click outside')
+        }
+        console.log(placement);
+        if(roulette.account_name === null){
+            return showMessage('Must be logged in to bet');
+        }
+        if(rouletteClient.bet_size === null){
+            return showMessage('No bet size selected');
+        }
+        // TODO should processBet receive placement xy and place the token?
+        processBet(placement.coverage, rouletteClient.bet_size, function () {
+            console.log('the placement');
+            console.log(placement);
+            showBet(rouletteClient.bet_size, placement);
+        });
     }
 
 
@@ -189,15 +217,7 @@
         });
 
         // Place a bet on mouse click.
-        layout.onclick = function(mouseEvent){
-            if(roulette.account_name === null){
-                return showMessage('Must be logged in to bet');
-            }
-            if(rouletteClient.bet_size === null){
-                return showMessage('No bet size selected');
-            }
-            processBet(getPlacement(mouseEvent).coverage, rouletteClient.bet_size);
-        };
+        layout.onclick = onClick;
     }
 
     // Update the user's balance.
@@ -304,7 +324,7 @@
 
     // Get the result of a spin.
     async function getResult(spin){
-        addLogLine("waiting for result")
+        addLogLine("waiting for result");
         return await roulette.getWinningNumber(spin);
     }
 
@@ -353,7 +373,6 @@
 
     // Login to scatter.
     function login(){
-        console.log("click connect");
         if(roulette.account_name !== null){
             return showMessage('already logged in');
         }
