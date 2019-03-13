@@ -28,6 +28,8 @@ bet(){
 }
 
 
+# TODO display here the amount of funds in Roulette. At least we'll know that it's zero...
+
 echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
 
 while :; do
