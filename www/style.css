@@ -126,7 +126,7 @@ i.fa.fa-dot-circle-o.players-list-item{
     min-height: 460px;
     padding:0;
 }
-.main-space{
+#main-space{
     padding-top: 36px;
     background-color: #0f6d39;
     color: #ffffee;
@@ -305,7 +305,7 @@ td.green{
             0 9px 6px #222;
 }
 .chip.small{
-    font-size: 5px;
+    font-size: 6px;
 }
 .chip.iso.small{
     transform: perspective(3000px) rotateX(55deg);

@@ -3,6 +3,7 @@
     'use strict';
 
     // Global element constants, initialized in onload (so not technically constants).
+    let MAIN;
     let LOG;
     let LAYOUT;
     let WHEEL;
@@ -173,7 +174,7 @@
 
     function showBet(size, placement) {
         let chip = document.createElement('DIV');
-        chip.classList.add('chip', 'iso', 'small');
+        chip.classList.add('chip', 'small', 'eventless');
         chip.style.position = 'absolute';
         chip.style.left = placement.x + 'px';
         chip.style.top = placement.y + 'px';
@@ -199,6 +200,25 @@
         });
     }
 
+    async function highlightBetLocation(event) {
+        let chip = document.createElement('DIV');
+        console.log(MAIN);
+        chip.classList.add('chip', 'small', 'eventless');
+        chip.style.position = 'absolute';
+        let main_rect = MAIN.getBoundingClientRect();
+        let selector_rect = CHIP_SELECTOR.getBoundingClientRect();
+        console.log(event.clientX, main_rect.left);
+        chip.style.left = '280px';
+        chip.style.top = '430px';
+        chip.appendChild(document.createTextNode('???'));
+        console.log(event);
+        MAIN.appendChild(chip);
+        setInterval(function () {
+            chip.style.left = event.clientX-main_rect.left + 'px';
+            chip.style.top = event.clientY-main_rect.top + 'px';
+        }, 0);
+
+    }
 
     let clickAllowed = false;
 
@@ -212,7 +232,8 @@
             clickAllowed = false;
             setTimeout(function(){
                 clickAllowed = true;
-            }, 300)
+            }, 300);
+            highlightBetLocation(event);
         });
         layout.addEventListener('mouseup', function(event){
             if (clickAllowed){
@@ -410,6 +431,7 @@
     }
 
     window.onload = function(){
+        MAIN = document.getElementById('main-space');
         LOG = document.getElementById('log');
         LAYOUT = document.getElementById('layout');
         WHEEL = document.getElementById('wheel');
@@ -422,6 +444,7 @@
 
     // Expose some functionality.
     window.rouletteClient = {
+        MAIN: MAIN,
         spin: null,
         bet_size: null,
         coverage: [],
