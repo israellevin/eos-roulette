@@ -67,4 +67,4 @@ def catch_all_handler(path='index.html'):
 
 
 if __name__ == '__main__':
-    SOCKETIO.run(APP, debug=True)
+    SOCKETIO.run(APP, host='0.0.0.0', debug=True)

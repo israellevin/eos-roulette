@@ -1,16 +1,22 @@
 #!/bin/bash
+exec 2>errors.txt
 ./common.sh
 secretsdir=secrets
 mkdir -p "$secretsdir"
 paid=()
 spun=()
 bets=()
-exec 2>errors.txt
+
+countSpins(){
+    echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
+}
 
 pay(){
-    result="$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner)"
-    ./announce_winner.py $1 $(echo "$result" | grep -Po '(?<="winning_number":)\d*') 2>errors.txt
-    paid+=("$")
+    result="$(cleos push action roulette pay '["'$(cat "$secretsdir/$1")'"]' -p roulette@owner || true)"
+    winning_number="$(echo "$result" | grep -Po '(?<="winning_number":)\d*')"
+    [ "$winning_number" ] || return
+    paid+=("$result")
+    ./announce_winner.py $1 $winning_number
 }
 
 spin(){
@@ -27,10 +33,18 @@ bet(){
     bets+=("$(cleos push action roulette bet '["eosio.upay", "'$1'", ['$((RANDOM % 37))"], $(( (RANDOM % 10 + 1) * 1000 )), $RANDOM]" -p roulette@active)")
 }
 
+# Note exceptions on web.log
+tail -50 web.log | grep -A20 'message handler error'
 
-# TODO display here the amount of funds in Roulette. At least we'll know that it's zero...
+# Check balance
+IFS=. read balance _ <<<"$(cleos get currency balance eosio.token roulette)"
+echo roulette has $balance EOS
+if [ $balance -lt 100 ]; then
+    echo 'LOW FUNDS!!!'
+    exit 1
+fi
 
-echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
+countSpins
 
 while :; do
     payable=$(\
@@ -41,7 +55,7 @@ while :; do
 done
 
 echo ${#paid[@]} paid
-echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
+countSpins
 
 for i in $(seq 10 5 30); do
     spin $(date -d "+$i second" +%s)
@@ -50,10 +64,9 @@ done
 
 echo ${#spun[@]} spun
 echo ${#bets[@]} bets
-echo $(cleos get table roulette roulette spins -l999 | grep -o '^ *"id": [[:digit:]]*,$' | wc -l) spins
+countSpins
 
 cat errors.txt
-> errors.txt
 printf '%s\n' "${paid[@]}"
 printf '%s\n' "${spun[@]}"
 printf '%s\n' "${bets[@]}"
