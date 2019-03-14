@@ -57,7 +57,7 @@ done
 echo ${#paid[@]} paid
 countSpins
 
-for i in $(seq 10 5 30); do
+for i in $(seq 10 5 40); do
     spin $(date -d "+$i second" +%s)
 done
 

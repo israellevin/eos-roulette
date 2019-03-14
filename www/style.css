@@ -286,7 +286,7 @@ td.green{
     border: .3em dashed var(--chip-mark);
     transition: all .3s ease;
     backface-visibility: hidden;
-    z-index: 1;
+    z-index: 2;
     margin: -1.5em 1.8em 0.3em -1.5em;
 }
 
@@ -392,7 +392,7 @@ td.green{
 #table-top{
     transform: rotateX(55deg);
     position: absolute;
-    z-index: 1;
+    z-index: 3;
 }
 
 #table-top.hidden{

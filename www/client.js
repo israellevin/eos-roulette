@@ -10,6 +10,7 @@
     let BALL;
     let BLL;
     let CHIP_SELECTOR;
+    let MOVING_CHIP;
 
     // Add log line.
     function addLogLine(line){
@@ -158,20 +159,6 @@
     }
 
 
-    function onMouseMove(mouseEvent) {
-        changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
-        let placement = getPlacement(mouseEvent);
-        placement.coverage.forEach(function(number){
-            changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
-        });
-
-        // // Temp illustration of the idea.
-        // let market = document.getElementById('marker');
-        // marker.style.top = (placement.y - marker.offsetHeight / 2) + 'px';
-        // marker.style.left = (placement.x - marker.offsetWidth / 2) + 'px';
-    }
-
-
     function showBet(size, placement) {
         let chip = document.createElement('DIV');
         chip.classList.add('chip', 'small', 'eventless');
@@ -184,43 +171,59 @@
     }
 
     function onClick(mouseEvent){
-        let placement = getPlacement(mouseEvent);
-        if (placement.coverage.length < 1) {
-            console.warn('click outside');
-        }
         if(roulette.account_name === null){
             return showMessage('Must be logged in to bet');
         }
         if(rouletteClient.bet_size === null){
             return showMessage('No bet size selected');
         }
-        // TODO should processBet receive placement xy and place the token?
+        let placement = getPlacement(mouseEvent);
+        if (placement.coverage.length < 1) {
+            console.warn('click outside');
+        }
         processBet(placement.coverage, rouletteClient.bet_size, function () {
             showBet(rouletteClient.bet_size, placement);
         });
+        MOVING_CHIP.style.opacity = '0.3';
+        MOVING_CHIP.style.left = '260px';
+        MOVING_CHIP.style.top = '300px';
     }
 
     async function highlightBetLocation(event) {
-        let chip = document.createElement('DIV');
-        console.log(MAIN);
-        chip.classList.add('chip', 'small', 'eventless');
-        chip.style.position = 'absolute';
-        let main_rect = MAIN.getBoundingClientRect();
-        let selector_rect = CHIP_SELECTOR.getBoundingClientRect();
-        console.log(event.clientX, main_rect.left);
-        chip.style.left = '280px';
-        chip.style.top = '430px';
-        chip.appendChild(document.createTextNode('???'));
-        console.log(event);
-        MAIN.appendChild(chip);
-        setInterval(function () {
-            chip.style.left = event.clientX-main_rect.left + 'px';
-            chip.style.top = event.clientY-main_rect.top + 'px';
+        MOVING_CHIP.style.position = 'absolute';
+        MOVING_CHIP.style.opacity = '0.9';
+        MOVING_CHIP.style.left = '260px';
+        MOVING_CHIP.style.top = '3000px';
+        let layout_rect = LAYOUT.getBoundingClientRect();
+        setTimeout(function () {
+            MOVING_CHIP.style.left = event.clientX-layout_rect.left + 'px';
+            MOVING_CHIP.style.top = event.clientY-layout_rect.top + 'px';
         }, 0);
 
     }
 
+    function onMouseMove(mouseEvent) {
+        changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
+        let placement = getPlacement(mouseEvent);
+        placement.coverage.forEach(function (number) {
+            changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
+        });
+        if (mouseDown) {
+            console.log(mouseEvent);
+            if(roulette.account_name === null){
+                return showMessage('Must be logged in to bet');
+            }
+            if(rouletteClient.bet_size === null){
+                return showMessage('No bet size selected');
+            }
+            MOVING_CHIP.style.left = placement.x + 'px';
+            MOVING_CHIP.style.top = placement.y + 'px';
+        }
+    }
+
+
     let clickAllowed = false;
+    let mouseDown = false;
 
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
@@ -230,16 +233,22 @@
         layout.addEventListener('mousemove', onMouseMove);
         layout.addEventListener('mousedown', function(event){
             clickAllowed = false;
+            mouseDown = true;
             setTimeout(function(){
                 clickAllowed = true;
             }, 300);
             highlightBetLocation(event);
         });
         layout.addEventListener('mouseup', function(event){
+            mouseDown = false;
             if (clickAllowed){
                 onClick(event);
             } else {
-                console.warn("click too short");
+                MOVING_CHIP.style.opacity = '0.7';
+                setTimeout(function () {
+                    MOVING_CHIP.style.left = '260px';
+                    MOVING_CHIP.style.top = '300px';
+                }, 0);
             }
         });
 
@@ -248,8 +257,6 @@
             changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
         });
 
-        // Place a bet on mouse click.
-        // layout.onclick = onClick;
     }
 
     // Update the user's balance.
@@ -290,7 +297,8 @@
     async function getSpin(oldResolve){
         showMessage('Trying to get a spin...');
         const now = Math.round(new Date() / 1000);
-        const spin = await roulette.selectSpin(now + (roulette.account_name ? 20 : 10));
+        const spin = await roulette.selectSpin(
+            now + (roulette.account_name ? 30 : 30));
 
         return new Promise(function(resolve){
             if(oldResolve){
@@ -431,20 +439,20 @@
     }
 
     window.onload = function(){
-        MAIN = document.getElementById('main-space');
+        MAIN = document.getElementById('main-space'); //fixme maybe unused
         LOG = document.getElementById('log');
         LAYOUT = document.getElementById('layout');
         WHEEL = document.getElementById('wheel');
         BALL = document.getElementById('ball');
         BLL = document.getElementById('bll');
         CHIP_SELECTOR = document.getElementById('chip-selector');
+        MOVING_CHIP = document.getElementById('moving-chip');
         initLayout(LAYOUT);
         lifeCycle();
     };
 
     // Expose some functionality.
     window.rouletteClient = {
-        MAIN: MAIN,
         spin: null,
         bet_size: null,
         coverage: [],
