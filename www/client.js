@@ -181,7 +181,6 @@
 
 
     function showBet(size, placement) {
-        console.log('show bet:' + size + 'on: ' + placement.x + ',' + placement.y)
         let chip = document.createElement('DIV');
         chip.classList.add('chip', 'iso', 'small');
         chip.style.position = 'absolute';
@@ -197,7 +196,6 @@
         if (placement.coverage.length < 1) {
             console.warn('click outside')
         }
-        console.log(placement);
         if(roulette.account_name === null){
             return showMessage('Must be logged in to bet');
         }
@@ -206,8 +204,6 @@
         }
         // TODO should processBet receive placement xy and place the token?
         processBet(placement.coverage, rouletteClient.bet_size, function () {
-            console.log('the placement');
-            console.log(placement);
             showBet(rouletteClient.bet_size, placement);
         });
     }
@@ -224,9 +220,8 @@
         layout.addEventListener('mousedown', function(event){
             clickAllowed = false;
             setTimeout(function(){
-                console.log('now ok');
                 clickAllowed = true;
-            }, 500)
+            }, 300)
         });
         layout.addEventListener('mouseup', function(event){
             if (clickAllowed){
