@@ -73,8 +73,8 @@
             if(relativeY > 0.3){
                 placement.y += rect.height / 2;
                 let interval = 1 / 9;
-                if(relativeX < interval * -4 || relativeX > interval * 4){
-                    placement.x += rect.width * (relativeX > 0 ? .5 : -.5);
+                if(relativeX > interval * 4){
+                    placement.x += rect.width * 0.5;
                     placement.coverage.push(1);
                     placement.coverage.push(2);
                     placement.coverage.push(3);
@@ -91,16 +91,10 @@
         }else{
             let column = (placement.coverage[0] - 1) % 3 + 1;
             // Left side of cell.
-            if(relativeX < -0.3){
-                placement.x -= rect.width / 2;
-                // Street.
-                if(column === 1){
-                    placement.coverage.push(placement.coverage[0] + 1);
-                    placement.coverage.push(placement.coverage[1] + 1);
+            if(relativeX < -0.3 && column > 1){
                 // Split.
-                }else{
-                    placement.coverage.push(placement.coverage[0] - 1);
-                }
+                placement.x -= rect.width / 2;
+                placement.coverage.push(placement.coverage[0] - 1);
             // Right side of cell.
             }else if(relativeX > 0.3){
                 placement.x += rect.width / 2;
@@ -154,10 +148,7 @@
                     success();
                 }
             }else{
-                // TODO maybe limit how many retries? would it automatically fail when spins is gone?
-                // Maybe better to simply fail, or retry just once?
-                showMessage('Could not connect to roulette - retrying...');
-                setTimeout(function(){processBet(mouseEvent, larimers, success);}, 1000); // fixme Is the callback is ok with the recursion??
+                console.error('unable to get hash from contract');
             }
         }catch(e){
             console.error('unable to place bet: ' + e);
@@ -181,7 +172,7 @@
 
 
     function showBet(size, placement) {
-        console.log('show bet:' + size + 'on: ' + placement.x + ',' + placement.y)
+        console.log('show bet:' + size + 'on: ' + placement.x + ',' + placement.y);
         let chip = document.createElement('DIV');
         chip.classList.add('chip', 'iso', 'small');
         chip.style.position = 'absolute';
@@ -195,7 +186,7 @@
     function onClick(mouseEvent){
         let placement = getPlacement(mouseEvent);
         if (placement.coverage.length < 1) {
-            console.warn('click outside')
+            console.warn('click outside');
         }
         console.log(placement);
         if(roulette.account_name === null){
@@ -226,13 +217,13 @@
             setTimeout(function(){
                 console.log('now ok');
                 clickAllowed = true;
-            }, 500)
+            }, 500);
         });
         layout.addEventListener('mouseup', function(event){
             if (clickAllowed){
                 onClick(event);
             } else {
-                console.warn("click too short")
+                console.warn("click too short");
             }
         });
 
@@ -320,8 +311,8 @@
         let newUL = playersBoxUl.cloneNode(false);
         Players.forEach( function (player) {
             const playerEntry = document.createElement('li');
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"> </i>'
-                + player.user + '<br>bets: ' + player.bets.reduce( (acc, cur) => acc + cur.larimers, 0)/10000 + ' EOS';
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
+                player.user + '<br>bets: ' + player.bets.reduce((acc, cur) => acc + cur.larimers, 0)/10000 + ' EOS';
             newUL.appendChild(playerEntry);
         });
         playersBox.replaceChild(newUL, playersBoxUl);
