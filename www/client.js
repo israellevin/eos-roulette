@@ -209,12 +209,13 @@
             changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
         });
         let layout_rect = LAYOUT.getBoundingClientRect();
+        //calculate mouse location relative to view window
         let mouseX = (mouseEvent.clientX - layout_rect.left)/100-1;
-        let mouseY = (mouseEvent.clientY - layout_rect.top)/100-1;
+        let mouseY = (mouseEvent.clientY - layout_rect.top)/223-1;
         let scale = 1.3;
         let zoomShiftX = 200*(scale-1)/2*scale;
-        let zoomShiftY = 448*(scale-1)/2*scale;
-        // console.log(mouseX*zoomShiftX, mouseY*zoomShiftYK);
+        let zoomShiftY = 224*(scale-1);
+        console.log(mouseY, zoomShiftY);
         LAYOUT.childNodes[1].style.transform = 'translateX(' + -mouseX*zoomShiftX + 'px) translateY(' + -mouseY*zoomShiftY + 'px) scale(1.3)';
         if (mouseDown) {
             if(roulette.account_name === null){
