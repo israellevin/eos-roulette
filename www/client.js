@@ -214,7 +214,7 @@
         let mouseY = (mouseEvent.clientY - layout_rect.top)/223-1;
         let scale = 1.3;
         let zoomShiftX = 200*(scale-1)/2*scale;
-        let zoomShiftY = 224*(scale-1);
+        let zoomShiftY = 300*(scale-1)/2*scale;
         console.log(mouseY, zoomShiftY);
         LAYOUT.childNodes[1].style.transform = 'translateX(' + -mouseX*zoomShiftX + 'px) translateY(' + -mouseY*zoomShiftY + 'px) scale(1.3)';
         if (mouseDown) {
