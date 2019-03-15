@@ -121,10 +121,12 @@ i.fa.fa-dot-circle-o.players-list-item{
     text-align: center;
     color: #ffffee  ;
 }
-.felt-box{
+#felt-box{
     max-width: 200px;
     min-height: 460px;
     padding:0;
+    z-index: 1;
+
 }
 #main-space{
     padding-top: 36px;
@@ -132,13 +134,16 @@ i.fa.fa-dot-circle-o.players-list-item{
     color: #ffffee;
     cursor: url(hand_pointer.png) 9 1, auto;
 }
-.main-right{
+
+#main-right{
     min-width: 113px;
     padding:5px;
+    z-index: 2;
 }
-.main-left{
+#main-left{
     max-width: 44px;
     padding: 0;
+    z-index: 2;
 }
 #players-box{
     min-height:16em;
@@ -206,8 +211,8 @@ i.fa.fa-dot-circle-o.players-list-item{
     overflow: hidden;
 }
 
-#layout tbody.zoom{
-    transform: scale(1.3);
+#layout .zoom{
+    /*transform: scale(1.3) translateY(52px) translateX(23px);;*/
 }
 #layout td{
     border: 1px solid #ffe9c4;
@@ -216,7 +221,6 @@ i.fa.fa-dot-circle-o.players-list-item{
     min-width: 30pt;
     max-width: 30pt;
     height: 24pt;
-    z-index: 1;
     position: relative;
     text-shadow: none;
     font-family: Libre Baskerville,'Old Standard TT',lucida grande,lucida sans,Helvetica,Arial,Tahoma,Verdana,serif;

@@ -33,7 +33,7 @@
         <div class="col-7">
             <div>
                 <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
-                <button id="connectBtn" type="button" class="btn btn-primary float-right header-element" onclick="rouletteClient.login()"
+                <button id="connectBtn" type="button" class="btn btn-primary float-right header-element" onclick="rouletteClient.login();"
                         data-intro="Connect to your EOS wallet, using scatter for example">
                     Connect
                 </button>
@@ -54,7 +54,7 @@
             </div>
             <!--Desk-->
             <div class="row desk">
-                <div class="col-1 main-left">
+                <div id="main-left" class="col-1">
                     <div class="hint-button"
                          data-intro="click this to show more help"
                          data-step="5"
@@ -69,10 +69,9 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-9 felt-box">
-                    <table id="layout"><div id="moving-chip" class="chip small eventless">?!?</div>
-
-                        <tbody>
+                <div id="felt-box" class="col-9">
+                    <table id="layout">
+                        <tbody class="zoom"><div id="moving-chip" class="chip small eventless">?!?</div>
                         <tr>
                             <td class="green" data-bet="0" colspan=3>0</td>
                             <td id="timer" colspan=2 style="border:none">
@@ -173,7 +172,7 @@
                     </div>
                 </div>
 
-                <div class="col-1 main-right">
+                <div id="main-right" class="col-1">
                     <div class="container box" id="players-box">
                         <ul class="players-list">
                         </ul>

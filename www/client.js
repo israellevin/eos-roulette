@@ -208,8 +208,15 @@
         placement.coverage.forEach(function (number) {
             changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
         });
+        let layout_rect = LAYOUT.getBoundingClientRect();
+        let mouseX = (mouseEvent.clientX - layout_rect.left)/100-1;
+        let mouseY = (mouseEvent.clientY - layout_rect.top)/100-1;
+        let scale = 1.3;
+        let zoomShiftX = 200*(scale-1)/2*scale;
+        let zoomShiftY = 448*(scale-1)/2*scale;
+        // console.log(mouseX*zoomShiftX, mouseY*zoomShiftYK);
+        LAYOUT.childNodes[1].style.transform = 'translateX(' + -mouseX*zoomShiftX + 'px) translateY(' + -mouseY*zoomShiftY + 'px) scale(1.3)';
         if (mouseDown) {
-            console.log(mouseEvent);
             if(roulette.account_name === null){
                 return showMessage('Must be logged in to bet');
             }
@@ -255,6 +262,7 @@
         //remove all highlights when leaving the felt
         layout.addEventListener('mouseleave', function(mouseEvent){
             changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
+            LAYOUT.childNodes[1].style.transform = 'translateX(0px) translateY(0px) scale(1)';
         });
 
     }
