@@ -4,8 +4,8 @@ read -n1 -p"Remove all local data? [y|N] " q; echo
 
 pkill keosd
 pkill nodeos
-rm -r ~/eosio-wallet
 rm -r blockchain
+rm -r secrets
 sleep 1
 
 ./common.sh
