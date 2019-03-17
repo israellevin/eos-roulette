@@ -8,9 +8,11 @@
     <script src="https://cdn.scattercdn.com/file/scatter-cdn/js/latest/scatterjs-plugin-eosjs.min.js"></script>
     <script src="js/eosjs-chainid.js"></script>
     <script>
-    ScatterJS.plugins(new ScatterEOS());
+    const SCATTERJS = ScatterJS;
+    window.ScatterJS = null;
+    SCATTERJS.plugins(new ScatterEOS());
 
-    const network = ScatterJS.Network.fromJson({
+    const network = SCATTERJS.Network.fromJson({
         blockchain:'eos',
         chainId:roulette.chainid,
         host:'127.0.0.1',
@@ -18,18 +20,18 @@
         protocol:'http'
     });
 
-    ScatterJS.connect('roulette', {network}).then(connected => {
+    SCATTERJS.connect('roulette', {network}).then(connected => {
         if(!connected) return false;
         console.log('connected');
-        ScatterJS.scatter.login().then(function(){
+        SCATTERJS.scatter.login().then(function(){
             console.log('loggedin');
-            roulette.account_name = ScatterJS.account('eos').name;
+            roulette.account_name = SCATTERJS.account('eos').name;
             success(roulette.account_name);
         });
     });
     </script>
 </head>
 <body>
-    asdf
+    connecting
 </body>
 </html>
