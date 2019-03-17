@@ -23,13 +23,13 @@ body{
     animation: rotation 3s infinite linear;
 }
 
-#ball{
+#ballContainer{
     position: fixed;
     top: 0;
     left: 0;
 }
 
-#bll {
+#ball {
     display: block;
     background: black;
     border-radius: 50%;
