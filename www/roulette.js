@@ -8,15 +8,15 @@
 
     // Initialize.
     SCATTERJS.plugins(new ScatterEOS());
-    const eos_network = SCATTERJS.Network.fromJson({
+    const network = SCATTERJS.Network.fromJson({
         blockchain: 'eos',
         chainId: roulette.chainid,
         host: '127.0.0.1',
         port: 8888,
         protocol: 'http'
     });
-    const RPC = new eosjs_jsonrpc.default(eos_network.protocol + '://' + eos_network.host + ':' + eos_network.port);
-    const SCATTER = SCATTERJS.eos(eos_network, Eos, {RPC, beta3:true});
+    const RPC = new eosjs_jsonrpc.default(network.protocol + '://' + network.host + ':' + network.port);
+    const SCATTER = SCATTERJS.eos(network, Eos, {RPC, beta3:true});
     const SOCKET = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     SOCKET.on('disconnect', function(){
         console.error('socket disconnected');
@@ -24,18 +24,19 @@
 
     // Login to scatter.
     function login(success){
-        SCATTERJS.connect('roulette', {eos_network}).then(connected => {
+        SCATTERJS.connect('roulette', {network}).then(connected => {
             if(!connected) {
-                console.error("FAIL TO CONNECT");
+                console.error('could not connect to scatter');
                 return false;
             }
-            console.log("connected");
+            console.info('connected to scatter');
             SCATTERJS.scatter.login().then(function(){
+                console.info('logged in to scatter');
                 roulette.account_name = SCATTERJS.account('eos').name;
                 success(roulette.account_name);
                 let interval = setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name);}, 1000);
             }).catch(error => {
-                console.error("FAIL LOGIN: " + error);
+                console.error('scatter login failed', error);
             });
         });
     }
@@ -85,31 +86,26 @@
 
     // Bet on an existing spin.
     async function bet(hash, coverage, larimers, salt){
-        try{
-            return await SCATTER.transaction({
-                actions: [{
-                    account: 'roulette',
-                    name: 'bet',
-                    authorization: [{
-                        actor: roulette.account_name,
-                        permission: 'active',
-                    }],
-                    data: {
-                        user: roulette.account_name,
-                        hash: hash,
-                        coverage: coverage,
-                        larimers: larimers,
-                        salt: salt,
-                    },
-                }]
-            }, {
-                blocksBehind: 3,
-                expireSeconds: 30,
-            });
-        }catch(e){
-            console.error(e);
-            return false;
-        }
+        return await SCATTER.transaction({
+            actions: [{
+                account: 'roulette',
+                name: 'bet',
+                authorization: [{
+                    actor: roulette.account_name,
+                    permission: 'active',
+                }],
+                data: {
+                    user: roulette.account_name,
+                    hash: hash,
+                    coverage: coverage,
+                    larimers: larimers,
+                    salt: salt,
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        });
     }
 
     // Expose some functionality.
