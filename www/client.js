@@ -10,7 +10,9 @@
     let BALL_CONTAINER;
     let BALL;
     let CHIP_SELECTOR;
-
+    let CLICK_SOUND;
+    let CHEER_SOUND;
+    let WELCOME_SOUND;
     // Add log line.
     function addLogLine(line){
         LOG.innerHTML = line + '<br>' + LOG.innerHTML;
@@ -178,6 +180,7 @@
 
         async function setChip(){
             try{
+                CLICK_SOUND.play();
                 let hash = await bet(coverage, rouletteClient.bet_size);
                 console.info(hash);
             }catch(error){
@@ -374,6 +377,7 @@
                     showMessage(roulette.account_name + ' won ' + (
                         5000 * (36 / rouletteClient.coverage.length)
                     ) + ' larimers');
+                    CHEER_SOUND.play();
                 }
                 setTimeout(resolve, 5000);
             }
@@ -409,6 +413,7 @@
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
                 rouletteClient.updater = setInterval(updateBalance, 1000);
+                WELCOME_SOUND.play();
             }
         });
     }
@@ -435,6 +440,11 @@
         CHIP_SELECTOR = document.getElementById('chip-selector');
         initLayout(LAYOUT);
         lifeCycle();
+
+        CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
+        CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
+        WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
+
     };
 
     // Expose some functionality.
