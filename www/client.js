@@ -162,9 +162,9 @@
 
     // Place a bet on the layout.
     async function placeBet(mouseEvent, chip){
+        CLICK_SOUND.play();
         let coverage = getCoverage(mouseEvent);
         let hash = await bet(coverage, rouletteClient.bet_size);
-        CLICK_SOUND.play();
         let jetonPosition = getJetonPosition(coverage);
         chip.style.top = chip.style.left = '';
         changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
@@ -440,8 +440,9 @@
 
         CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
         CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
-        WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
+        WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav'], volume: 0.4});
         GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
+        Howler.volume(0.4);
 
     };
 
