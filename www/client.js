@@ -139,11 +139,14 @@
         if(36 % coverage.length !== 0){
             return showMessage('coverage size must divide 36');
         }
-        return new Promise(async function(resolve){
-            let result = await roulette.bet(
-                rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
-            );
-            resolve(result.processed.action_traces[0].act.data.hash);
+        return new Promise(async function(resolve, reject){
+            try{
+                return resolve((await roulette.bet(
+                    rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.hash);
+            }catch(error){
+                return reject(error);
+            }
         });
     }
 
@@ -187,9 +190,8 @@
                 let hash = await bet(placement.coverage, rouletteClient.bet_size);
                 console.info(hash);
             }catch(error){
-                // FIXME Why this never happens?
                 removeChip();
-                throw error;
+                console.error(error);
             }
             rouletteClient.coverage = placement.coverage;
             showBet(chip, placement);
@@ -374,6 +376,7 @@
 
     // Our lifeCycle.
     async function lifeCycle(){
+        login();
         hideRoulette();
         rouletteClient.spin = await getSpin();
         rouletteClient.spin.maxbettime -= 3;
