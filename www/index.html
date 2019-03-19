@@ -175,13 +175,14 @@
                         <ul class="players-list">
                         </ul>
                     </div>
-                    <div class="container bonus-box">
+                    <div class="container box" style="margin-top: 70px">Your balance:
+                        <span id="balance">???</span>
                     </div>
-                    <div class="container" data-intro="play to get more luck charge!" style="padding: 2px; min-height:0px;">
-                        Luck charge: <i class="fa fa-battery-half" aria-hidden="true"></i>
+                    <div style="height: 20px; padding: 8px">
+                        <button type="button" class="btn btn-primary" data-hint='use this!!'>Re bet</button>
                     </div>
-                    <div class="container" style="padding: 4px; text-shadow: 2px 2px 0.3px #212529; min-height:120px; position: absolute; bottom: 0;">
-                        <div>Select bet size</div>
+                    <div id="bet-size" class="container">
+                        <div>Bet size:</div>
                         <div id='chip-selector'>
                             <div style="min-width: 200px; display: inline-flex">
                                 <div class="chip iso" onclick="rouletteClient.selectToken(this, 0.1)">
@@ -201,14 +202,7 @@
 
             </div>
 
-            <div class="row betting-box">
-                <div style="height: 20px; max-width:120px; min-width:120px; padding: 8px">
-                    <p>Balance: <span id="balance">???</span></p>
-                </div>
-                <div style="height: 20px; padding: 8px">
-                    <button type="button" class="btn btn-primary" disabled>clear tokens</button>
-                    <button type="button" class="btn btn-primary" data-hint='use this!!'>Repeat last bet</button>
-                </div>
+            <div class="row betting-box box">
             </div>
         </div>
 
