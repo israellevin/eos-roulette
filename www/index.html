@@ -26,37 +26,6 @@
 </head>
 <body>
 <div id="main" class="container">
-    <nav role="navigation">
-        <div id="menuToggle">
-            <!--
-                A fake / hidden checkbox is used as click reciever,
-                so you can use the :checked selector on it.
-                -->
-            <input type="checkbox" />
-
-            <!--
-                Some spans to act as a hamburger.
-
-                They are acting like a real hamburger,
-                not that McDonalds stuff.
-                -->
-            <span></span>
-            <span></span>
-            <span></span>
-
-            <!--
-                Too bad the menu has to be inside of the button
-                but hey, it's pure CSS magic.
-                -->
-            <ul id="menu" class="box">
-                <a href="#"><li>Language: EN</li></a>
-                <li>
-                    <a id="logoutBtn" href="#" onclick="rouletteClient.logout();">disconnect</a>
-                </li>
-
-            </ul>
-        </div>
-    </nav>
     <div class="row main-header">
         <div class="col-8 header-title">
             <div style="font-size: 1.5rem">MaMaLuck</div>
@@ -69,6 +38,37 @@
                 <span class="float-left header-element" id="user">accountName</span>
             </div>
         </div>
+        <nav role="navigation">
+                <div id="menuToggle">
+                    <!--
+                A fake / hidden checkbox is used as click reciever,
+                so you can use the :checked selector on it.
+                -->
+                    <input type="checkbox" />
+
+                    <!--
+                Some spans to act as a hamburger.
+
+                They are acting like a real hamburger,
+                not that McDonalds stuff.
+                -->
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                    <!--
+                Too bad the menu has to be inside of the button
+                but hey, it's pure CSS magic.
+                -->
+                    <ul id="menu" class="box">
+                        <a href="#"><li>Language: EN</li></a>
+                        <li>
+                            <a id="logoutBtn" href="#" onclick="rouletteClient.logout();">disconnect</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </nav>
     </div>
 
     <div id="main-space" class="row noselect">
