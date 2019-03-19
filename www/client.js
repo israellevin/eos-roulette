@@ -390,12 +390,12 @@
     async function lifeCycle(){
         login();
         hideRoulette();
-        //rouletteClient.spin = await getSpin();
-        //rouletteClient.spin.maxbettime -= 3;
-        //await updateFelt(rouletteClient.spin);
-        //showRoulette();
-        //await dropBall(await getResult(rouletteClient.spin));
-        //lifeCycle();
+        rouletteClient.spin = await getSpin();
+        rouletteClient.spin.maxbettime -= 3;
+        await updateFelt(rouletteClient.spin);
+        showRoulette();
+        await dropBall(await getResult(rouletteClient.spin));
+        lifeCycle();
     }
 
     // Login to scatter.
