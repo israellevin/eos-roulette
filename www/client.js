@@ -10,6 +10,9 @@
     let BALL_CONTAINER;
     let BALL;
     let CHIP_SELECTOR;
+    let CLICK_SOUND;
+    let CHEER_SOUND;
+    let WELCOME_SOUND;
 
     // Add log line.
     function addLogLine(line){
@@ -161,6 +164,7 @@
     async function placeBet(mouseEvent, chip){
         let coverage = getCoverage(mouseEvent);
         let hash = await bet(coverage, rouletteClient.bet_size);
+        CLICK_SOUND.play();
         let jetonPosition = getJetonPosition(coverage);
         chip.style.top = chip.style.left = '';
         changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
@@ -184,7 +188,6 @@
 
         let originChip = CHIP_SELECTOR.querySelector('.chip:not(.iso)');
         let chip = originChip.cloneNode(true);
-        chip.id = 'movingChip';
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
             chip.parentElement.removeChild(chip);
@@ -369,6 +372,7 @@
                     showMessage(roulette.account_name + ' won ' + (
                         5000 * (36 / rouletteClient.coverage.length)
                     ) + ' larimers');
+                    CHEER_SOUND.play();
                 }
                 setTimeout(resolve, 5000);
             }
@@ -404,6 +408,7 @@
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
                 rouletteClient.updater = setInterval(updateBalance, 1000);
+                WELCOME_SOUND.play();
             }
         });
     }
@@ -431,6 +436,11 @@
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
         initLayout(LAYOUT);
         lifeCycle();
+
+        CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
+        CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
+        WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
+
     };
 
     // Expose some functionality.
