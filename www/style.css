@@ -352,6 +352,7 @@ td.green{
     width: calc(100% + 2px);
     height: calc(100% + 2px);
     margin-left: -1px;
+    pointer-events: none;
 }
 /* INTRO */
 
