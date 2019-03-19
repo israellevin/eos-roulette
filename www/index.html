@@ -25,19 +25,47 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 </head>
 <body>
-<div class="container">
+<div id="main" class="container">
+    <nav role="navigation">
+        <div id="menuToggle">
+            <!--
+                A fake / hidden checkbox is used as click reciever,
+                so you can use the :checked selector on it.
+                -->
+            <input type="checkbox" />
+
+            <!--
+                Some spans to act as a hamburger.
+
+                They are acting like a real hamburger,
+                not that McDonalds stuff.
+                -->
+            <span></span>
+            <span></span>
+            <span></span>
+
+            <!--
+                Too bad the menu has to be inside of the button
+                but hey, it's pure CSS magic.
+                -->
+            <ul id="menu">
+                <a href="#"><li>Language: EN</li></a>
+                <button id="logoutBtn" type="button" class="btn btn-primary" onclick="rouletteClient.logout();">
+                    <li>disconnect</li>
+                </button>
+            </ul>
+        </div>
+    </nav>
     <div class="row main-header">
-        <div class="col-5 header-title">
+        <div class="col-8 header-title">
             <div style="font-size: 1.5rem">MaMaLuck</div>
         </div>
-        <div class="col-7">
+        <div class="col-4">
             <div>
-                <i class="fa fa-bars fa-2x float-right header-element" aria-hidden="true"></i>
-                <button id="connectBtn" type="button" class="btn btn-primary float-right header-element" onclick="rouletteClient.login();"
-                        data-intro="Connect to your EOS wallet, using scatter for example">
+                <button id="connectBtn" type="button" class="btn btn-primary" onclick="rouletteClient.login();">
                     Connect
                 </button>
-                <span class="float-right header-element" id="user">accountName</span>
+                <span class="float-left header-element" id="user">accountName</span>
             </div>
         </div>
     </div>

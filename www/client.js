@@ -13,6 +13,7 @@
     let CLICK_SOUND;
     let CHEER_SOUND;
     let WELCOME_SOUND;
+    let GOODBYE_SOUND;
     // Add log line.
     function addLogLine(line){
         LOG.innerHTML = line + '<br>' + LOG.innerHTML;
@@ -427,6 +428,7 @@
             clearInterval(rouletteClient.updater);
             document.getElementById('user').innerText = '';
             document.getElementById('connectBtn').style.display = 'block';
+            GOODBYE_SOUND.play();
         });
     }
 
@@ -444,6 +446,7 @@
         CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
         CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
         WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
+        GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
 
     };
 
