@@ -306,7 +306,10 @@ td.green{
             0 9px 6px #222;
 }
 .chip.small{
+    position: absolute;
     font-size: 6px;
+    top: 50%;
+    left: 50%;
 }
 .chip.iso.small{
     transform: perspective(3000px) rotateX(55deg);
@@ -318,6 +321,36 @@ td.green{
 
 .chip-face{
     margin-top: 0.5em;
+}
+
+
+.chip.td-N{
+    top: 0;
+}
+
+.chip.td-S{
+    top: 100%;
+}
+
+.chip.td-W{
+    left: 0;
+}
+
+.chip.td-E{
+    left: 100%;
+}
+
+.td-center{
+    position: absolute;
+    top: calc(50% - 1.5em);
+    left: calc(50% - 1.5em);
+}
+
+.td-number {
+    position: absolute;
+    top: calc(50% - 0.5em);
+    left: calc(45% - 0.5em);
+    line-height: 1;
 }
 
 /* INTRO */
