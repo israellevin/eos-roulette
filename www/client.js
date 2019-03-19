@@ -219,18 +219,9 @@
     function highlightBet(mouseEvent) {
         changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
         let placement = getPlacement(mouseEvent);
-        placement.coverage.forEach(function (number) {
+        placement.coverage.forEach(function(number){
             changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
         });
-
-        //calculate mouse location relative to view window.
-        let layout_rect = LAYOUT.getBoundingClientRect();
-        let mouseX = (mouseEvent.clientX - layout_rect.left)/100-1;
-        let mouseY = (mouseEvent.clientY - layout_rect.top)/223-1;
-        let scale = 1.3;
-        let zoomShiftX = 200*(scale-1)/2*scale;
-        let zoomShiftY = 300*(scale-1)/2*scale;
-        LAYOUT.childNodes[1].style.transform = 'translateX(' + -mouseX*zoomShiftX + 'px) translateY(' + -mouseY*zoomShiftY + 'px) scale(1.3)';
     }
 
     // Initialize an html element as a layout.
@@ -240,7 +231,6 @@
         layout.addEventListener('mousedown', placeBet);
         layout.addEventListener('mouseleave', function(mouseEvent){
             changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
-            LAYOUT.childNodes[1].style.transform = 'translateX(0px) translateY(0px) scale(1)';
         });
     }
 
@@ -384,7 +374,6 @@
 
     // Our lifeCycle.
     async function lifeCycle(){
-        login();
         hideRoulette();
         rouletteClient.spin = await getSpin();
         rouletteClient.spin.maxbettime -= 3;

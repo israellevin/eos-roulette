@@ -8,6 +8,7 @@
 
     // Initialize.
     SCATTERJS.plugins(new ScatterEOS());
+    // DO NOT CHANGE THIS NAME, SCATTER DOES NOT REACT WELL TO OTHER NAMES.
     const network = SCATTERJS.Network.fromJson({
         blockchain: 'eos',
         chainId: roulette.chainid,
