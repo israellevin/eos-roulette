@@ -48,11 +48,12 @@
                 Too bad the menu has to be inside of the button
                 but hey, it's pure CSS magic.
                 -->
-            <ul id="menu">
+            <ul id="menu" class="box">
                 <a href="#"><li>Language: EN</li></a>
-                <button id="logoutBtn" type="button" class="btn btn-primary" onclick="rouletteClient.logout();">
-                    <li>disconnect</li>
-                </button>
+                <li>
+                    <a id="logoutBtn" href="#" onclick="rouletteClient.logout();">disconnect</a>
+                </li>
+
             </ul>
         </div>
     </nav>
