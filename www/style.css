@@ -169,7 +169,7 @@ i.fa.fa-dot-circle-o.players-list-item{
 
 .betting-box{
     font-size: 14px;
-    height: 50px;
+    height: 40px;
     position: absolute;
     bottom: 0;
     width: 100%;
@@ -441,3 +441,9 @@ td.green{
     color: #ccb917;
 }
 
+#bet-size {
+    position: absolute;
+    bottom: 0;
+    padding: 4px;
+    text-shadow: 2px 2px 0.3px #212529;
+}
