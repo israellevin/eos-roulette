@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'Roulette server.'
+"""Roulette server."""
 import os
 
 import flask
@@ -16,20 +16,23 @@ SOCKETIO = flask_socketio.SocketIO(APP, message_queue='redis://')
 
 @SOCKETIO.on('heartbeat')
 def heartbeat(user):
-    'Get a heartbeat.'
+    """Get a heartbeat."""
     if user:
         db.heartbeat(user)
 
 
 @SOCKETIO.on('get_balance')
 def get_balance(user):
-    'Get EOS balance of a user.'
-    flask_socketio.emit('get_balance', eos.get_rows('eosio.token', 'accounts', user)['rows'][0]['balance'])
+    """Get EOS balance of a user."""
+    try:
+        flask_socketio.emit('get_balance', eos.get_rows('eosio.token', 'accounts', user)['rows'][0]['balance'])
+    except Exception:
+        pass  # fixme crazy repeating exceptions here if nodeos is down. should be handled.
 
 
 @SOCKETIO.on('get_spin')
 def get_spin(min_maxbettime):
-    'Get the currently running spin with the smallest maxbettime larget than min_maxbettime.'
+    """Get the currently running spin with the smallest maxbettime larget than min_maxbettime."""
     try:
         spin = eos.get_rows(
             'roulette', 'spins', 'roulette', index_position=3, key_type='i64',
@@ -42,7 +45,7 @@ def get_spin(min_maxbettime):
 
 @SOCKETIO.on('get_bets')
 def get_bets(spin_hash):
-    'Get the bets on a spin.'
+    """Get the bets on a spin."""
     flask_socketio.emit('get_bets', [row for row in eos.get_rows(
         'roulette', 'bets', 'roulette', limit=999
     )['rows'] if row['hash'] == spin_hash])
@@ -50,7 +53,7 @@ def get_bets(spin_hash):
 
 @SOCKETIO.on('monitor_spin')
 def monitor_spin(kwargs):
-    'Get notified on spin events.'
+    """Get notified on spin events."""
     flask_socketio.join_room(kwargs['spin_hash'])
     flask_socketio.emit('bettor_joined', kwargs['user'], room=kwargs['spin_hash'])
 
