@@ -10,10 +10,13 @@
     let BALL_CONTAINER;
     let BALL;
     let CHIP_SELECTOR;
-    let CLICK_SOUND;
-    let CHEER_SOUND;
-    let WELCOME_SOUND;
-    let GOODBYE_SOUND;
+
+    // Sounds.
+    const CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
+    const CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
+    const WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
+    const GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
+
     // Add log line.
     function addLogLine(line){
         LOG.innerHTML = line + '<br>' + LOG.innerHTML;
@@ -427,6 +430,15 @@
     }
 
     window.onload = function(){
+        // Set howler's volume according to cookie so we don't go mad.
+        // Use `document.cookie = 'volume=[value]'` in the console to set the cookie.
+        try{
+            Howler.volume(document.cookie.match(/(^|;)volume=([^;]*)/)[2]);
+        }catch(error){
+            console.error('no volume cookie found');
+        }
+
+        // Initialize DOM "constants".
         MAIN = document.getElementById('main-space');
         LOG = document.getElementById('log');
         LAYOUT = document.getElementById('layout');
@@ -435,18 +447,14 @@
         BALL = document.getElementById('ball');
         CHIP_SELECTOR = document.getElementById('chip-selector');
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
+
+        // Initialize game.
         initLayout(LAYOUT);
         lifeCycle();
-
-        CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
-        CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
-        WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav'], volume: 0.4});
-        GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
-        Howler.volume(0.4);
-
     };
 
     // Expose some functionality.
+    // FIXME Most of this should not be exposed when we release.
     window.rouletteClient = {
         spin: null,
         bet_size: null,

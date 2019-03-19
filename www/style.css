@@ -135,7 +135,7 @@ i.fa.fa-dot-circle-o.players-list-item{
     padding-top: 36px;
     background-color: #0f6d39;
     color: #ffffee;
-    cursor: url(hand_pointer.png) 9 1, auto;
+    cursor: url(images/hand_pointer.png) 9 1, auto;
 }
 
 #main-right{
@@ -235,13 +235,13 @@ i.fa.fa-dot-circle-o.players-list-item{
 }
 
 td.red{
-    background-image: url(red.png);
+    background-image: url(images/red.png);
 }
 td.black{
-    background-image: url(black.png);
+    background-image: url(images/black.png);
 }
 td.green{
-    background-image: url(green.png);
+    background-image: url(images/green.png);
 }
 
 /*div{*/
