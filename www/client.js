@@ -158,7 +158,23 @@
     }
 
     // Place a bet on the layout.
-    async function placeBet(mouseEvent){
+    async function placeBet(mouseEvent, chip){
+        let coverage = getCoverage(mouseEvent);
+        let hash = await bet(coverage, rouletteClient.bet_size);
+        let jetonPosition = getJetonPosition(coverage);
+        chip.style.top = chip.style.left = '';
+        changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
+        jetonPosition.target.appendChild(chip);
+        console.info(hash);
+        addLogLine(
+            roulette.account_name + ' placed ' + rouletteClient.bet_size +
+            ' larimers on ' + coverage
+        );
+        rouletteClient.coverage = coverage;
+    }
+
+    // Show a potential bet.
+    async function hoverBet(mouseEvent){
         if(roulette.account_name === null){
             return showMessage('Must be logged in to bet');
         }
@@ -166,63 +182,54 @@
             return showMessage('No bet size selected');
         }
 
-        let coverage = getCoverage(mouseEvent);
         let originChip = CHIP_SELECTOR.querySelector('.chip:not(.iso)');
-        let jetonPosition = getJetonPosition(coverage);
         let chip = originChip.cloneNode(true);
-
-        function removeChip(){
-            jetonPosition.target.removeChild(chip);
-        }
-        document.addEventListener('mouseup', removeChip, {once: true});
-
-        async function setChip(){
-            try{
-                let hash = await bet(coverage, rouletteClient.bet_size);
-                console.info(hash);
-            }catch(error){
-                removeChip();
-                console.error(error);
-            }
-            rouletteClient.coverage = coverage;
-            addLogLine(
-                roulette.account_name + ' placed ' + rouletteClient.bet_size +
-                ' larimers on ' + coverage
-            );
-        }
-
+        chip.id = 'movingChip';
+        changeClass(chip, 'eventless', true);
+        document.addEventListener('mouseup', function(){
+            chip.parentElement.removeChild(chip);
+        }, {once: true});
         chip.addEventListener('transitionend', function(){
-            document.removeEventListener('mouseup', removeChip);
-            document.addEventListener('mouseup', setChip, {once: true});
+            chip.style.transition = 'all 0s linear';
+            document.addEventListener('mouseup', function(mouseEvent){placeBet(mouseEvent, chip);}, {once: true});
         }, {once: true});
 
         window.requestAnimationFrame(function(){
-            jetonPosition.target.appendChild(chip);
+            LAYOUT.appendChild(chip);
+                chip.style.position = 'absolute';
+                chip.style.left = '250px';
+                chip.style.top = '450px';
             chip.style.transition = 'all 0.5s ease-in';
             window.requestAnimationFrame(function(){
-                changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
+                chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
+                chip.style.top = (mouseEvent.clientY - LAYOUT.rect.top) + 'px';
             });
         });
     }
 
-    // Highlight potential bet.
+    // Highlight potential bet and move betting jeton if it exists.
     function highlightBet(mouseEvent) {
         changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         let coverage = getCoverage(mouseEvent);
         coverage.forEach(function(number){
             changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'highlight', true);
         });
+        let chip = LAYOUT.querySelector('#layout > .chip');
+        if(chip){
+            chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
+            chip.style.top = (mouseEvent.clientY - LAYOUT.rect.top) + 'px';
+        }
     }
 
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-coverage attributes.
     function initLayout(layout){
-        layout.addEventListener('mousemove', highlightBet);
-        layout.addEventListener('mousedown', placeBet);
-        layout.addEventListener('mouseleave', function(mouseEvent){
+        LAYOUT.addEventListener('mouseleave', function(mouseEvent){
             changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         });
         layout.querySelectorAll('[data-coverage]').forEach(function(tdElement){
+            tdElement.addEventListener('mousemove', highlightBet);
+            tdElement.addEventListener('mousedown', hoverBet);
             let val = tdElement.dataset.coverage;
             if (val.indexOf(',') < 0) {
                 let innerDiv = document.createElement('div');
@@ -232,18 +239,6 @@
                 changeClass(number, 'td-number', true);
                 number.innerText = val;
                 innerDiv.appendChild(number);
-            }
-        });
-        document.querySelectorAll('[data-bet]').forEach(function(the_td){
-            let val = the_td.dataset.bet;
-            if (val.indexOf(',') < 0) {
-                let inner_td = document.createElement('DIV');
-                inner_td.classList.add('inner-td');
-                the_td.appendChild(inner_td);
-                let td_number = document.createElement('DIV');
-                td_number.classList.add('td-number');
-                td_number.innerText = val;
-                inner_td.appendChild(td_number);
             }
         });
     }
@@ -433,6 +428,7 @@
         BALL_CONTAINER = document.getElementById('ballContainer');
         BALL = document.getElementById('ball');
         CHIP_SELECTOR = document.getElementById('chip-selector');
+        LAYOUT.rect = LAYOUT.getBoundingClientRect();
         initLayout(LAYOUT);
         lifeCycle();
     };
