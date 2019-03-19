@@ -87,25 +87,27 @@
 
     // Bet on an existing spin.
     async function bet(hash, coverage, larimers, salt){
-        return await SCATTER.transaction({
-            actions: [{
-                account: 'roulette',
-                name: 'bet',
-                authorization: [{
-                    actor: roulette.account_name,
-                    permission: 'active',
-                }],
-                data: {
-                    user: roulette.account_name,
-                    hash: hash,
-                    coverage: coverage,
-                    larimers: larimers,
-                    salt: salt,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
+        return new Promise(function(resolve, reject){
+            SCATTER.transaction(
+                {actions: [{
+                    account: 'roulette',
+                    name: 'bet',
+                    authorization: [{
+                        actor: roulette.account_name,
+                        permission: 'active',
+                    }],
+                    data: {
+                        user: roulette.account_name,
+                        hash: hash,
+                        coverage: coverage,
+                        larimers: larimers,
+                        salt: salt,
+                    },
+                }]}, {
+                    blocksBehind: 3,
+                    expireSeconds: 30,
+                }
+            ).then(resolve).catch(reject);
         });
     }
 

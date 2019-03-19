@@ -24,8 +24,8 @@
 
     // Get color of number.
     function getColor(number){
-        if(document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.contains('red')) return 'red';
-        if(document.querySelectorAll('[data-bet="' + number + '"]')[0].classList.contains('black')) return 'black';
+        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('red')) return 'red';
+        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('black')) return 'black';
         return 'green';
     }
 
@@ -54,81 +54,88 @@
         list.insertBefore(entry, list.childNodes[0]);
     }
 
-    // Get selected placement from a mouse event on the layout.
-    function getPlacement(mouseEvent){
-        let placement = {coverage: [], x: 0, y: 0};
+    // Get the target cell and position relative to it of a jeton from a coverage.
+    function getJetonPosition(coverage){
+        let target = [];
+        let positions = [];
+        if(coverage.length === 1){
+            target = coverage[0];
+        }else if(coverage.length > 6){
+            target = [...coverage].join(',');
+        }else{
+            target = Math.max(...coverage);
+            if(coverage.length === 2){
+                positions.push(Math.abs(coverage[0] - coverage[1]) === 1 ? 'td-W' : 'td-N');
+            }else{
+                positions.push('td-N');
+                let streetLength = coverage.indexOf(0) === -1 ? 6 : 4;
+                positions.push(coverage.length === streetLength ? 'td-E' : 'td-W');
+            }
+        }
+        return {
+            target: LAYOUT.querySelector('[data-coverage="' + target + '"]'),
+            positions: positions
+        };
+    }
+
+    // Get selected coverage from a mouse event on the layout.
+    function getCoverage(mouseEvent){
         let cell = mouseEvent.target;
-        if(!('bet' in cell.dataset && cell.dataset.bet)) return placement;
+        if(!('coverage' in cell.dataset && cell.dataset.coverage)) throw 'illegal target: ' + cell.tagName;
+        let coverage = cell.dataset.coverage.split(',').map(function(x){return parseInt(x, 10);});
         let rect = cell.getBoundingClientRect();
-        // console.warn(cell.offsetTop, cell.offsetLeft);
-        placement.coverage = cell.dataset.bet.split(',').map(function(x){return parseInt(x, 10);});
-        placement.x = cell.offsetLeft + rect.width / 2;
-        placement.y = cell.offsetTop + rect.height / 2;
 
         // Outer bets.
-        if(placement.coverage.length > 1){
-            return placement;
+        if(coverage.length > 1){
+            return coverage;
         }
 
-        // Inner bets. Do the math.
+        // Inner bets. Do the math, normalizing the position in the target.
         let relativeX = (mouseEvent.clientX - rect.left) / rect.width - 0.5;
         let relativeY = (mouseEvent.clientY - rect.top) / rect.height - 0.5;
+        let target = coverage[0];
 
         // Special handling for zero, to allow for baskets and trios.
-        if(placement.coverage[0] === 0){
+        if(target === 0){
             if(relativeY > 0.3){
-                placement.y += rect.height / 2;
                 let interval = 1 / 9;
                 if(relativeX > interval * 4){
-                    placement.x += rect.width * 0.5;
-                    placement.coverage.push(1);
-                    placement.coverage.push(2);
-                    placement.coverage.push(3);
-                }else if(relativeX < -interval && relativeX > interval * -2){
-                    placement.x -= rect.width / 6;
-                    placement.coverage.push(1);
-                    placement.coverage.push(2);
+                    coverage.push(1, 2, 3);
                 }else if(relativeX > interval && relativeX < interval * 2){
-                    placement.x += rect.width / 6;
-                    placement.coverage.push(2);
-                    placement.coverage.push(3);
+                    coverage.push(2, 3);
+                }else if(relativeX < -interval && relativeX > interval * -2){
+                    coverage.push(1, 2);
                 }
             }
         }else{
-            let column = (placement.coverage[0] - 1) % 3 + 1;
+            // The rest of the inner bets. Start with columns.
+            let column = (target - 1) % 3 + 1;
             // Left side of cell.
             if(relativeX < -0.3 && column > 1){
                 // Split.
-                placement.x -= rect.width / 2;
-                placement.coverage.push(placement.coverage[0] - 1);
+                coverage.push(--target);
             // Right side of cell.
             }else if(relativeX > 0.3){
-                placement.x += rect.width / 2;
                 // Street.
                 if(column === 3){
-                    placement.coverage.push(placement.coverage[0] - 1);
-                    placement.coverage.push(placement.coverage[1] - 1);
+                    coverage.push(--target, --target);
                 // Split.
                 }else{
-                    placement.coverage.push(placement.coverage[0] + 1);
+                    coverage.push(++target);
                 }
             }
-
-            // First fours and trios.
-            if(relativeY < -0.3 && placement.coverage[0] in [1, 2, 3] && placement.coverage.length > 1){
-                placement.y -= rect.height / 2;
-                placement.coverage.push(0);
+            // Basket and trios from zero's neighbours.
+            if(relativeY < -0.3 && target in [1, 2, 3] && coverage.length > 1){
+                coverage.push(0);
             // Bottom edges of upper 34 rows.
-            }else if(relativeY > 0.3 && placement.coverage[0] < 34){
-                placement.y += rect.height / 2;
-                placement.coverage = placement.coverage.concat(placement.coverage.map(function(x){return x + 3;}));
+            }else if(relativeY > 0.3 && target < 34){
+                coverage = coverage.concat(coverage.map(function(x){return x + 3;}));
             // Top edges of lower 34 rows.
-            }else if(relativeY < -0.3 && placement.coverage[0] > 3){
-                placement.y -= rect.height / 2;
-                placement.coverage = placement.coverage.concat(placement.coverage.map(function(x){return x - 3;}));
+            }else if(relativeY < -0.3 && target > 3){
+                coverage = coverage.concat(coverage.map(function(x){return x - 3;}));
             }
         }
-        return placement;
+        return coverage;
     }
 
     // Place a bet.
@@ -139,23 +146,15 @@
         if(36 % coverage.length !== 0){
             return showMessage('coverage size must divide 36');
         }
-        return new Promise(async function(resolve){
-            let result = await roulette.bet(
-                rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
-            );
-            resolve(result.processed.action_traces[0].act.data.hash);
+        return new Promise(async function(resolve, reject){
+            try{
+                return resolve((await roulette.bet(
+                    rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data.hash);
+            }catch(error){
+                return reject(error);
+            }
         });
-    }
-
-    // Show a bet on the layout.
-    function showBet(chip, placement){
-        chip.style.transition = 'all 0s linear';
-        chip.style.left = placement.x + 'px';
-        chip.style.top = placement.y + 'px';
-        addLogLine(
-            roulette.account_name + ' placed ' + rouletteClient.bet_size +
-            ' larimers on ' + placement.coverage
-        );
     }
 
     // Place a bet on the layout.
@@ -167,70 +166,73 @@
             return showMessage('No bet size selected');
         }
 
-        let placement = getPlacement(mouseEvent);
-        if (placement.coverage.length < 1) {
-            return console.warn('clicked outside');
-        }
-
+        let coverage = getCoverage(mouseEvent);
         let originChip = CHIP_SELECTOR.querySelector('.chip:not(.iso)');
-        let originRect = originChip.getBoundingClientRect();
-        let destinationRect = LAYOUT.getBoundingClientRect();
+        let jetonPosition = getJetonPosition(coverage);
         let chip = originChip.cloneNode(true);
 
         function removeChip(){
-            chip.parentElement.removeChild(chip);
+            jetonPosition.target.removeChild(chip);
         }
         document.addEventListener('mouseup', removeChip, {once: true});
 
         async function setChip(){
             try{
-                let hash = await bet(placement.coverage, rouletteClient.bet_size);
+                let hash = await bet(coverage, rouletteClient.bet_size);
                 console.info(hash);
             }catch(error){
-                // FIXME Why this never happens?
                 removeChip();
-                throw error;
+                console.error(error);
             }
-            rouletteClient.coverage = placement.coverage;
-            showBet(chip, placement);
+            rouletteClient.coverage = coverage;
+            addLogLine(
+                roulette.account_name + ' placed ' + rouletteClient.bet_size +
+                ' larimers on ' + coverage
+            );
         }
 
-        changeClass(chip, ['small', 'eventless'], true);
-        chip.style.position = 'absolute';
-        chip.style.left = (originRect.left - destinationRect.left) + 'px';
-        chip.style.top = (originRect.top - destinationRect.top) + 'px';
-        chip.style.transition = 'all 0.5s linear';
         chip.addEventListener('transitionend', function(){
             document.removeEventListener('mouseup', removeChip);
             document.addEventListener('mouseup', setChip, {once: true});
         }, {once: true});
 
         window.requestAnimationFrame(function(){
-            LAYOUT.appendChild(chip);
+            jetonPosition.target.appendChild(chip);
+            chip.style.transition = 'all 0.5s ease-in';
             window.requestAnimationFrame(function(){
-                // FIXME Calculate actual location here.
-                chip.style.left = (mouseEvent.pageX - destinationRect.left) + 'px';
-                chip.style.top = (mouseEvent.pageY - 60) + 'px';
+                changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
             });
         });
     }
 
     // Highlight potential bet.
     function highlightBet(mouseEvent) {
-        changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
-        let placement = getPlacement(mouseEvent);
-        placement.coverage.forEach(function(number){
-            changeClass(document.querySelectorAll('[data-bet="' + number + '"]'), 'highlight', true);
+        changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
+        let coverage = getCoverage(mouseEvent);
+        coverage.forEach(function(number){
+            changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'highlight', true);
         });
     }
 
     // Initialize an html element as a layout.
-    // It is assumed that the element contains mouse sensitive elements with data-bet attributes.
+    // It is assumed that the element contains mouse sensitive elements with data-coverage attributes.
     function initLayout(layout){
         layout.addEventListener('mousemove', highlightBet);
         layout.addEventListener('mousedown', placeBet);
         layout.addEventListener('mouseleave', function(mouseEvent){
-            changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
+            changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
+        });
+        layout.querySelectorAll('[data-coverage]').forEach(function(tdElement){
+            let val = tdElement.dataset.coverage;
+            if (val.indexOf(',') < 0) {
+                let innerDiv = document.createElement('div');
+                changeClass(innerDiv, 'inner-td', true);
+                tdElement.appendChild(innerDiv);
+                let number = document.createElement('div');
+                changeClass(number, 'td-number', true);
+                number.innerText = val;
+                innerDiv.appendChild(number);
+            }
         });
         document.querySelectorAll('[data-bet]').forEach(function(the_td){
             let val = the_td.dataset.bet;
@@ -376,7 +378,7 @@
                 setTimeout(resolve, 5000);
             }
             BALL_CONTAINER.addEventListener('transitionend', ballOnWinningNumber, {once: true});
-            BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
             var targetDeg = 1.5 * turns * -360 + winSlotDeg;
             BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
             BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
@@ -386,13 +388,14 @@
 
     // Our lifeCycle.
     async function lifeCycle(){
+        login();
         hideRoulette();
-        rouletteClient.spin = await getSpin();
-        rouletteClient.spin.maxbettime -= 3;
-        await updateFelt(rouletteClient.spin);
-        showRoulette();
-        await dropBall(await getResult(rouletteClient.spin));
-        lifeCycle();
+        //rouletteClient.spin = await getSpin();
+        //rouletteClient.spin.maxbettime -= 3;
+        //await updateFelt(rouletteClient.spin);
+        //showRoulette();
+        //await dropBall(await getResult(rouletteClient.spin));
+        //lifeCycle();
     }
 
     // Login to scatter.
