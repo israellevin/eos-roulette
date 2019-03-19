@@ -340,12 +340,6 @@ td.green{
     left: 100%;
 }
 
-.td-center{
-    position: absolute;
-    top: calc(50% - 1.5em);
-    left: calc(50% - 1.5em);
-}
-
 .td-number {
     position: absolute;
     top: calc(50% - 0.5em);
@@ -353,6 +347,12 @@ td.green{
     line-height: 1;
 }
 
+.inner-td{
+    position: relative;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
+    margin-left: -1px;
+}
 /* INTRO */
 
 .introjs-tooltip{

@@ -232,6 +232,18 @@
         layout.addEventListener('mouseleave', function(mouseEvent){
             changeClass(document.querySelectorAll('[data-bet]'), 'highlight', false);
         });
+        document.querySelectorAll('[data-bet]').forEach(function(the_td){
+            let val = the_td.dataset.bet;
+            if (val.indexOf(',') < 0) {
+                let inner_td = document.createElement('DIV');
+                inner_td.classList.add('inner-td');
+                the_td.appendChild(inner_td);
+                let td_number = document.createElement('DIV');
+                td_number.classList.add('td-number');
+                td_number.innerText = val;
+                inner_td.appendChild(td_number);
+            }
+        });
     }
 
     // Update the user's balance.
