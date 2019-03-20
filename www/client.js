@@ -12,14 +12,16 @@
     let CHIP_SELECTOR;
 
     // Sounds.
+    // Avoids silly browser error.
+    Howler.usingWebAudio = false;
     const CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
-    const CHEER_SOUND= new Howl({src: ['sounds/cheers.ogg']});
-    const WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
-    const GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
+    const CHEER_SOUND = new Howl({src: ['sounds/cheers.ogg']});
+    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
+    const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
 
-    // State.
+    // Global state variables.
     let state = {
-        bets: [],
+        bets: {},
         spin: null,
         loginUpdater: null
     };
@@ -185,12 +187,6 @@
         chipPosition.target.appendChild(chip);
         console.info(hash);
         addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage);
-        state.bets.push({
-            hash: state.spin.hash,
-            coverage: coverage,
-            larimers: larimers,
-            user: roulette.account_name
-        });
     }
 
     // Show a potential bet.
@@ -320,31 +316,41 @@
         });
     }
 
-    // get players on a spin
-    async function getPlayers(hash){
-        return [
-            {user: 'Aliza', bets: [{larimers: 5000, coverage: [1,2] }, {larimers: 10000, coverage: [12]}]},
-            {user: 'Bob', bets: [{larimers: 5000, coverage: [30,33] }, {larimers: 10000, coverage: [19]}]},
-            {user: 'Charlie', bets: []},
-            {user: 'Dana', bets: []},
-        ];
+    // Draw a bet on the felt.
+    function drawBet(bet){
+        console.log('drawing', bet);
+    }
+
+    // Redraw the players box.
+    function redrawPlayers(){
+        let playersBox = document.getElementById('players-box');
+        let playersBoxUl = playersBox.children[0];
+        let newUL = playersBoxUl.cloneNode(false);
+        for(const player of Object.keys(state.bets)){
+            let playerEntry = document.createElement('li');
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
+                player + '<br>bets: ' + Object.keys(state.bets[player]).reduce(function(total, id){
+                    return total + state.bets[player][id].larimers;
+                }, 0) / 10000 + ' EOS';
+            newUL.appendChild(playerEntry);
+        }
+        playersBox.replaceChild(newUL, playersBoxUl);
     }
 
     // Update the felt.
     // The oldResolve argument is used to maintain resolve function
     // persistance, and thus to keep a promise, across timeouts.
     async function updateFelt(spin, oldResolve){
-        let Players = await getPlayers(spin.hash);
-        let playersBox = document.getElementById('players-box');
-        let playersBoxUl = playersBox.children[0];
-        let newUL = playersBoxUl.cloneNode(false);
-        Players.forEach( function (player) {
-            const playerEntry = document.createElement('li');
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
-                player.user + '<br>bets: ' + player.bets.reduce((acc, cur) => acc + cur.larimers, 0)/10000 + ' EOS';
-            newUL.appendChild(playerEntry);
+        (await roulette.getBets(spin.hash)).forEach(function(bet){
+            if(!(bet.user in state.bets)){
+                state.bets[bet.user] = {};
+            }
+            if(!(bet.id in state.bets[bet.user])){
+                state.bets[bet.user][bet.id] = bet;
+                drawBet(bet);
+            }
+            redrawPlayers();
         });
-        playersBox.replaceChild(newUL, playersBoxUl);
 
         let now = Math.round(new Date() / 1000);
         return new Promise(function(resolve){
@@ -388,14 +394,24 @@
             // callback for completion of ball drop transition
             function ballOnWinningNumber(){
                 addResultToHistory(winning_number);
-                state.bets.forEach(function(bet){
-                    if(bet.coverage.indexOf(winning_number) > -1){
-                        showMessage(roulette.account_name + ' won ' + (
-                            5000 * (36 / bet.coverage.length)
-                        ) + ' larimers');
-                        CHEER_SOUND.play();
+
+                for(const[user, bets] of Object.entries(state.bets)){
+                    // FIXME do for all.
+                    if(user !== roulette.account_name) return;
+                    for(bet of bets){
+                        if(bet.coverage.indexOf(winning_number) > -1){
+                            showMessage(roulette.account_name + ' won ' + (
+                                5000 * (36 / bet.coverage.length)
+                            ) + ' larimers');
+                            CHEER_SOUND.play();
+                        }
                     }
+                }
+                LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
+                    chip.parentElement.removeChild(chip);
                 });
+                state.bets = {};
+                state.spin = null;
                 setTimeout(resolve, 3000);
             }
             BALL_CONTAINER.addEventListener('transitionend', ballOnWinningNumber, {once: true});
@@ -466,7 +482,7 @@
         CHIP_SELECTOR = document.getElementById('chip-selector');
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
 
-        // For debug
+        // FIXME Just for debug.
         login();
 
         // Initialize game.
@@ -489,5 +505,4 @@
         // FIXME This is for debug only.
         state: state
     };
-
 }());

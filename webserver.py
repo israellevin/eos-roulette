@@ -27,7 +27,7 @@ def get_balance(user):
     try:
         flask_socketio.emit('get_balance', eos.get_rows('eosio.token', 'accounts', user)['rows'][0]['balance'])
     except Exception:
-        pass  # fixme crazy repeating exceptions here if nodeos is down. should be handled.
+        pass
 
 
 @SOCKETIO.on('get_spin')
