@@ -17,6 +17,13 @@
     const WELCOME_SOUND= new Howl({src: ['sounds/welcome.wav']});
     const GOODBYE_SOUND= new Howl({src: ['sounds/goodbye.wav']});
 
+    // State.
+    let state = {
+        bets: [],
+        spin: null,
+        loginUpdater: null
+    };
+
     // Add log line.
     function addLogLine(line){
         LOG.innerHTML = line + '<br>' + LOG.innerHTML;
@@ -37,6 +44,9 @@
 
     // Add or remove classes to an element or an HTMLCollection.
     function changeClass(elements, classNames, add){
+        if(!elements){
+            return;
+        }
         if(elements.classList){
             elements = [elements];
         }
@@ -60,8 +70,8 @@
         list.insertBefore(entry, list.childNodes[0]);
     }
 
-    // Get the target cell and position relative to it of a jeton from a coverage.
-    function getJetonPosition(coverage){
+    // Get the target cell and position relative to it of a chip from a coverage.
+    function getChipPosition(coverage){
         let target = [];
         let positions = [];
         if(coverage.length === 1){
@@ -146,7 +156,7 @@
 
     // Place a bet.
     async function bet(coverage, larimers){
-        if(rouletteClient.spin === null){
+        if(state.spin === null){
             return showMessage('No spins currently in progress');
         }
         if(36 % coverage.length !== 0){
@@ -155,7 +165,7 @@
         return new Promise(async function(resolve, reject){
             try{
                 return resolve((await roulette.bet(
-                    rouletteClient.spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                    state.spin.hash, coverage, parseInt(larimers, 10), +new Date()
                 )).processed.action_traces[0].act.data.hash);
             }catch(error){
                 return reject(error);
@@ -167,17 +177,20 @@
     async function placeBet(mouseEvent, chip){
         CLICK_SOUND.play();
         let coverage = getCoverage(mouseEvent);
-        let hash = await bet(coverage, rouletteClient.bet_size);
-        let jetonPosition = getJetonPosition(coverage);
+        let larimers = getChip().dataset.value;
+        let hash = await bet(coverage, larimers);
+        let chipPosition = getChipPosition(coverage);
         chip.style.top = chip.style.left = '';
-        changeClass(chip, jetonPosition.positions.concat(['small', 'eventless']), true);
-        jetonPosition.target.appendChild(chip);
+        changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
+        chipPosition.target.appendChild(chip);
         console.info(hash);
-        addLogLine(
-            roulette.account_name + ' placed ' + rouletteClient.bet_size +
-            ' larimers on ' + coverage
-        );
-        rouletteClient.coverage = coverage;
+        addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage);
+        state.bets.push({
+            hash: state.spin.hash,
+            coverage: coverage,
+            larimers: larimers,
+            user: roulette.account_name
+        });
     }
 
     // Show a potential bet.
@@ -185,11 +198,11 @@
         if(roulette.account_name === null){
             return showMessage('Must be logged in to bet');
         }
-        if(rouletteClient.bet_size === null){
+        if(getChip() === null){
             return showMessage('No bet size selected');
         }
 
-        let originChip = CHIP_SELECTOR.querySelector('.chip:not(.iso)');
+        let originChip = getChip();
         let chip = originChip.cloneNode(true);
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
@@ -213,7 +226,7 @@
         });
     }
 
-    // Highlight potential bet and move betting jeton if it exists.
+    // Highlight potential bet and move betting chip if it exists.
     function highlightBet(mouseEvent) {
         changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         let coverage = getCoverage(mouseEvent);
@@ -257,16 +270,20 @@
         document.getElementById('balance').innerText = await roulette.getBalance();
     }
 
-    // Select a token to set the bet size.
-    function selectToken(element, value){
-        rouletteClient.bet_size = value * 10000;
+    // Get the currently selected chip.
+    function getChip(){
+        return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
+    }
+
+    // Select a chip to set the bet size.
+    function selectChip(chip){
+        changeClass(getChip(), 'iso', true);
+        changeClass(chip, 'iso', false);
+        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
         CHIP_SELECTOR.scrollTo({
-            left: element.offsetLeft - element.parentElement.parentElement.clientWidth/ 2 + 14, top: 0,
+            left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
             behavior: 'smooth'
         });
-        changeClass(CHIP_SELECTOR.querySelectorAll('.chip'), 'iso', true);
-        changeClass(element, 'iso', false);
-        showMessage('Each token now worth ' + value + ' EOS');
     }
 
     // Hide the roulette.
@@ -371,32 +388,33 @@
             // callback for completion of ball drop transition
             function ballOnWinningNumber(){
                 addResultToHistory(winning_number);
-                if(rouletteClient.coverage.indexOf(winning_number) >=  0){
-                    showMessage(roulette.account_name + ' won ' + (
-                        5000 * (36 / rouletteClient.coverage.length)
-                    ) + ' larimers');
-                    CHEER_SOUND.play();
-                }
-                setTimeout(resolve, 5000);
+                state.bets.forEach(function(bet){
+                    if(bet.coverage.indexOf(winning_number) > -1){
+                        showMessage(roulette.account_name + ' won ' + (
+                            5000 * (36 / bet.coverage.length)
+                        ) + ' larimers');
+                        CHEER_SOUND.play();
+                    }
+                });
+                setTimeout(resolve, 3000);
             }
             BALL_CONTAINER.addEventListener('transitionend', ballOnWinningNumber, {once: true});
             BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
             var targetDeg = 1.5 * turns * -360 + winSlotDeg;
             BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
             BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-            BALL.style.transform = 'rotate(' + -1*targetDeg + 'deg)';
+            BALL.style.transform = 'rotate(' + -1 * targetDeg + 'deg)';
         });
     }
 
     // Our lifeCycle.
     async function lifeCycle(){
-        login();
         hideRoulette();
-        rouletteClient.spin = await getSpin();
-        rouletteClient.spin.maxbettime -= 3;
-        await updateFelt(rouletteClient.spin);
+        state.spin = await getSpin();
+        state.spin.maxbettime -= 3;
+        await updateFelt(state.spin);
         showRoulette();
-        await dropBall(await getResult(rouletteClient.spin));
+        await dropBall(await getResult(state.spin));
         lifeCycle();
     }
 
@@ -410,7 +428,7 @@
                 document.getElementById('user').innerText = account_name;
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
-                rouletteClient.updater = setInterval(updateBalance, 1000);
+                state.loginUpdater = setInterval(updateBalance, 1000);
                 WELCOME_SOUND.play();
             }
         });
@@ -422,7 +440,7 @@
             return showMessage('not logged in');
         }
         roulette.logout(function(){
-            clearInterval(rouletteClient.updater);
+            clearInterval(state.loginUpdater);
             document.getElementById('user').innerText = '';
             document.getElementById('connectBtn').style.display = 'block';
             GOODBYE_SOUND.play();
@@ -448,26 +466,28 @@
         CHIP_SELECTOR = document.getElementById('chip-selector');
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
 
+        // For debug
+        login();
+
         // Initialize game.
         initLayout(LAYOUT);
         lifeCycle();
     };
 
     // Expose some functionality.
-    // FIXME Most of this should not be exposed when we release.
     window.rouletteClient = {
-        spin: null,
-        bet_size: null,
-        coverage: [],
         login: login,
         logout: logout,
-        selectToken: selectToken,
+        selectChip: selectChip,
         hintsShown: false,
         startIntro: function(){introJs().start();},
         toggleHints: function(){
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
+
+        // FIXME This is for debug only.
+        state: state
     };
 
 }());

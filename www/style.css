@@ -594,3 +594,34 @@ nav{
     right: 60px;
     z-index: 50;
 }
+
+.larimers1k{
+    --chip-face: #ffd6b9;
+    --chip-side: #ffd6b930;
+    --chip-mark: #252833;
+}
+
+.larimers5k{
+    --chip-face: #86ff8b;
+    --chip-side: #86ff8b30;
+    --chip-mark: #252833;
+}
+
+.larimers10k{
+    --chip-face: #93ebff;
+    --chip-side: #93ebff60;
+    --chip-mark: #252833;
+}
+
+.larimers50k{
+    --chip-face: #ffae6e;
+    --chip-side: #ffae6e30;
+    --chip-mark: #252833;
+}
+
+
+.larimers100k{
+    --chip-face: #5a61ff;
+    --chip-side: #5a61ff30;
+    --chip-mark: rgba(234,226,6,0.43);
+}
