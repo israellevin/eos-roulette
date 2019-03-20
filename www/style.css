@@ -452,6 +452,7 @@ td.green{
 }
 
 
+/*Menu from https://codepen.io/erikterwan/pen/EVzeRP*/
 
 #menu a{
   text-decoration: none;
@@ -492,9 +493,6 @@ td.green{
   -webkit-touch-callout: none;
 }
 
-/*
- * Just a quick hamburger
- */
 #menuToggle span
 {
   display: block;
@@ -502,14 +500,10 @@ td.green{
   height: 4px;
   margin-bottom: 5px;
   position: relative;
-
   background: #cdcdcd;
   border-radius: 3px;
-
   z-index: 1;
-
   transform-origin: 4px 0px;
-
   transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               opacity 0.55s ease;
@@ -525,10 +519,6 @@ td.green{
   transform-origin: 0% 100%;
 }
 
-/*
- * Transform all the slices of hamburger
- * into a crossmark.
- */
 #menuToggle input:checked ~ span
 {
   opacity: 1;
@@ -536,27 +526,17 @@ td.green{
   background: #232323;
 }
 
-/*
- * But let's hide the middle one.
- */
 #menuToggle input:checked ~ span:nth-last-child(3)
 {
   opacity: 0;
   transform: rotate(0deg) scale(0.2, 0.2);
 }
 
-/*
- * Ohyeah and the last one should go the other direction
- */
 #menuToggle input:checked ~ span:nth-last-child(2)
 {
   transform: rotate(-45deg) translate(0, -1px);
 }
 
-/*
- * Make this absolute positioned
- * at the top left of the screen
- */
 #menu
 {
     position: absolute;
@@ -564,7 +544,6 @@ td.green{
     width: 20em;
     margin: 0px;
     padding: 10px;
-
     list-style-type: none;
     -webkit-font-smoothing: antialiased;/* to stop flickering of text in safari */
     transform-origin: 100% 0%;
@@ -573,16 +552,12 @@ td.green{
     text-shadow: 2px 2px 3px black;
 }
 
-
 #menu li
 {
     padding: 4px 2px;
     font-size: 18px;
 }
 
-/*
- * And let's slide it in from the left
- */
 #menuToggle input:checked ~ ul
 {
     transform: none;
