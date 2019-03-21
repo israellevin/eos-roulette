@@ -157,7 +157,7 @@
     }
 
     // Place a bet.
-    async function bet(coverage, larimers){
+    function bet(coverage, larimers){
         if(state.spin === null){
             return showMessage('No spins currently in progress');
         }
@@ -175,6 +175,29 @@
         });
     }
 
+    // Get a chip according to user.
+    function getChip(user){
+        if(!user || user === roulette.account_name){
+            return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
+        }
+        // TODO Get colored chips for other users, maybe from the player's box.
+        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
+        changeClass(chip, 'iso', false);
+        chip.style.setProperty('--chip-face', 'red');
+        return chip;
+    }
+
+    // Select a chip to set the bet size.
+    function selectChip(chip){
+        changeClass(getChip(), 'iso', true);
+        changeClass(chip, 'iso', false);
+        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
+        CHIP_SELECTOR.scrollTo({
+            left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
+            behavior: 'smooth'
+        });
+    }
+
     // Place a bet on the layout.
     async function placeBet(mouseEvent, chip){
         let coverage = getCoverage(mouseEvent);
@@ -185,15 +208,16 @@
     }
 
     // Show a potential bet.
-    async function hoverBet(mouseEvent){
+    function hoverBet(mouseEvent){
         if(roulette.account_name === null){
             return showMessage('Must be logged in to bet');
         }
-        if(getChip() === null){
+
+        let originChip = getChip();
+        if(originChip === null){
             return showMessage('No bet size selected');
         }
 
-        let originChip = getChip();
         let chip = originChip.cloneNode(false);
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
@@ -261,27 +285,6 @@
         document.getElementById('balance').innerText = await roulette.getBalance();
     }
 
-    // Get the currently selected chip.
-    function getChip(user){
-        if(!user || user === roulette.account_name){
-            return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
-        }
-        let chip = document.createElement('div');
-        changeClass(chip, 'chip', true);
-        return chip;
-    }
-
-    // Select a chip to set the bet size.
-    function selectChip(chip){
-        changeClass(getChip(), 'iso', true);
-        changeClass(chip, 'iso', false);
-        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
-        CHIP_SELECTOR.scrollTo({
-            left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
-            behavior: 'smooth'
-        });
-    }
-
     // Hide the roulette.
     function hideRoulette(){
         WHEEL.style.opacity = '0';
@@ -324,7 +327,6 @@
         chip.appendChild(document.createTextNode(bet.larimers / 10000));
 
         // TODO Make this pretty with a cool animation.
-        chip.style.setProperty('--chip-face', 'white');
         chipPosition.target.appendChild(chip);
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -338,18 +340,16 @@
         for(const player of Object.keys(state.bets)){
             let playerEntry = document.createElement('li');
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
-                player + '<br>bets: ' + Object.keys(state.bets[player]).reduce(function(total, id){
-                    return total + state.bets[player][id].larimers;
-                }, 0) / 10000 + ' EOS';
+                player + '<br>bets: ' + Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
+                    (total, current) => total + current, 0
+                ) / 10000 + ' EOS';
             newUL.appendChild(playerEntry);
         }
         playersBox.replaceChild(newUL, playersBoxUl);
     }
 
-    // Update the felt.
-    // The oldResolve argument is used to maintain resolve function
-    // persistance, and thus to keep a promise, across timeouts.
-    async function updateFelt(spin, oldResolve){
+    // Update bets.
+    async function updateBets(spin){
         (await roulette.getBets(spin.hash)).forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
@@ -360,16 +360,24 @@
             }
             redrawPlayers();
         });
+    }
 
-        let now = Math.round(new Date() / 1000);
+    // Update the felt.
+    // The oldResolve argument is used to maintain resolve function
+    // persistance, and thus to keep a promise, across timeouts.
+    function updateFelt(spin, oldResolve){
         return new Promise(function(resolve){
             if(oldResolve){
                 resolve = oldResolve;
             }
-            document.getElementById('sec-left').innerText = spin.maxbettime - now;
+
+            updateBets(spin);
+            let now = Math.round(new Date() / 1000);
             if(now < spin.maxbettime){
+                document.getElementById('sec-left').innerText = spin.maxbettime - now;
                 setTimeout(function(){updateFelt(spin, resolve);}, 1000);
             }else{
+                document.getElementById('sec-left').innerText = '-';
                 resolve();
             }
         });
@@ -390,14 +398,14 @@
 
     // Animate a win.
     function drawWin(chip){
-        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip)}, {once: true});
+        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip);}, {once: true});
         chip.style.transition = 'all 1s ease-in';
         chip.style.transform = 'scale(10)';
     }
 
     // Animate a lose.
     function drawLose(chip){
-        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip)}, {once: true});
+        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip);}, {once: true});
         chip.style.transition = 'all 1s ease-in';
         chip.style.transform = 'rotateX(1000deg)';
     }
