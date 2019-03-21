@@ -213,27 +213,41 @@
             return showMessage('Must be logged in to bet');
         }
 
-        let originChip = getChip();
-        if(originChip === null){
-            return showMessage('No bet size selected');
+        // fixme removed for debug
+        // if(state.spin === null){
+        //     return showMessage('No spins currently in progress');
+        // }
+
+        let selectedChip = getChip();
+        if(selectedChip === null){
+            return showMessage('Please choose bet size');  // TODO open hint on selector
         }
 
-        let chip = originChip.cloneNode(false);
+        let chip = selectedChip.cloneNode(false);
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
-            chip.parentElement.removeChild(chip);
+            chip.parentElement.removeChild(chip);   // fixme - no need to delete the object somehow?}
+            // TODO add animation of failed placement. the following code is almost working.
+            // chip.style.left = LAYOUT.rect.width-20 + 'px';
+            // chip.style.top = LAYOUT.rect.height-20 + 'px';
+            // setInterval(function() {
+            //   chip.parentElement.removeChild(chip);   // this cause error as chip is null (?)
+            // }, 300);
         }, {once: true});
         chip.addEventListener('transitionend', function(){
             chip.style.transition = 'all 0s linear';
-            document.addEventListener('mouseup', function(mouseEvent){placeBet(mouseEvent, chip);}, {once: true});
+            document.addEventListener('mouseup', function(mouseEvent){
+                placeBet(mouseEvent, chip);
+                }, {once: true});
         }, {once: true});
 
         window.requestAnimationFrame(function(){
             LAYOUT.appendChild(chip);
+                // origin of chip movement is lower left corner (because of zoom the LAYOUT overflow is hidden).
                 chip.style.position = 'absolute';
-                chip.style.left = '250px';
-                chip.style.top = '450px';
-            chip.style.transition = 'all 0.5s ease-in';
+                chip.style.left = LAYOUT.rect.width-20 + 'px';
+                chip.style.top = LAYOUT.rect.height-20 + 'px';
+            chip.style.transition = 'all 0.4s ease-in';
             window.requestAnimationFrame(function(){
                 chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
                 chip.style.top = (mouseEvent.clientY - LAYOUT.rect.top) + 'px';
