@@ -81,6 +81,12 @@ i.fa.fa-dot-circle-o.players-list-item{
     font-family: Libre Baskerville, 'Old Standard TT', lucida grande, lucida sans, Helvetica, Arial, Tahoma, Verdana, sans-serif;
     text-shadow: 2px 2px 3px black;
 }
+
+#user {
+    font-size: 1.1rem;
+    display: none;
+}
+
 .messages-box{
     min-height: 30px;
     max-height: 30px;
@@ -469,7 +475,7 @@ td.green{
 {
   display: block;
   position: relative;
-  top: 50px;
+  top: 46px;
   left: 50px;
   z-index: 1;
   -webkit-user-select: none;
@@ -541,6 +547,7 @@ td.green{
 {
     position: absolute;
     right: 0;
+    top: -10px;
     width: 20em;
     margin: 0px;
     padding: 10px;
@@ -600,3 +607,4 @@ nav{
     --chip-side: #5a61ff30;
     --chip-mark: rgba(234,226,6,0.43);
 }
+

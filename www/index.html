@@ -27,16 +27,14 @@
 <body>
 <div id="main" class="container">
     <div class="row main-header">
-        <div class="col-8 header-title">
+        <div style="width: 50%" class="header-title">
             <div style="font-size: 1.5rem">MaMaLuck</div>
         </div>
-        <div class="col-4">
-            <div>
-                <button id="connectBtn" type="button" class="btn btn-primary" onclick="rouletteClient.login();">
-                    Connect
-                </button>
-                <span class="float-left header-element" id="user">accountName</span>
-            </div>
+        <div style="width: 50%">
+            <button id="connectBtn" type="button" class="btn btn-primary" onclick="rouletteClient.login();">
+                Connect
+            </button>
+            <div class="header-title float-left header-element" id="user">accountName</div>
         </div>
         <nav role="navigation">
                 <div id="menuToggle">
@@ -44,7 +42,7 @@
                 A fake / hidden checkbox is used as click reciever,
                 so you can use the :checked selector on it.
                 -->
-                    <input type="checkbox" />
+                    <input type="checkbox" onclick="rouletteClient.clickMenu(this)" />
 
                     <!--
                 Some spans to act as a hamburger.

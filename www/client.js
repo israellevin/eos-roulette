@@ -232,8 +232,6 @@
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
             chip.parentElement.removeChild(chip);
-            // FIXME - no need to delete the object somehow?}
-            // I do not think so. There isn't much manual garbage handling in JS.
 
             // TODO add animation of failed placement. the following code is almost working.
             // chip.style.left = LAYOUT.rect.width-20 + 'px';
@@ -353,6 +351,7 @@
 
         // Are you sure you want to play this here?
         // I play this sound at placeBet.
+        // yes. I think you play it wrong. the click feedback should be immidiate when a chip is placed, even if it takes a bit until it's accepted.
         CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -513,6 +512,7 @@
         roulette.login(function(account_name){
             if(account_name){
                 document.getElementById('user').innerText = account_name;
+                document.getElementById('user').style.display = 'block';
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
                 state.loginUpdater = setInterval(updateBalance, 1000);
@@ -532,6 +532,23 @@
             document.getElementById('connectBtn').style.display = 'block';
             GOODBYE_SOUND.play();
         });
+    }
+
+    // ensure click outside open Menu closes it
+    function clickMenu(checkBox){
+        function checkOutsideClick(mouseEvent) {
+            console.warn('checking');
+            if (!document.getElementById('menuToggle').contains(mouseEvent.target)) {
+                checkBox.checked = false;
+            }
+            mouseEvent.stopPropagation();
+        }
+
+        if (checkBox.checked) {
+            window.addEventListener('mousedown', checkOutsideClick);  // todo how to ensure no further elements get the event?
+        } else {
+            window.removeEventListener('mousedown', checkOutsideClick)
+        }
     }
 
     window.onload = function(){
@@ -572,6 +589,7 @@
             introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
             rouletteClient.hintsShown = !rouletteClient.hintsShown;
         },
+        clickMenu: clickMenu,
 
         // FIXME This is for debug only.
         state: state
