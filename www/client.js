@@ -181,7 +181,8 @@
             return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
         }
         // TODO Get colored chips for other users, maybe from the player's box.
-        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
+        // OG: We should draw a small chip near each user and than return it for the cloning.
+        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);  // fixme - this clones a chip with an onClick function set! should be removed?
         changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', 'red');
         return chip;
@@ -342,18 +343,22 @@
 
         // TODO Make this pretty with a cool animation.
         chipPosition.target.appendChild(chip);
+        CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
     // Redraw the players box.
     function redrawPlayers(){
+        // TODO talk to me: I have a feeling we nmeed a seperate state for players. than we can add a chip to each player
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
         for(const player of Object.keys(state.bets)){
+            console.log(player);
             let playerEntry = document.createElement('li');
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
+                // TODO please add comment
                 player + '<br>bets: ' + Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
                     (total, current) => total + current, 0
                 ) / 10000 + ' EOS';
@@ -364,13 +369,14 @@
 
     // Update bets.
     async function updateBets(spin){
-        (await roulette.getBets(spin.hash)).forEach(function(bet){
+        (await roulette.getBets(spin.hash)).forEach(function(bet){ // todo does this have to come from blockchain? we might want to rely on server for this
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
             }
             if(!(bet.id in state.bets[bet.user])){
                 state.bets[bet.user][bet.id] = bet;
-                drawBet(bet);
+                // for now, space other players bets
+                setTimeout(function(){drawBet(bet);}, 4000 * Math.random());
             }
             redrawPlayers();
         });
