@@ -320,9 +320,13 @@
     function drawBet(bet){
         let chip = getChip(bet.user).cloneNode(false);
         let chipPosition = getChipPosition(bet.coverage);
-        chip.style.top = chip.style.left = '';
         changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
+        chip.appendChild(document.createTextNode(bet.larimers / 10000));
+
+        // TODO Make this pretty with a cool animation.
+        chip.style.setProperty('--chip-face', 'white');
         chipPosition.target.appendChild(chip);
+
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
@@ -384,6 +388,20 @@
         return await roulette.getWinningNumber(spin);
     }
 
+    // Animate a win.
+    function drawWin(chip){
+        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip)}, {once: true});
+        chip.style.transition = 'all 1s ease-in';
+        chip.style.transform = 'scale(10)';
+    }
+
+    // Animate a lose.
+    function drawLose(chip){
+        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip)}, {once: true});
+        chip.style.transition = 'all 1s ease-in';
+        chip.style.transform = 'rotateX(1000deg)';
+    }
+
     // Resolve the spin.
     function resolveSpin(winning_number, resolve){
         addResultToHistory(winning_number);
@@ -400,7 +418,12 @@
             }
         }
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
-            chip.parentElement.removeChild(chip);
+            if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
+                return parseInt(covered, 10) === winning_number;
+            })){
+                return drawWin(chip);
+            }
+            return drawLose(chip);
         });
         state.bets = {};
         state.spin = null;
