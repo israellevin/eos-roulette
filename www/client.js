@@ -177,16 +177,11 @@
 
     // Place a bet on the layout.
     async function placeBet(mouseEvent, chip){
-        CLICK_SOUND.play();
         let coverage = getCoverage(mouseEvent);
         let larimers = getChip().dataset.value;
         let hash = await bet(coverage, larimers);
-        let chipPosition = getChipPosition(coverage);
-        chip.style.top = chip.style.left = '';
-        changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
-        chipPosition.target.appendChild(chip);
         console.info(hash);
-        addLogLine(roulette.account_name + ' placed ' + larimers + ' larimers on ' + coverage);
+        CLICK_SOUND.play();
     }
 
     // Show a potential bet.
@@ -199,7 +194,7 @@
         }
 
         let originChip = getChip();
-        let chip = originChip.cloneNode(true);
+        let chip = originChip.cloneNode(false);
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
             chip.parentElement.removeChild(chip);
@@ -267,8 +262,13 @@
     }
 
     // Get the currently selected chip.
-    function getChip(){
-        return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
+    function getChip(user){
+        if(!user || user === roulette.account_name){
+            return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
+        }
+        let chip = document.createElement('div');
+        changeClass(chip, 'chip', true);
+        return chip;
     }
 
     // Select a chip to set the bet size.
@@ -318,7 +318,12 @@
 
     // Draw a bet on the felt.
     function drawBet(bet){
-        console.log('drawing', bet);
+        let chip = getChip(bet.user).cloneNode(false);
+        let chipPosition = getChipPosition(bet.coverage);
+        chip.style.top = chip.style.left = '';
+        changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
+        chipPosition.target.appendChild(chip);
+        addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
     // Redraw the players box.
@@ -379,6 +384,29 @@
         return await roulette.getWinningNumber(spin);
     }
 
+    // Resolve the spin.
+    function resolveSpin(winning_number, resolve){
+        addResultToHistory(winning_number);
+        for(const [user, bets] of Object.entries(state.bets)){
+            for(const [id, bet] of Object.entries(bets)){
+                if(bet.coverage.indexOf(winning_number) > -1){
+                    showMessage(user + ' won ' + (
+                        5000 * (36 / bet.coverage.length)
+                    ) + ' larimers');
+                    if(user === roulette.account_name){
+                        CHEER_SOUND.play();
+                    }
+                }
+            }
+        }
+        LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
+            chip.parentElement.removeChild(chip);
+        });
+        state.bets = {};
+        state.spin = null;
+        setTimeout(resolve, 3000);
+    }
+
     // Drop the ball and reveal the winner.
     function dropBall(winning_number){
         const LAYOUT_NUMBERS = [
@@ -391,30 +419,9 @@
         const turns = 2;
         BALL_CONTAINER.style.opacity = '1';
         return new Promise(function(resolve){
-            // callback for completion of ball drop transition
-            function ballOnWinningNumber(){
-                addResultToHistory(winning_number);
-
-                for(const[user, bets] of Object.entries(state.bets)){
-                    // FIXME do for all.
-                    if(user !== roulette.account_name) return;
-                    for(bet of bets){
-                        if(bet.coverage.indexOf(winning_number) > -1){
-                            showMessage(roulette.account_name + ' won ' + (
-                                5000 * (36 / bet.coverage.length)
-                            ) + ' larimers');
-                            CHEER_SOUND.play();
-                        }
-                    }
-                }
-                LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
-                    chip.parentElement.removeChild(chip);
-                });
-                state.bets = {};
-                state.spin = null;
-                setTimeout(resolve, 3000);
-            }
-            BALL_CONTAINER.addEventListener('transitionend', ballOnWinningNumber, {once: true});
+            BALL_CONTAINER.addEventListener('transitionend', function(){
+                resolveSpin(winning_number, resolve);
+            }, {once: true});
             BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
             var targetDeg = 1.5 * turns * -360 + winSlotDeg;
             BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
