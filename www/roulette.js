@@ -113,16 +113,16 @@
 
     // Expose some functionality.
     window.roulette = {
-        chainid: roulette.chainid,
         account_name: null,
+        bet: bet,
+        chainid: roulette.chainid,
+        getBalance: getBalance,
+        getBets: getBets,
+        getWinningNumber: getWinningNumber,
         login: login,
         logout: logout,
-        getBalance: getBalance,
-        selectSpin: selectSpin,
-        getBets: getBets,
         monitorSpin: monitorSpin,
-        getWinningNumber: getWinningNumber,
-        bet: bet
+        selectSpin: selectSpin
     };
 
 }());

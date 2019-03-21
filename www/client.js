@@ -182,7 +182,12 @@
         }
         // TODO Get colored chips for other users, maybe from the player's box.
         // OG: We should draw a small chip near each user and than return it for the cloning.
-        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);  // fixme - this clones a chip with an onClick function set! should be removed?
+        // My thoughts exactly.
+
+        // FIXME - this clones a chip with an onClick function set! should be removed?
+        // Are you sure?
+        // https://developer.mozilla.org/en-US/docs/Web/API/Node/cloneNode#Notes
+        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
         changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', 'red');
         return chip;
@@ -214,10 +219,9 @@
             return showMessage('Must be logged in to bet');
         }
 
-        // fixme removed for debug
-        // if(state.spin === null){
-        //     return showMessage('No spins currently in progress');
-        // }
+        if(state.spin === null){
+            return showMessage('No spins currently in progress');
+        }
 
         let selectedChip = getChip();
         if(selectedChip === null){
@@ -227,7 +231,10 @@
         let chip = selectedChip.cloneNode(false);
         changeClass(chip, 'eventless', true);
         document.addEventListener('mouseup', function(){
-            chip.parentElement.removeChild(chip);   // fixme - no need to delete the object somehow?}
+            chip.parentElement.removeChild(chip);
+            // FIXME - no need to delete the object somehow?}
+            // I do not think so. There isn't much manual garbage handling in JS.
+
             // TODO add animation of failed placement. the following code is almost working.
             // chip.style.left = LAYOUT.rect.width-20 + 'px';
             // chip.style.top = LAYOUT.rect.height-20 + 'px';
@@ -343,6 +350,9 @@
 
         // TODO Make this pretty with a cool animation.
         chipPosition.target.appendChild(chip);
+
+        // Are you sure you want to play this here?
+        // I play this sound at placeBet.
         CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -350,18 +360,19 @@
 
     // Redraw the players box.
     function redrawPlayers(){
-        // TODO talk to me: I have a feeling we nmeed a seperate state for players. than we can add a chip to each player
+        // TODO talk to me: I have a feeling we need a seperate state for players. than we can add a chip to each player
+        // Will talk tomorrow. But what's state got to do, got to do with it?
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
         for(const player of Object.keys(state.bets)){
-            console.log(player);
             let playerEntry = document.createElement('li');
+            // Map the values of all this player's bets to an array of larimer values, then reduce it to it's sum.
+            let larimersSum = Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
+                (sum, current) => sum + current, 0
+            )
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
-                // TODO please add comment
-                player + '<br>bets: ' + Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
-                    (total, current) => total + current, 0
-                ) / 10000 + ' EOS';
+                player + '<br>bets: ' + larimersSum / 10000 + ' EOS';
             newUL.appendChild(playerEntry);
         }
         playersBox.replaceChild(newUL, playersBoxUl);
@@ -369,7 +380,9 @@
 
     // Update bets.
     async function updateBets(spin){
-        (await roulette.getBets(spin.hash)).forEach(function(bet){ // todo does this have to come from blockchain? we might want to rely on server for this
+        // TODO does this have to come from blockchain? we might want to rely on server for this
+        // It does come from server (which currently brings it from blockchain, but on production will bring it from DB, and we are not even talking about this now).
+        (await roulette.getBets(spin.hash)).forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
             }
