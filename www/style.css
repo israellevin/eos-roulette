@@ -131,7 +131,7 @@ i.fa.fa-dot-circle-o.players-list-item{
     color: #ffffee  ;
 }
 #felt-box{
-    max-width: 200px;
+    max-width: 190px;
     min-height: 460px;
     padding:0;
     z-index: 1;
@@ -145,7 +145,7 @@ i.fa.fa-dot-circle-o.players-list-item{
 }
 
 #main-right{
-    min-width: 113px;
+    min-width: 123px;
     padding:5px;
     z-index: 2;
 }
@@ -218,6 +218,11 @@ i.fa.fa-dot-circle-o.players-list-item{
 #layout{
     position: relative;
     overflow: hidden;
+}
+
+#layout td:nth-child(4), #layout td:nth-child(5) {
+    max-width: 30px;
+    min-width: 30px;
 }
 
 #layout td{
