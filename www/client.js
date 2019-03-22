@@ -22,6 +22,7 @@
     // Global state variables.
     let state = {
         bets: {},
+        peers: {},
         spin: null,
         loginUpdater: null
     };
@@ -207,7 +208,6 @@
         let larimers = getChip().dataset.value;
         let hash = await bet(coverage, larimers);
         console.info(hash);
-        CLICK_SOUND.play();
     }
 
     // Show a potential bet.
@@ -345,10 +345,6 @@
 
         // TODO Make this pretty with a cool animation.
         chipPosition.target.appendChild(chip);
-
-        // Are you sure you want to play this here?
-        // I play this sound at placeBet.
-        // yes. I think you play it wrong. the click feedback should be immidiate when a chip is placed, even if it takes a bit until it's accepted.
         CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -356,11 +352,7 @@
 
     // Redraw the players box.
     function redrawPlayers(){
-        // TODO talk to me: I have a feeling we need a seperate state for players. than we can add a chip to each player
-        // Will talk tomorrow. But what's state got to do, got to do with it?
-        // Redrawing every time makes thing complex down the line. We should have a kept list of players (including user!)
-        // and only update the relevant data, or insert new one if another players appears. (and MAYBE delete people who leave)
-        // "state" can be held in the <ul> where each <li> stores the player account as "key". (?)
+        // TODO Fix this to update instead of redraw.
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
@@ -369,7 +361,7 @@
             // Map the values of all this player's bets to an array of larimer values, then reduce it to it's sum.
             let larimersSum = Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
                 (sum, current) => sum + current, 0
-            )
+            );
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
                 player + '<br>bets: ' + larimersSum / 10000 + ' EOS';
             newUL.appendChild(playerEntry);
@@ -379,8 +371,6 @@
 
     // Update bets.
     async function updateBets(spin){
-        // TODO does this have to come from blockchain? we might want to rely on server for this
-        // It does come from server (which currently brings it from blockchain, but on production will bring it from DB, and we are not even talking about this now).
         (await roulette.getBets(spin.hash)).forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
@@ -389,6 +379,18 @@
                 state.bets[bet.user][bet.id] = bet;
                 // for now, space other players bets
                 setTimeout(function(){drawBet(bet);}, 4000 * Math.random());
+            }
+            state.peers = {};
+
+            // Create an easy to work with peers object.
+            for(const [peer, bets] of Object.entries(state.bets)){
+                state.peers[peer] = {
+                    // Map the values of all this peer's bets to an array of larimer values, then reduce it to it's sum.
+                    larimers: Object.values(bets).map(bet => bet.larimers).reduce((sum, current) => sum + current, 0),
+                    // Split the string of this peer's name to an array, then reduce it to the sum of its bytes,
+                    // then sine and normalize it to get a predictable but pseudo-randomly generated seed.
+                    seed: Math.sin(peer.split('').reduce((sum, character) => sum + character.charCodeAt(0), 0)) / 2 + 0.5
+                };
             }
             redrawPlayers();
         });
@@ -547,7 +549,7 @@
         if (checkBox.checked) {
             window.addEventListener('mousedown', checkOutsideClick);  // todo how to ensure no further elements get the event?
         } else {
-            window.removeEventListener('mousedown', checkOutsideClick)
+            window.removeEventListener('mousedown', checkOutsideClick);
         }
     }
 

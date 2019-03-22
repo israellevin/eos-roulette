@@ -217,7 +217,6 @@ i.fa.fa-dot-circle-o.players-list-item{
 
 #layout{
     position: relative;
-    /*overflow: hidden; # needed only if we do zoom. otherwise it fucks with right border.*/
 }
 
 #layout td:nth-child(4), #layout td:nth-child(5) {
@@ -355,9 +354,6 @@ td.green{
 }
 
 .td-number {
-    /*position: absolute;*/
-    /*top: calc(50% - 0.5em);*/
-    /*left: calc(45% - 0.5em);*/
     line-height: 1;
     position: static;
     padding-top: calc(16px - 0.5em);
@@ -614,4 +610,3 @@ nav{
     --chip-side: #5a61ff30;
     --chip-mark: rgba(234,226,6,0.43);
 }
-
