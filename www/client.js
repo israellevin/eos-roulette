@@ -376,6 +376,7 @@
         let playersBoxUl = playersBox.children[0];
 
         function createPlayerLi(name, betSize, seed) {
+            // todo create a complex div with chip, name, bet info, etc
             let playerEntry = document.createElement('li');
             playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' + name +
                 '</span> [' + betSize / 10000 + ']';
@@ -383,6 +384,7 @@
             return playerEntry;
         }
 
+        // todo special treatment for alice
         // if (roulette.account_name) {
         //     let user = createPlayerLi(roulette.account_name, 100000);  // fixme - add real bet size
         //     user.style.color = 'yellow';
