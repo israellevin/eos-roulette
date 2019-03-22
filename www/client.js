@@ -203,7 +203,7 @@
     }
 
     // Place a bet on the layout.
-    async function placeBet(mouseEvent, chip){
+    async function placeBet(mouseEvent){
         let coverage = getCoverage(mouseEvent);
         let larimers = getChip().dataset.value;
         let hash = await bet(coverage, larimers);
@@ -227,29 +227,34 @@
 
         let chip = selectedChip.cloneNode(false);
         changeClass(chip, 'eventless', true);
-        document.addEventListener('mouseup', function(){
-            chip.parentElement.removeChild(chip);
 
-            // TODO add animation of failed placement. the following code is almost working.
-            // chip.style.left = LAYOUT.rect.width-20 + 'px';
-            // chip.style.top = LAYOUT.rect.height-20 + 'px';
-            // setInterval(function() {
-            //   chip.parentElement.removeChild(chip);   // this cause error as chip is null (?)
-            // }, 300);
-        }, {once: true});
-        chip.addEventListener('transitionend', function(){
+        // Remove the chip if the user did not follow through.
+        function removeChip(){
+            chip.removeEventListener('transitionend', useChip);
+            chip.style.left = LAYOUT.rect.width - 20 + 'px';
+            chip.style.top = LAYOUT.rect.height - 20 + 'px';
+            setTimeout(function(){
+                chip.parentElement.removeChild(chip);
+            }, 300);
+        }
+        document.addEventListener('mouseup', removeChip, {once: true});
+
+        // Use the chip to make a bet if the user follows through.
+        function useChip(){
+            document.removeEventListener('mouseup', removeChip);
             chip.style.transition = 'all 0s linear';
             document.addEventListener('mouseup', function(mouseEvent){
-                placeBet(mouseEvent, chip);
-                }, {once: true});
-        }, {once: true});
+                chip.parentElement.removeChild(chip);
+                placeBet(mouseEvent);
+            }, {once: true});
+        }
+        chip.addEventListener('transitionend', useChip, {once: true});
 
         window.requestAnimationFrame(function(){
             LAYOUT.appendChild(chip);
-                // origin of chip movement is lower left corner (because of zoom the LAYOUT overflow is hidden).
                 chip.style.position = 'absolute';
-                chip.style.left = LAYOUT.rect.width-20 + 'px';
-                chip.style.top = LAYOUT.rect.height-20 + 'px';
+                chip.style.left = LAYOUT.rect.width - 20 + 'px';
+                chip.style.top = LAYOUT.rect.height - 20 + 'px';
             chip.style.transition = 'all 0.4s ease-in';
             window.requestAnimationFrame(function(){
                 chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
