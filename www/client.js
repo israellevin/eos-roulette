@@ -355,21 +355,44 @@
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
+    // based on: https://gist.github.com/bendc/76c48ce53299e6078a76
+    function seedColor(seed) {  // todo player name should be the seed
+        const randomInt = (min, max) => {
+            return Math.floor(seed * (max - min + 1)) + min;
+        };
+
+        const avoid = 120; // color to avoid (green)
+        const range = 40;  // range of colors to avoid
+        let h = (randomInt(range, 360-range) + avoid) % 360;
+        let s = randomInt(80, 100);
+        let l = randomInt(50, 80);
+        return `hsl(${h},${s}%,${l}%)`;
+    }
+
+
     // Redraw the players box.
     function redrawPlayers(){
         // TODO Fix this to update instead of redraw.
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
-        for(const player of Object.keys(state.bets)){
+
+        function createPlayerLi(name, betSize, seed) {
             let playerEntry = document.createElement('li');
-            // Map the values of all this player's bets to an array of larimer values, then reduce it to it's sum.
-            let larimersSum = Object.values(state.bets[player]).map(bet => bet.larimers).reduce(
-                (sum, current) => sum + current, 0
-            );
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' +
-                player + '<br>bets: ' + larimersSum / 10000 + ' EOS';
-            newUL.appendChild(playerEntry);
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' + name +
+                ' [' + betSize / 10000 + ']';
+            playerEntry.style.color = seedColor(seed);
+            return playerEntry;
+        }
+
+        if (roulette.account_name) {
+            let user = createPlayerLi(roulette.account_name, 100000);  // fixme - add real bet size
+            user.style.color = 'yellow';
+            newUL.appendChild(user);
+        }
+
+        for(const peerName in state.peers){
+            newUL.appendChild(createPlayerLi(peerName, state.peers[peerName].larimers, state.peers[peerName].seed));
         }
         playersBox.replaceChild(newUL, playersBoxUl);
     }
@@ -544,11 +567,9 @@
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
         function checkOutsideClick(mouseEvent) {
-            console.warn('checking');
             if (!document.getElementById('menuToggle').contains(mouseEvent.target)) {
                 checkBox.checked = false;
             }
-            mouseEvent.stopPropagation();
         }
 
         if (checkBox.checked) {
