@@ -456,7 +456,7 @@
             for(const [id, bet] of Object.entries(bets)){
                 if(bet.coverage.indexOf(winning_number) > -1){
                     showMessage(user + ' won ' + (
-                        5000 * (36 / bet.coverage.length)
+                        bet.larimers * (36 / bet.coverage.length)
                     ) + ' larimers');
                     if(user === roulette.account_name){
                         CHEER_SOUND.play();
