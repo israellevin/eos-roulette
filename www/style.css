@@ -217,7 +217,7 @@ i.fa.fa-dot-circle-o.players-list-item{
 
 #layout{
     position: relative;
-    overflow: hidden;
+    /*overflow: hidden; # needed only if we do zoom. otherwise it fucks with right border.*/
 }
 
 #layout td:nth-child(4), #layout td:nth-child(5) {
