@@ -184,9 +184,6 @@
         // OG: We should draw a small chip near each user and than return it for the cloning.
         // My thoughts exactly.
 
-        // FIXME - this clones a chip with an onClick function set! should be removed?
-        // Are you sure?
-        // https://developer.mozilla.org/en-US/docs/Web/API/Node/cloneNode#Notes
         let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
         changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', 'red');
@@ -361,6 +358,9 @@
     function redrawPlayers(){
         // TODO talk to me: I have a feeling we need a seperate state for players. than we can add a chip to each player
         // Will talk tomorrow. But what's state got to do, got to do with it?
+        // Redrawing every time makes thing complex down the line. We should have a kept list of players (including user!)
+        // and only update the relevant data, or insert new one if another players appears. (and MAYBE delete people who leave)
+        // "state" can be held in the <ul> where each <li> stores the player account as "key". (?)
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
         let newUL = playersBoxUl.cloneNode(false);
