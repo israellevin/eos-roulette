@@ -39,7 +39,6 @@ tail -50 web.log | grep -A20 'message handler error'
 
 # Check balances
 IFS=. read balance _ <<<"$(cleos get currency balance eosio.token roulette)"
-echo roulette has $balance EOS
 if [ $balance -lt 100 ]; then
     echo 'LOW FUNDS!!!'
     exit 1
