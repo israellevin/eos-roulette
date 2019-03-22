@@ -355,10 +355,12 @@ td.green{
 }
 
 .td-number {
-    position: absolute;
-    top: calc(50% - 0.5em);
-    left: calc(45% - 0.5em);
+    /*position: absolute;*/
+    /*top: calc(50% - 0.5em);*/
+    /*left: calc(45% - 0.5em);*/
     line-height: 1;
+    position: static;
+    padding-top: calc(16px - 0.5em);
 }
 
 .inner-td{
