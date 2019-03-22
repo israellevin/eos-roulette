@@ -371,30 +371,36 @@
 
 
     // Redraw the players box.
-    function redrawPlayers(){
-        // TODO Fix this to update instead of redraw.
+    function updatePlayers(){
         let playersBox = document.getElementById('players-box');
         let playersBoxUl = playersBox.children[0];
-        let newUL = playersBoxUl.cloneNode(false);
 
         function createPlayerLi(name, betSize, seed) {
             let playerEntry = document.createElement('li');
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i>' + name +
-                ' [' + betSize / 10000 + ']';
+            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' + name +
+                '</span> [' + betSize / 10000 + ']';
             playerEntry.style.color = seedColor(seed);
             return playerEntry;
         }
 
-        if (roulette.account_name) {
-            let user = createPlayerLi(roulette.account_name, 100000);  // fixme - add real bet size
-            user.style.color = 'yellow';
-            newUL.appendChild(user);
-        }
+        // if (roulette.account_name) {
+        //     let user = createPlayerLi(roulette.account_name, 100000);  // fixme - add real bet size
+        //     user.style.color = 'yellow';
+        //     newUL.appendChild(user);
+        // }
 
         for(const peerName in state.peers){
-            newUL.appendChild(createPlayerLi(peerName, state.peers[peerName].larimers, state.peers[peerName].seed));
+            let shownPeers = [];
+            // if peername not found - add new li
+            playersBoxUl.querySelectorAll('#players-box li span').forEach(function (peer) {
+                shownPeers.push(peer.innerHTML);
+            });
+            if (!shownPeers.includes(peerName)){
+                let newLi = createPlayerLi(peerName, state.peers[peerName].larimers, state.peers[peerName].seed);
+                playersBoxUl.appendChild(newLi);
+                state.peers[peerName] = newLi;
+            }
         }
-        playersBox.replaceChild(newUL, playersBoxUl);
     }
 
     // Update bets.
@@ -420,7 +426,7 @@
                     seed: Math.sin(peer.split('').reduce((sum, character) => sum + character.charCodeAt(0), 0)) / 2 + 0.5
                 };
             }
-            redrawPlayers();
+            updatePlayers();
         });
     }
 
