@@ -41,8 +41,12 @@
 
     // Get color of number.
     function getNumberColor(number){
-        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('red')) return 'red';
-        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('black')) return 'black';
+        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('red')){
+            return 'red';
+        }
+        if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('black')){
+            return 'black';
+        }
         return 'green';
     }
 
@@ -101,7 +105,9 @@
     // Get selected coverage from a mouse event on the layout.
     function getCoverage(mouseEvent){
         let cell = mouseEvent.target;
-        if(!('coverage' in cell.dataset && cell.dataset.coverage)) throw 'illegal target: ' + cell.tagName;
+        if(!('coverage' in cell.dataset && cell.dataset.coverage)){
+            throw 'illegal target: ' + cell.tagName;
+        }
         let coverage = cell.dataset.coverage.split(',').map(function(x){return parseInt(x, 10);});
         let rect = cell.getBoundingClientRect();
 
@@ -277,7 +283,7 @@
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-coverage attributes.
     function initLayout(layout){
-        LAYOUT.addEventListener('mouseleave', function(mouseEvent){
+        LAYOUT.addEventListener('mouseleave', function(){
             changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         });
         layout.querySelectorAll('[data-coverage]').forEach(function(tdElement){
@@ -473,7 +479,7 @@
     function resolveSpin(winning_number, resolve){
         addResultToHistory(winning_number);
         for(const [user, bets] of Object.entries(state.bets)){
-            for(const [id, bet] of Object.entries(bets)){
+            for(const bet of Object.values(bets)){
                 if(bet.coverage.indexOf(winning_number) > -1){
                     showMessage(user + ' won ' + (
                         bet.larimers * (36 / bet.coverage.length)
@@ -616,8 +622,8 @@
         hintsShown: false,
         startIntro: function(){introJs().start();},
         toggleHints: function(){
-            introJs()[rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
-            rouletteClient.hintsShown = !rouletteClient.hintsShown;
+            introJs()[window.rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
+            window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
         },
         clickMenu: clickMenu,
 
