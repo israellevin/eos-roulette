@@ -10,6 +10,7 @@
     let BALL_CONTAINER;
     let BALL;
     let CHIP_SELECTOR;
+    let PLAYERS_BOX;
 
     // Sounds.
     // Avoids silly browser error.
@@ -39,7 +40,7 @@
     }
 
     // Get color of number.
-    function getColor(number){
+    function getNumberColor(number){
         if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('red')) return 'red';
         if(LAYOUT.querySelector('[data-coverage="' + number + '"]').classList.contains('black')) return 'black';
         return 'green';
@@ -68,7 +69,7 @@
         showMessage('Roulette stops on ' + winning_number + '!');
         let entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
-        changeClass(entry, getColor(winning_number), true);
+        changeClass(entry, getNumberColor(winning_number), true);
         let list = document.getElementById('history-ul');
         list.insertBefore(entry, list.childNodes[0]);
     }
@@ -181,13 +182,9 @@
         if(!user || user === roulette.account_name){
             return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
         }
-        // TODO Get colored chips for other users, maybe from the player's box.
-        // OG: We should draw a small chip near each user and than return it for the cloning.
-        // My thoughts exactly.
-
         let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
         changeClass(chip, 'iso', false);
-        chip.style.setProperty('--chip-face', 'red');
+        chip.style.setProperty('--chip-face', state.peers[user].color);
         return chip;
     }
 
@@ -349,59 +346,63 @@
         chip.appendChild(document.createTextNode(bet.larimers / 10000));
 
         // TODO Make this pretty with a cool animation.
-        chipPosition.target.appendChild(chip);
+        // for now, space other players bets
+        setTimeout(function(){chipPosition.target.appendChild(chip);}, 5000 * Math.random());
         CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
-    // based on: https://gist.github.com/bendc/76c48ce53299e6078a76
-    function seedColor(seed) {  // todo player name should be the seed
-        const randomInt = (min, max) => {
-            return Math.floor(seed * (max - min + 1)) + min;
-        };
-
-        const avoid = 120; // color to avoid (green)
-        const range = 40;  // range of colors to avoid
-        let h = (randomInt(range, 360-range) + avoid) % 360;
-        let s = randomInt(80, 100);
-        let l = randomInt(50, 80);
-        return `hsl(${h},${s}%,${l}%)`;
+    // Convert a string to a number by splitting it to an array and reducing it
+    // to sum its bytes multiplied by their positional value.
+    function stringToNumber(string){
+        return string.split('').reduce(
+            (sum, character, position, array) => sum + character.charCodeAt(0) * (array.length - position) , 0
+        );
     }
 
+    // Turn a user name into a pseudo-random predictable color.
+    function userColor(user){
+        const seed = Math.sin(stringToNumber(user)) / 2 + 0.5;
+        const randomInt = (min, max) => Math.floor(seed * (max - min + 1)) + min;
+        // Avoid green hues.
+        const avoid = 120;
+        const avoidRange = 40;
+        const hue = (randomInt(avoidRange, 360 - avoidRange) + avoid) % 360;
+        const saturation = randomInt(80, 100);
+        const lightness = randomInt(50, 80);
+        return `hsl(${hue},${saturation}%,${lightness}%)`;
+    }
 
-    // Redraw the players box.
-    function updatePlayers(){
-        let playersBox = document.getElementById('players-box');
-        let playersBoxUl = playersBox.children[0];
+    // Get a player's entry in the players box, creating and adding a new one if needed.
+    function getPlayerEntry(name) {
+        let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + name + '"]');
+        if(playerEntry){return playerEntry;}
 
-        function createPlayerLi(name, betSize, seed) {
-            // todo create a complex div with chip, name, bet info, etc
-            let playerEntry = document.createElement('li');
-            playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' + name +
-                '</span> [' + betSize / 10000 + ']';
-            playerEntry.style.color = seedColor(seed);
-            return playerEntry;
-        }
+        // TODO create a complex div with chip, name, bet info, etc
+        playerEntry = document.createElement('li');
+        playerEntry.dataset.user = name;
+        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' +
+            name + '</span><span class="larimers"></span>';
+        playerEntry.style.color = state.peers[name].color;
+        PLAYERS_BOX.appendChild(playerEntry);
+        playerEntry.fadeaway = function(){
+            playerEntry.addEventListener('transitionend', () => PLAYERS_BOX.removeChild(playerEntry), {once: true});
+            playerEntry.style.transition = 'opacity 1s';
+            playerEntry.style.opacity = 0;
+        };
+        return playerEntry;
+    }
 
-        // todo special treatment for alice
-        // if (roulette.account_name) {
-        //     let user = createPlayerLi(roulette.account_name, 100000);  // fixme - add real bet size
-        //     user.style.color = 'yellow';
-        //     newUL.appendChild(user);
-        // }
-
-        for(const peerName in state.peers){
-            let shownPeers = [];
-            // if peername not found - add new li
-            playersBoxUl.querySelectorAll('#players-box li span').forEach(function (peer) {
-                shownPeers.push(peer.innerHTML);
-            });
-            if (!shownPeers.includes(peerName)){
-                let newLi = createPlayerLi(peerName, state.peers[peerName].larimers, state.peers[peerName].seed);
-                playersBoxUl.appendChild(newLi);
-                state.peers[peerName] = newLi;
-            }
+    // Update the players box.
+    function updatePlayersBox(){
+        for(const [name, bets] of Object.entries(state.bets)){
+            // Map the values of all this user's bets to an array of larimer values, then reduce it to it's sum.
+            let totalLarimers = state.peers[name].larimers = Object.values(bets).map(bet => bet.larimers).reduce(
+                (sum, current) => sum + current, 0
+            );
+            let playerEntry = getPlayerEntry(name);
+            playerEntry.querySelector('.larimers').innerText = '[' + totalLarimers / 10000 + ']';
         }
     }
 
@@ -410,26 +411,14 @@
         (await roulette.getBets(spin.hash)).forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
+                state.peers[bet.user] = {color: userColor(bet.user)};
             }
             if(!(bet.id in state.bets[bet.user])){
                 state.bets[bet.user][bet.id] = bet;
-                // for now, space other players bets
-                setTimeout(function(){drawBet(bet);}, 4000 * Math.random());
+                drawBet(bet);
             }
-            state.peers = {};
-
-            // Create an easy to work with peers object.
-            for(const [peer, bets] of Object.entries(state.bets)){
-                state.peers[peer] = {
-                    // Map the values of all this peer's bets to an array of larimer values, then reduce it to it's sum.
-                    larimers: Object.values(bets).map(bet => bet.larimers).reduce((sum, current) => sum + current, 0),
-                    // Split the string of this peer's name to an array, then reduce it to the sum of its bytes,
-                    // then sine and normalize it to get a predictable but pseudo-randomly generated seed.
-                    seed: Math.sin(peer.split('').reduce((sum, character) => sum + character.charCodeAt(0), 0)) / 2 + 0.5
-                };
-            }
-            updatePlayers();
         });
+        updatePlayersBox();
     }
 
     // Update the felt.
@@ -504,7 +493,9 @@
             return drawLose(chip);
         });
         state.bets = {};
+        state.peers = {};
         state.spin = null;
+        PLAYERS_BOX.querySelectorAll('[data-user]').forEach(element => element.fadeaway());
         setTimeout(resolve, 3000);
     }
 
@@ -580,8 +571,10 @@
             }
         }
 
+        // TODO how to ensure no further elements get the event?
+        // As we discussed, make it a transparent div all over the viewport.
         if (checkBox.checked) {
-            window.addEventListener('mousedown', checkOutsideClick);  // todo how to ensure no further elements get the event?
+            window.addEventListener('mousedown', checkOutsideClick);
         } else {
             window.removeEventListener('mousedown', checkOutsideClick);
         }
@@ -604,6 +597,7 @@
         BALL_CONTAINER = document.getElementById('ballContainer');
         BALL = document.getElementById('ball');
         CHIP_SELECTOR = document.getElementById('chip-selector');
+        PLAYERS_BOX = document.getElementById('players-box').children[0];
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
 
         // FIXME Just for debug.
