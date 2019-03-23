@@ -614,6 +614,12 @@
         lifeCycle();
     };
 
+    //simple mute
+    function menuSoundClick(e){
+        Howler.volume( e.checked ? .6 : 0.1)
+    }
+
+
     // Expose some functionality.
     window.rouletteClient = {
         login: login,
@@ -626,6 +632,7 @@
             window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
         },
         clickMenu: clickMenu,
+        menuSoundClick: menuSoundClick,
 
         // FIXME This is for debug only.
         state: state

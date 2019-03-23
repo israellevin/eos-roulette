@@ -485,7 +485,7 @@ td.green{
   user-select: none;
 }
 
-#menuToggle input
+#menuToggle input.menuCheck
 {
   display: block;
   width: 40px;
@@ -572,6 +572,13 @@ td.green{
 {
     transform: none;
 }
+
+/*#menuToggle input[type="checkbox"] {*/
+    /*width: 20px;*/
+    /*height: 20px;*/
+/*}*/
+
+
 
 nav{
     position: absolute;

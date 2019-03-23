@@ -42,7 +42,7 @@
                 A fake / hidden checkbox is used as click reciever,
                 so you can use the :checked selector on it.
                 -->
-                    <input type="checkbox" onclick="rouletteClient.clickMenu(this)" />
+                    <input class="menuCheck" type="checkbox" onclick="rouletteClient.clickMenu(this)" />
 
                     <!--
                 Some spans to act as a hamburger.
@@ -58,11 +58,12 @@
                 Too bad the menu has to be inside of the button
                 but hey, it's pure CSS magic.
                 -->
-                    <ul id="menu" class="box">
+                    <ul class="box" id="menu">
                         <!--fixme set actions-->
                         <a href="#"><li>Language: EN</li></a>
-                        <a href="#"><li>Sound: On</li></a>
-                        <a href="#"><li>Hints: On</li></a>
+                        <li>Sound effects: <input type="checkbox" checked="checked" style="width: 20px; height: 20px"
+                                          onclick="rouletteClient.menuSoundClick(this)"></li>
+                        <li>Show Hints: <input type="checkbox"></li></li>
                         <a href="#"><li>Show intro</li></a>
                         <li>
                             <a id="logoutBtn" href="#" onclick="rouletteClient.logout();">Disconnect</a>
