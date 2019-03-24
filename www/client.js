@@ -477,6 +477,11 @@
 
     // Resolve the spin.
     function resolveSpin(winning_number, resolve){
+        let winning_cell = LAYOUT.querySelector('[data-coverage="' + winning_number + '"]');
+        changeClass(winning_cell, 'winning-number', true);
+        setTimeout(function(){
+            changeClass(winning_cell, 'winning-number', false);
+        }, 1000);
         addResultToHistory(winning_number);
         for(const [user, bets] of Object.entries(state.bets)){
             for(const bet of Object.values(bets)){

@@ -617,3 +617,7 @@ nav{
     --chip-side: #5a61ff30;
     --chip-mark: rgba(234,226,6,0.43);
 }
+
+.winning-number{
+    background-color: red;
+}
