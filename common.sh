@@ -9,6 +9,7 @@ pgrep nodeos > /dev/null || nodeos -e -p eosio --data-dir blockchain --config-di
 --access-control-allow-origin='*' \
 --contracts-console \
 --http-validate-host=false \
+--http-server-address=0.0.0.0:8888 \
 --verbose-http-errors \
 --filter-on='*' >> nodeos.log 2>&1 &
 
