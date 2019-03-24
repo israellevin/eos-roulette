@@ -209,8 +209,14 @@
     async function placeBet(mouseEvent){
         let coverage = getCoverage(mouseEvent);
         let larimers = getChip().dataset.value;
-        let hash = await bet(coverage, larimers);
-        console.info(hash);
+        try{
+            let hash = await bet(coverage, larimers);
+            console.info(hash);
+        // Placement failed.
+        }catch(error){
+            console.info('placement failed');
+            LAYOUT.parentElement.querySelectorAll('table > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+        }
     }
 
     // Show a potential bet.
@@ -236,9 +242,7 @@
             chip.removeEventListener('transitionend', useChip);
             chip.style.left = LAYOUT.rect.width - 20 + 'px';
             chip.style.top = LAYOUT.rect.height - 20 + 'px';
-            setTimeout(function(){
-                chip.parentElement.removeChild(chip);
-            }, 300);
+            setTimeout(() => chip.parentElement.removeChild(chip), 300);
         }
         document.addEventListener('mouseup', removeChip, {once: true});
 
@@ -246,10 +250,8 @@
         function useChip(){
             document.removeEventListener('mouseup', removeChip);
             chip.style.transition = 'all 0s linear';
-            document.addEventListener('mouseup', function(mouseEvent){
-                chip.parentElement.removeChild(chip);
-                placeBet(mouseEvent);
-            }, {once: true});
+            chip.used = true;
+            document.addEventListener('mouseup', placeBet, {once: true});
         }
         chip.addEventListener('transitionend', useChip, {once: true});
 
@@ -274,7 +276,7 @@
             changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'highlight', true);
         });
         let chip = LAYOUT.querySelector('#layout > .chip');
-        if(chip){
+        if(chip && (!chip.used)){
             chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
             chip.style.top = (mouseEvent.clientY - LAYOUT.rect.top) + 'px';
         }
@@ -352,8 +354,13 @@
         chip.appendChild(document.createTextNode(bet.larimers / 10000));
 
         // TODO Make this pretty with a cool animation.
+        if(bet.user === roulette.account_name){
+            LAYOUT.parentElement.querySelectorAll('table > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            chipPosition.target.appendChild(chip);
         // for now, space other players bets
-        setTimeout(function(){chipPosition.target.appendChild(chip);}, 5000 * Math.random());
+        }else{
+            setTimeout(function(){chipPosition.target.appendChild(chip);}, 5000 * Math.random());
+        }
         CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -463,14 +470,14 @@
 
     // Animate a win.
     function drawWin(chip){
-        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip);}, {once: true});
+        chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
         chip.style.transition = 'all 1s ease-in';
         chip.style.transform = 'scale(10)';
     }
 
     // Animate a lose.
     function drawLose(chip){
-        chip.addEventListener('transitionend', function(){chip.parentElement.removeChild(chip);}, {once: true});
+        chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
         chip.style.transition = 'all 1s ease-in';
         chip.style.transform = 'rotateX(1000deg)';
     }
@@ -621,7 +628,7 @@
 
     //simple mute
     function menuSoundClick(e){
-        Howler.volume( e.checked ? .6 : 0.1)
+        Howler.volume( e.checked ? 0.6 : 0.1);
     }
 
 
