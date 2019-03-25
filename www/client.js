@@ -215,7 +215,7 @@
         // Placement failed.
         }catch(error){
             console.info('placement failed');
-            LAYOUT.parentElement.querySelectorAll('table > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
         }
     }
 
@@ -355,7 +355,7 @@
 
         // TODO Make this pretty with a cool animation.
         if(bet.user === roulette.account_name){
-            LAYOUT.parentElement.querySelectorAll('table > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
             chipPosition.target.appendChild(chip);
         // for now, space other players bets
         }else{
@@ -502,6 +502,7 @@
                 }
             }
         }
+        LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
             if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
                 return parseInt(covered, 10) === winning_number;
@@ -524,7 +525,6 @@
             5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
         ];
         const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
-        // const shift =  Math.floor(Math.random() * 360);
         const secondsPerTurn = 1.5;
         const turns = 2;
         BALL_CONTAINER.style.opacity = '1';
@@ -598,14 +598,28 @@
         }
     }
 
-    window.onload = function(){
-        // Set howler's volume according to cookie so we don't go mad.
-        // Use `document.cookie = 'volume=[value]'` in the console to set the cookie.
+    // Initialize volume handling.
+    function initVolume(){
+        const muteBox = document.getElementById('muteBox');
+        let volume;
         try{
-            Howler.volume(document.cookie.match(/(^|;)volume=([^;]*)/)[2]);
+            volume = document.cookie.match(/(^|;)volume=([^;]*)/)[2];
         }catch(error){
             console.error('no volume cookie found');
+            volume = '0.6';
         }
+        Howler.volume(volume);
+        muteBox.checked = volume > 0;
+        muteBox.addEventListener('change', function(checkboxEvent){
+            volume = checkboxEvent.target.checked ? 0.6 : 0;
+            Howler.volume(volume);
+            document.cookie = 'volume=' + volume;
+        });
+
+    }
+
+    window.onload = function(){
+        initVolume();
 
         // Initialize DOM "constants".
         MAIN = document.getElementById('main-space');
@@ -626,12 +640,6 @@
         lifeCycle();
     };
 
-    //simple mute
-    function menuSoundClick(e){
-        Howler.volume( e.checked ? 0.6 : 0.1);
-    }
-
-
     // Expose some functionality.
     window.rouletteClient = {
         login: login,
@@ -644,7 +652,6 @@
             window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
         },
         clickMenu: clickMenu,
-        menuSoundClick: menuSoundClick,
 
         // FIXME This is for debug only.
         state: state
