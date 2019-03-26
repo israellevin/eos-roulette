@@ -23,6 +23,7 @@
     // Global state variables.
     let state = {
         bets: {},
+        lastBets: {},
         spin: null,
         winningNumber: null,
         loginUpdater: null
@@ -515,16 +516,13 @@
         let overlay = MAIN;
         let chip_rect = chip.getBoundingClientRect();
         let overlay_rect = overlay.getBoundingClientRect();
-        console.log(chip_rect);
-        console.log(overlay_rect);
-
         chip.parentElement.removeChild(chip);
         overlay.appendChild(chip);
         chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
         chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
         chip.style.transition = 'all 8s ease-in';
         chip.style.transform = 'scale(5)';
-        chip.innerText = 'meme'
+        chip.innerText = 'meme';
         // chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
     }
 
@@ -553,7 +551,9 @@
         //clear moving chip - just in case
         LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
             console.error('orphan chip', chip.parentElement.removeChild(chip)));
-
+        try{
+            state.lastBets = state.bets[roulette.account_name];
+        }catch(error){}
         state.bets = {};
         state.spin = null;
         resolve();  //fixme - do we need?
@@ -647,6 +647,13 @@
         });
     }
 
+    // Repeat last bet.
+    async function rebet(){
+        for(const oldBet of Object.values(state.lastBets)){
+            await bet(oldBet.coverage, oldBet.larimers);
+        }
+    }
+
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
         let overlay = document.getElementById("overlay");
@@ -715,6 +722,7 @@
             window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
         },
         clickMenu: clickMenu,
+        rebet: rebet,
 
         // FIXME This is for debug only.
         state: state
