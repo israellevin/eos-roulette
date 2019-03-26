@@ -642,16 +642,13 @@
     function clickMenu(checkBox){
         let overlay = document.getElementById("overlay");
         if (checkBox.checked) {
-            overlay.style.opacity = '1';
-            changeClass(overlay, 'eventless', false);
+            overlay.style.display = 'block';
             overlay.addEventListener('mousedown', function () {
                 checkBox.checked = false;
-                overlay.style.opacity = '0';
-                changeClass(overlay, 'eventless', true);
+                overlay.style.display = 'none';
             }, {once: true});
         } else {
-            overlay.style.opacity = '0';
-            changeClass(overlay, 'eventless', true);
+            overlay.style.display = 'none';
         }
     }
 

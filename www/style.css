@@ -17,7 +17,7 @@ body{
     height: 100%;
     position: absolute;
     z-index: 3;
-    opacity: 0;
+    display: none;
 }
 
 @keyframes rotation{
