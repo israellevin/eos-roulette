@@ -383,6 +383,7 @@
         // TODO Make this pretty with a cool animation.
         if(bet.user === roulette.account_name){
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            CLICK_SOUND.play();
             chipPosition.target.appendChild(chip);
         // for now, space other players bets
         }else{
@@ -502,16 +503,27 @@
 
     // Animate a win.
     function drawWin(chip){
-        chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
-        chip.style.transition = 'all 1s ease-in';
-        chip.style.transform = 'scale(10)';
+        let overlay = MAIN;
+        let chip_rect = chip.getBoundingClientRect();
+        let overlay_rect = overlay.getBoundingClientRect();
+        console.log(chip_rect);
+        console.log(overlay_rect);
+
+        chip.parentElement.removeChild(chip);
+        overlay.appendChild(chip);
+        chip.style.top = chip_rect.y - overlay_rect.y;
+        chip.style.left = chip_rect.x - overlay_rect.x;
+        chip.style.transition = 'all 8s ease-in';
+        chip.style.transform = 'scale(5)';
+        chip.innerText = 'meme'
+        // chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
     }
 
     // Animate a lose.
     function drawLose(chip){
         chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
         chip.style.transition = 'all 1s ease-in';
-        chip.style.transform = 'rotateX(1000deg)';
+        chip.style.transform = 'translateY(300px)';
     }
 
     // Resolve the spin.
@@ -533,17 +545,9 @@
         LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
             console.error('orphan chip', chip.parentElement.removeChild(chip)));
 
-        LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
-            if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
-                return parseInt(covered, 10) === winning_number;
-            })){
-                return drawWin(chip);
-            }
-            return drawLose(chip);
-        });
         state.bets = {};
         state.spin = null;
-        setTimeout(resolve, 3000);
+        resolve();  //fixme - do we need?
     }
 
     // Drop the ball and reveal the winner.
@@ -568,15 +572,40 @@
         });
     }
 
+    function cleanChips(winningNumber) {
+        let houseChips = [];
+        let wonChips = [];
+        LAYOUT.querySelectorAll('div.chip').forEach(function(chip) {
+            if (chip.parentElement.dataset.coverage.split(',').some(function (covered) {
+                return parseInt(covered, 10) === winningNumber;
+            })) {
+                wonChips.push(chip);
+            } else {
+                houseChips.push(chip);
+            }
+        });
+        houseChips.forEach(function(chip){
+            return drawLose(chip);
+        });
+        wonChips.forEach(function(chip){
+            return drawWin(chip);
+        });
+
+    }
+
     // Our lifeCycle.
-    async function lifeCycle(){
+    async function lifeCycle() {
         hideRoulette();
-        state.spin = await getSpin();
-        state.spin.maxbettime -= 3;
-        await updateFelt(state.spin);
-        showRoulette();
-        await dropBall(await getResult(state.spin));
-        lifeCycle();
+        while (true) {
+            state.spin = await getSpin();
+            state.spin.maxbettime -= 3;
+            await updateFelt(state.spin);
+            showRoulette();
+            let winningNumber = 0;//await getResult(state.spin);
+            await dropBall(winningNumber);
+            await cleanChips(winningNumber);
+            hideRoulette();
+        }
     }
 
     // Login to scatter.
@@ -613,13 +642,16 @@
     function clickMenu(checkBox){
         let overlay = document.getElementById("overlay");
         if (checkBox.checked) {
-            overlay.style.display = 'block';
+            overlay.style.opacity = '1';
+            changeClass(overlay, 'eventless', false);
             overlay.addEventListener('mousedown', function () {
                 checkBox.checked = false;
-                overlay.style.display = 'none';
+                overlay.style.opacity = '0';
+                changeClass(overlay, 'eventless', true);
             }, {once: true});
         } else {
-            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            changeClass(overlay, 'eventless', true);
         }
     }
 
