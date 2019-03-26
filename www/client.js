@@ -424,10 +424,19 @@
 
         // TODO create a complex div with chip, user, bet info, etc
         playerEntry = document.createElement('li');
+        playerEntry.style.position = 'relative';
+        playerEntry.style.height = '1.8em';
         playerEntry.dataset.user = user;
-        playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' +
-            user + '</span><span class="larimers"></span>';
-        playerEntry.style.color = userColor(user);
+        playerEntry.innerHTML = '<span style="padding-left:20px">' + user + '</span><span class="larimers"></span>';
+        playerEntry.style.color = 'white';
+
+        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
+        changeClass(chip, 'small', true);
+        changeClass(chip, 'iso', false);
+        chip.style.setProperty('--chip-face', userColor(user));
+        chip.style.left = '1.5em';
+        playerEntry.appendChild(chip);
+
         PLAYERS_BOX.appendChild(playerEntry);
         return playerEntry;
     }
