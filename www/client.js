@@ -585,18 +585,15 @@
 
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
-        function checkOutsideClick(mouseEvent) {
-            if (!document.getElementById('menuToggle').contains(mouseEvent.target)) {
-                checkBox.checked = false;
-            }
-        }
-
-        // TODO how to ensure no further elements get the event?
-        // As we discussed, make it a transparent div all over the viewport.
         if (checkBox.checked) {
-            window.addEventListener('mousedown', checkOutsideClick);
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = 'block';
+            overlay.addEventListener('mousedown', function () {
+                checkBox.checked = false;
+                overlay.style.display = 'none';
+            }, {once: true});
         } else {
-            window.removeEventListener('mousedown', checkOutsideClick);
+            cover.style.display = 'none';
         }
     }
 
