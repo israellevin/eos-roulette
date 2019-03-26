@@ -20,6 +20,7 @@
     const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
     const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
     const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
+    const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav']});
 
     // Global state variables.
     let state = {
@@ -623,6 +624,7 @@
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
+            NO_MORE_BETS_SOUND.play();
             showRoulette();
             let winningNumber = await getResult(state.spin);
             await dropBall(winningNumber);
