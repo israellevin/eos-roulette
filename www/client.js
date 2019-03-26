@@ -306,7 +306,7 @@
         });
         MAIN.addEventListener('mousemove', function(mouseEvent){
             const bettingChip = LAYOUT.querySelector('#layout > .chip');
-            if(bettingChip){
+            if(bettingChip && (!bettingChip.placed)){
                 bettingChip.style.opacity = LAYOUT.contains(mouseEvent.target) ? 1 : 0;
             }
         });
