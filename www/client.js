@@ -19,6 +19,7 @@
     const CHEER_SOUND = new Howl({src: ['sounds/cheers.ogg']});
     const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
     const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
+    const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
 
     // Global state variables.
     let state = {
@@ -517,18 +518,18 @@
         let overlay = MAIN;
         let originalLocation_rect = chip.getBoundingClientRect();
         let overlay_rect = overlay.getBoundingClientRect();
-        chip.style.transition = 'all .8s ease-in';
-        setTimeout(() => chip.parentElement.removeChild(chip),  1000);
-        // overlay.appendChild(chip);
-        // chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
-        for(let i=0; i<10; i++) {
+        let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length); // how many coins
+        chip.style.transition = 'all ' + (0.1+originalLocation_rect.y/1500) + 's ease-in';
+        chip.parentElement.removeChild(chip);
+        COIN_SOUND.play();
+        for(let i=0; i<multiplier; i++) {
             let replica = chip.cloneNode(false);
+            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica), {once: true});
             overlay.appendChild(replica);
-            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(chip), {once: true});
             window.requestAnimationFrame(function () {
-                replica.style.top = (originalLocation_rect.y - overlay_rect.y + 20) + 'px';
+                replica.style.top = (originalLocation_rect.y - overlay_rect.y) + 'px';
                 replica.style.left = (originalLocation_rect.x - overlay_rect.x) + 'px';
-                replica.style.transitionDelay = (0.2 * i) + 's';
+                replica.style.transitionDelay = (i * 0.75 / multiplier) + 's';
                 window.requestAnimationFrame(function () {
                     replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
                     replica.style.left = '250px';
