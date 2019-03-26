@@ -195,10 +195,9 @@
         if(!user || user === roulette.account_name){
             return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
         }
-        // FIXME Get actual chips from PLAYERS_BOX.
-        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
+
+        let chip = getPlayerEntry(user).querySelector('.chip');
         changeClass(chip, 'iso', false);
-        chip.style.setProperty('--chip-face', userColor(user));
         return chip;
     }
 
@@ -385,7 +384,7 @@
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
             CLICK_SOUND.play();
             chipPosition.target.appendChild(chip);
-        // for now, space other players bets
+            // for now, space other players bets
         }else{
             setTimeout(function(){
                 chipPosition.target.appendChild(chip);
@@ -420,15 +419,16 @@
     // Get a player's entry in the players box, creating and adding a new one if needed.
     function getPlayerEntry(user) {
         let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + user + '"]');
-        if(playerEntry){return playerEntry;}
+        if(playerEntry){
+            return playerEntry;
+        }
 
         // TODO create a complex div with chip, user, bet info, etc
         playerEntry = document.createElement('li');
         playerEntry.style.position = 'relative';
         playerEntry.style.height = '1.8em';
         playerEntry.dataset.user = user;
-        playerEntry.innerHTML = '<span style="padding-left:20px">' + user + '</span><span class="larimers"></span>';
-        playerEntry.style.color = 'white';
+        playerEntry.innerHTML = `<span style="padding-left: 20px">${user}</span><span class="larimers"></span>`;
 
         let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
         changeClass(chip, 'small', true);
@@ -515,24 +515,28 @@
         let overlay = MAIN;
         let chip_rect = chip.getBoundingClientRect();
         let overlay_rect = overlay.getBoundingClientRect();
-        console.log(chip_rect);
-        console.log(overlay_rect);
-
         chip.parentElement.removeChild(chip);
         overlay.appendChild(chip);
         chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
         chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
-        chip.style.transition = 'all 8s ease-in';
-        chip.style.transform = 'scale(5)';
-        chip.innerText = 'meme'
-        // chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
+        chip.style.transition = 'all 2s ease-in';
+        chip.style.transform = 'scale(3)';
+        window.requestAnimationFrame(function(){
+            chip.style.top = '100px';
+            chip.style.left = '400px';
+        });
+
+        chip.addEventListener('transitionend', () => { // fixme why not work???
+            console.log('del');
+            chip.parentElement.removeChild(chip);
+        }, {once: true});
     }
 
     // Animate a lose.
     function drawLose(chip){
         chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
         chip.style.transition = 'all 1s ease-in';
-        chip.style.transform = 'translateY(300px)';
+        chip.style.transform = 'translateY(400px)';
     }
 
     // Resolve the spin.
@@ -610,7 +614,7 @@
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
             showRoulette();
-            let winningNumber = 0;//await getResult(state.spin);
+            let winningNumber = await getResult(state.spin);
             await dropBall(winningNumber);
             await cleanChips(winningNumber);
             hideRoulette();
