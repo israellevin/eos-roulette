@@ -518,19 +518,17 @@
         let overlay_rect = overlay.getBoundingClientRect();
         chip.parentElement.removeChild(chip);
         overlay.appendChild(chip);
-        chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
-        chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
-        chip.style.transition = 'all 2s ease-in';
-        chip.style.transform = 'scale(3)';
+        chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
         window.requestAnimationFrame(function(){
-            chip.style.top = '100px';
-            chip.style.left = '400px';
+            chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
+            chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
+            chip.style.transition = 'all 2s ease-in';
+            window.requestAnimationFrame(function(){
+                chip.style.top = '100px';
+                chip.style.left = '400px';
+            });
         });
 
-        chip.addEventListener('transitionend', () => { // fixme why not work???
-            console.log('del');
-            chip.parentElement.removeChild(chip);
-        }, {once: true});
     }
 
     // Animate a lose.
