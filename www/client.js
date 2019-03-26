@@ -25,6 +25,7 @@
         bets: {},
         peers: {},
         spin: null,
+        winningNumber: null,
         loginUpdater: null
     };
 
@@ -508,7 +509,10 @@
                 }
             }
         }
-        LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+        //clear moving chip - just in case
+        LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
+            console.error('orphan chip', chip.parentElement.removeChild(chip)));
+
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
             if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
                 return parseInt(covered, 10) === winning_number;
