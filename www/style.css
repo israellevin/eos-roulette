@@ -251,6 +251,7 @@ i.fa.fa-dot-circle-o.players-list-item{
 
 #layout td.highlight{
     background-color: rgba(255, 251, 29, 0.73);
+    transition-duration: 0s;
 }
 
 td.red{
@@ -629,5 +630,6 @@ nav{
 
 .winning-number{
     background-color: red;
+    transition: background-color 1s linear;
 }
 
