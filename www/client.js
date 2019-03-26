@@ -23,7 +23,6 @@
     // Global state variables.
     let state = {
         bets: {},
-        peers: {},
         spin: null,
         winningNumber: null,
         loginUpdater: null
@@ -196,9 +195,10 @@
         if(!user || user === roulette.account_name){
             return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
         }
-        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(false);
+        // FIXME Get actual chips from PLAYERS_BOX.
+        let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
         changeClass(chip, 'iso', false);
-        chip.style.setProperty('--chip-face', state.peers[user].color);
+        chip.style.setProperty('--chip-face', userColor(user));
         return chip;
     }
 
@@ -242,7 +242,7 @@
             return showMessage('Please choose bet size');  // TODO open hint on selector
         }
 
-        let chip = selectedChip.cloneNode(false);
+        let chip = selectedChip.cloneNode(true);
         changeClass(chip, 'eventless', true);
 
         // Remove the chip if the user did not follow through.
@@ -369,7 +369,13 @@
 
     // Draw a bet on the felt.
     function drawBet(bet){
-        let chip = getChip(bet.user).cloneNode(false);
+        let chip;
+        if(bet.user === roulette.account_name){
+            chip = CHIP_SELECTOR.querySelector('div.chip[data-value="' + bet.larimers + '"]').cloneNode(true);
+            changeClass(chip, 'iso', false);
+        }else{
+            chip = getChip(bet.user).cloneNode(true);
+        }
         let chipPosition = getChipPosition(bet.coverage);
         changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
         chip.appendChild(document.createTextNode(bet.larimers / 10000));
@@ -411,33 +417,37 @@
     }
 
     // Get a player's entry in the players box, creating and adding a new one if needed.
-    function getPlayerEntry(name) {
-        let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + name + '"]');
+    function getPlayerEntry(user) {
+        let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + user + '"]');
         if(playerEntry){return playerEntry;}
 
-        // TODO create a complex div with chip, name, bet info, etc
+        // TODO create a complex div with chip, user, bet info, etc
         playerEntry = document.createElement('li');
-        playerEntry.dataset.user = name;
+        playerEntry.dataset.user = user;
         playerEntry.innerHTML = '<i class="fa fa-dot-circle-o players-list-item"></i><span>' +
-            name + '</span><span class="larimers"></span>';
-        playerEntry.style.color = state.peers[name].color;
+            user + '</span><span class="larimers"></span>';
+        playerEntry.style.color = userColor(user);
         PLAYERS_BOX.appendChild(playerEntry);
-        playerEntry.fadeaway = function(){
-            playerEntry.addEventListener('transitionend', () => PLAYERS_BOX.removeChild(playerEntry), {once: true});
-            playerEntry.style.transition = 'opacity 1s';
-            playerEntry.style.opacity = 0;
-        };
         return playerEntry;
     }
 
     // Update the players box.
     function updatePlayersBox(){
-        for(const [name, bets] of Object.entries(state.bets)){
+        let betsIterator = Object.entries(state.bets);
+
+        // FIXME Demo only. Insert data for players who should always be there.
+        ['alice', 'bob', 'carol'].forEach(function(user){
+            if(!(user in state.bets)){
+                betsIterator.push([user, []]);
+            }
+        });
+
+        for(const [user, bets] of betsIterator){
             // Map the values of all this user's bets to an array of larimer values, then reduce it to it's sum.
-            let totalLarimers = state.peers[name].larimers = Object.values(bets).map(bet => bet.larimers).reduce(
+            let totalLarimers = Object.values(bets).map(bet => bet.larimers).reduce(
                 (sum, current) => sum + current, 0
             );
-            let playerEntry = getPlayerEntry(name);
+            let playerEntry = getPlayerEntry(user);
             playerEntry.querySelector('.larimers').innerText = '[' + totalLarimers / 10000 + ']';
         }
     }
@@ -447,7 +457,6 @@
         (await roulette.getBets(spin.hash)).forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
-                state.peers[bet.user] = {color: userColor(bet.user)};
             }
             if(!(bet.id in state.bets[bet.user])){
                 state.bets[bet.user][bet.id] = bet;
@@ -533,9 +542,7 @@
             return drawLose(chip);
         });
         state.bets = {};
-        state.peers = {};
         state.spin = null;
-        PLAYERS_BOX.querySelectorAll('[data-user]').forEach(element => element.fadeaway());
         setTimeout(resolve, 3000);
     }
 
