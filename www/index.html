@@ -60,10 +60,10 @@
                 -->
                     <ul class="box" id="menu">
                         <!--fixme set actions-->
-                        <a href="#"><li>Language: EN</li></a>
+                        <li><a href="#">Language: EN</a></li>
                         <li>Sound effects: <input id="muteBox" type="checkbox" style="width: 20px; height: 20px"></li>
-                        <li>Show Hints: <input type="checkbox"></li></li>
-                        <a href="#"><li>Show intro</li></a>
+                        <li>Show Hints: <input type="checkbox"></li>
+                        <li><a href="#">Show intro</a></li>
                         <li>
                             <a id="logoutBtn" href="#" onclick="rouletteClient.logout();">Disconnect</a>
                         </li>
@@ -212,7 +212,7 @@
                         <span id="balance">???</span>
                     </div>
                     <div style="height: 20px; padding: 8px">
-                        <button type="button" class="btn btn-primary" data-hint='use this!!'>Re bet</button>
+                        <button type="button" class="btn btn-primary" data-hint='use this!!' onclick="rouletteClient.rebet()">Re bet</button>
                     </div>
                     <div id="bet-size" class="container">
                         <div>Bet size:</div>

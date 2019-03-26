@@ -23,6 +23,7 @@
     // Global state variables.
     let state = {
         bets: {},
+        lastBets: {},
         spin: null,
         winningNumber: null,
         loginUpdater: null
@@ -557,7 +558,9 @@
         //clear moving chip - just in case
         LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
             console.error('orphan chip', chip.parentElement.removeChild(chip)));
-
+        try{
+            state.lastBets = state.bets[roulette.account_name];
+        }catch(error){}
         state.bets = {};
         state.spin = null;
         resolve();  //fixme - do we need?
@@ -651,6 +654,13 @@
         });
     }
 
+    // Repeat last bet.
+    async function rebet(){
+        for(const oldBet of Object.values(state.lastBets)){
+            await bet(oldBet.coverage, oldBet.larimers);
+        }
+    }
+
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
         let overlay = document.getElementById("overlay");
@@ -719,6 +729,7 @@
             window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
         },
         clickMenu: clickMenu,
+        rebet: rebet,
 
         // FIXME This is for debug only.
         state: state
