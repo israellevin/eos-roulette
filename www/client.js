@@ -68,14 +68,21 @@
         }
     }
 
-    // Add a roulette winning number to the history.
-    function addResultToHistory(winning_number){
+    // Add a roulette winning number to the history and mark the winning cell.
+    function displayResult(winning_number){
         showMessage('Roulette stops on ' + winning_number + '!');
         let entry = document.createElement('li');
         entry.appendChild(document.createTextNode(winning_number));
         changeClass(entry, getNumberColor(winning_number), true);
         let list = document.getElementById('history-ul');
         list.insertBefore(entry, list.childNodes[0]);
+
+        let winning_cell = LAYOUT.querySelector('[data-coverage="' + winning_number + '"]');
+        changeClass(winning_cell, 'winning-number', true);
+        setTimeout(function(){
+            changeClass(winning_cell, 'winning-number', false);
+        }, 4000);
+
     }
 
     // Get the target cell and position relative to it of a chip from a coverage.
@@ -359,9 +366,11 @@
             chipPosition.target.appendChild(chip);
         // for now, space other players bets
         }else{
-            setTimeout(function(){chipPosition.target.appendChild(chip);}, 5000 * Math.random());
+            setTimeout(function(){
+                chipPosition.target.appendChild(chip);
+                CLICK_SOUND.play();
+                }, 5000 * Math.random());
         }
-        CLICK_SOUND.play();
 
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
@@ -484,12 +493,7 @@
 
     // Resolve the spin.
     function resolveSpin(winning_number, resolve){
-        let winning_cell = LAYOUT.querySelector('[data-coverage="' + winning_number + '"]');
-        changeClass(winning_cell, 'winning-number', true);
-        setTimeout(function(){
-            changeClass(winning_cell, 'winning-number', false);
-        }, 1000);
-        addResultToHistory(winning_number);
+        displayResult(winning_number);
         for(const [user, bets] of Object.entries(state.bets)){
             for(const bet of Object.values(bets)){
                 if(bet.coverage.indexOf(winning_number) > -1){
@@ -583,15 +587,15 @@
 
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
+        let overlay = document.getElementById("overlay");
         if (checkBox.checked) {
-            let overlay = document.getElementById("overlay");
             overlay.style.display = 'block';
             overlay.addEventListener('mousedown', function () {
                 checkBox.checked = false;
                 overlay.style.display = 'none';
             }, {once: true});
         } else {
-            cover.style.display = 'none';
+            overlay.style.display = 'none';
         }
     }
 
