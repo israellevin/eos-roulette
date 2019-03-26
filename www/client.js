@@ -295,6 +295,12 @@
         LAYOUT.addEventListener('mouseleave', function(){
             changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         });
+        MAIN.addEventListener('mousemove', function(mouseEvent){
+            const bettingChip = LAYOUT.querySelector('#layout > .chip');
+            if(bettingChip){
+                bettingChip.style.opacity = LAYOUT.contains(mouseEvent.target) ? 1 : 0;
+            }
+        });
         layout.querySelectorAll('[data-coverage]').forEach(function(tdElement){
             tdElement.addEventListener('mousemove', highlightBet);
             tdElement.addEventListener('mousedown', hoverBet);
