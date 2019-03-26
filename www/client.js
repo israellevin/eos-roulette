@@ -511,8 +511,8 @@
 
         chip.parentElement.removeChild(chip);
         overlay.appendChild(chip);
-        chip.style.top = chip_rect.y - overlay_rect.y;
-        chip.style.left = chip_rect.x - overlay_rect.x;
+        chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
+        chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
         chip.style.transition = 'all 8s ease-in';
         chip.style.transform = 'scale(5)';
         chip.innerText = 'meme'
