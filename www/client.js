@@ -219,7 +219,7 @@
             let coverage = getCoverage(mouseEvent);
             let larimers = getChip().dataset.value;
             let hash = await bet(coverage, larimers);
-            console.info(hash);
+            console.info(hash, coverage);
         // Placement failed.
         }catch(error){
             console.error('placement failed', error);
@@ -435,10 +435,11 @@
         changeClass(chip, 'small', true);
         changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', userColor(user));
-        chip.style.left = '1.5em';
+        // chip.style.left = '1.5em';
         playerEntry.appendChild(chip);
 
         PLAYERS_BOX.appendChild(playerEntry);
+        chip.dataset.y = chip.getBoundingClientRect().y; //store screen location with chip
         return playerEntry;
     }
 
@@ -514,21 +515,27 @@
     // Animate a win.
     function drawWin(chip){
         let overlay = MAIN;
-        let chip_rect = chip.getBoundingClientRect();
+        let originalLocation_rect = chip.getBoundingClientRect();
         let overlay_rect = overlay.getBoundingClientRect();
-        chip.parentElement.removeChild(chip);
-        overlay.appendChild(chip);
-        chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
-        window.requestAnimationFrame(function(){
-            chip.style.top = (chip_rect.y - overlay_rect.y) + 'px';
-            chip.style.left = (chip_rect.x - overlay_rect.x) + 'px';
-            chip.style.transition = 'all 2s ease-in';
-            window.requestAnimationFrame(function(){
-                chip.style.top = '100px';
-                chip.style.left = '400px';
+        chip.style.transition = 'all .8s ease-in';
+        setTimeout(() => chip.parentElement.removeChild(chip),  1000);
+        // overlay.appendChild(chip);
+        // chip.addEventListener('transitionend', () => chip.parentElement.removeChild(chip), {once: true});
+        for(let i=0; i<10; i++) {
+            let replica = chip.cloneNode(false);
+            overlay.appendChild(replica);
+            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(chip), {once: true});
+            window.requestAnimationFrame(function () {
+                replica.style.top = (originalLocation_rect.y - overlay_rect.y + 20) + 'px';
+                replica.style.left = (originalLocation_rect.x - overlay_rect.x) + 'px';
+                replica.style.transitionDelay = (0.2 * i) + 's';
+                window.requestAnimationFrame(function () {
+                    replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
+                    replica.style.left = '250px';
+                })
             });
-        });
-
+        }
+        // chip.parentElement.removeChild(chip);
     }
 
     // Animate a lose.
@@ -586,10 +593,10 @@
         });
     }
 
-    function cleanChips(winningNumber) {
+    async function cleanChips(winningNumber) {
         let houseChips = [];
         let wonChips = [];
-        LAYOUT.querySelectorAll('div.chip').forEach(function(chip) {
+        LAYOUT.querySelectorAll('div.chip').forEach(function (chip) {
             if (chip.parentElement.dataset.coverage.split(',').some(function (covered) {
                 return parseInt(covered, 10) === winningNumber;
             })) {
@@ -598,10 +605,11 @@
                 houseChips.push(chip);
             }
         });
-        houseChips.forEach(function(chip){
+        houseChips.forEach(function (chip) {
             return drawLose(chip);
         });
-        wonChips.forEach(function(chip){
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        wonChips.forEach(function (chip) {
             return drawWin(chip);
         });
 

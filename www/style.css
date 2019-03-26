@@ -170,6 +170,11 @@ i.fa.fa-dot-circle-o.players-list-item{
     padding: 2px;
     font-size: 10px;
 }
+
+#players-box .chip.small{
+    left: 1.5em;
+}
+
 .bonus-box{
     min-height:80px;
     max-height:80px;
