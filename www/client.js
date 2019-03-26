@@ -207,14 +207,14 @@
 
     // Place a bet on the layout.
     async function placeBet(mouseEvent){
-        let coverage = getCoverage(mouseEvent);
-        let larimers = getChip().dataset.value;
         try{
+            let coverage = getCoverage(mouseEvent);
+            let larimers = getChip().dataset.value;
             let hash = await bet(coverage, larimers);
             console.info(hash);
         // Placement failed.
         }catch(error){
-            console.info('placement failed');
+            console.error('placement failed', error);
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
         }
     }
@@ -250,8 +250,10 @@
         function useChip(){
             document.removeEventListener('mouseup', removeChip);
             chip.style.transition = 'all 0s linear';
-            chip.used = true;
-            document.addEventListener('mouseup', placeBet, {once: true});
+            document.addEventListener('mouseup', function(mouseEvent){
+                chip.used = true;
+                placeBet(mouseEvent);
+            }, {once: true});
         }
         chip.addEventListener('transitionend', useChip, {once: true});
 
