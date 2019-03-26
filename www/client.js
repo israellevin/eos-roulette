@@ -385,7 +385,7 @@
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
             CLICK_SOUND.play();
             chipPosition.target.appendChild(chip);
-            // for now, space other players bets
+        // for now, space other players bets
         }else{
             setTimeout(function(){
                 chipPosition.target.appendChild(chip);
