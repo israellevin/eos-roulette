@@ -248,10 +248,10 @@
 
         // Use the chip to make a bet if the user follows through.
         function useChip(){
+            chip.used = true;
             document.removeEventListener('mouseup', removeChip);
-            chip.style.transition = 'all 0s linear';
             document.addEventListener('mouseup', function(mouseEvent){
-                chip.used = true;
+                chip.placed = true;
                 placeBet(mouseEvent);
             }, {once: true});
         }
@@ -278,7 +278,12 @@
             changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'highlight', true);
         });
         let chip = LAYOUT.querySelector('#layout > .chip');
-        if(chip && (!chip.used)){
+        if(chip && (!chip.placed)){
+            if(chip.used){
+                chip.style.transition = 'none';
+            }else{
+                chip.style.transition = 'all 0.1s linear';
+            }
             chip.style.left = (mouseEvent.clientX - LAYOUT.rect.left) + 'px';
             chip.style.top = (mouseEvent.clientY - LAYOUT.rect.top) + 'px';
         }
