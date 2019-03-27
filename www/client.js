@@ -20,7 +20,7 @@
     const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
     const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
     const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
-    const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav']});
+    const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav'], volume:0.3 });
 
     // Global state variables.
     let state = {
@@ -525,11 +525,12 @@
         COIN_SOUND.play();
         for(let i=0; i<multiplier; i++) {
             let replica = chip.cloneNode(false);
-            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica), {once: true});
+            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica),
+                {once: true});
             overlay.appendChild(replica);
+            replica.style.top = (originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2) + 'px';
+            replica.style.left = (originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2) + 'px';
             window.requestAnimationFrame(function () {
-                replica.style.top = (originalLocation_rect.y - overlay_rect.y) + 'px';
-                replica.style.left = (originalLocation_rect.x - overlay_rect.x) + 'px';
                 replica.style.transitionDelay = (i * 0.75 / multiplier) + 's';
                 window.requestAnimationFrame(function () {
                     replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
@@ -595,7 +596,7 @@
         });
     }
 
-    async function cleanChips(winningNumber) {
+    function cleanChips(winningNumber) {
         let houseChips = [];
         let wonChips = [];
         LAYOUT.querySelectorAll('div.chip').forEach(function (chip) {
@@ -610,7 +611,7 @@
         houseChips.forEach(function (chip) {
             return drawLose(chip);
         });
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        new Promise(resolve => setTimeout(resolve, 1000));
         wonChips.forEach(function (chip) {
             return drawWin(chip);
         });
