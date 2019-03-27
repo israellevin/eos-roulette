@@ -374,6 +374,7 @@
         let chip;
         if(bet.user === roulette.account_name){
             chip = CHIP_SELECTOR.querySelector('div.chip[data-value="' + bet.larimers + '"]').cloneNode(true);
+            chip.dataset.y = '100'; //send earnings to palyers box instead of selector
             changeClass(chip, 'iso', false);
         }else{
             chip = getChip(bet.user).cloneNode(true);
