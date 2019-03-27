@@ -538,7 +538,7 @@
             replica.style.top = overlayY + 'px';
             replica.style.left = overlayX + 'px';
             window.requestAnimationFrame(function () {
-                replica.style.transitionDelay = (i / (multiplier+2)) + 's';
+                replica.style.transitionDelay = (0.1 + (multiplier-i) / (multiplier+2)) + 's';
                 window.requestAnimationFrame(function () {
                     replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
                     replica.style.left = '250px';
