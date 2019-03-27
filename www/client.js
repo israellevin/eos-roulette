@@ -17,7 +17,7 @@
     Howler.usingWebAudio = false;
     const CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
     const CHEER_SOUND = new Howl({src: ['sounds/cheers.ogg']});
-    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
+    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav'], volume:0.5});
     const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
     const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
     const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav'], volume:0.3 });
@@ -519,19 +519,22 @@
         let overlay = MAIN;
         let originalLocation_rect = chip.getBoundingClientRect();
         let overlay_rect = overlay.getBoundingClientRect();
-        let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length); // how many coins
+        // how many coins will fly, never more than 12
+        let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
         chip.style.transition = 'all ' + (0.1+originalLocation_rect.y/1500) + 's ease-in';
         chip.parentElement.removeChild(chip);
-        COIN_SOUND.play();
         for(let i=0; i<multiplier; i++) {
             let replica = chip.cloneNode(false);
-            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica),
+            replica.addEventListener('transitionend', () => {
+                    replica.parentElement.removeChild(replica);
+                    COIN_SOUND.play();
+                },
                 {once: true});
             overlay.appendChild(replica);
             replica.style.top = (originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2) + 'px';
             replica.style.left = (originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2) + 'px';
             window.requestAnimationFrame(function () {
-                replica.style.transitionDelay = (i * 0.75 / multiplier) + 's';
+                replica.style.transitionDelay = (i / (multiplier+2)) + 's';
                 window.requestAnimationFrame(function () {
                     replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
                     replica.style.left = '250px';
@@ -611,16 +614,18 @@
         houseChips.forEach(function (chip) {
             return drawLose(chip);
         });
-        new Promise(resolve => setTimeout(resolve, 1000));
-        wonChips.forEach(function (chip) {
-            return drawWin(chip);
-        });
+        setTimeout(function (){
+            wonChips.forEach(function (chip) {
+                return drawWin(chip);
+            });
+        }, 800);
 
     }
 
     // Our lifeCycle.
     async function lifeCycle() {
         hideRoulette();
+        // noinspection InfiniteLoopJS
         while (true) {
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;

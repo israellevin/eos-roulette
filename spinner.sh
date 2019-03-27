@@ -20,6 +20,8 @@ pay(){
 }
 
 bet(){
+    bets+=("$(cleos push action roulette bet '["bob", "'$1'", ['$((RANDOM % 0 + 32))"], $(((RANDOM % 8 + 1) * 1000)), $RANDOM]" -p bob@active)")
+
     bets+=("$(cleos push action roulette bet '["bob", "'$1'", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], '"$(( (RANDOM % 8 + 1) * 1000 )), $RANDOM]" -p bob@active)")
     bets+=("$(cleos push action roulette bet '["carol", "'$1'", [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], '"$(( (RANDOM % 8 + 1) * 1000 )), $RANDOM]" -p carol@active)")
     bets+=("$(cleos push action roulette bet '["bob", "'$1'", ['$((RANDOM % 37))"], $(((RANDOM % 8 + 1) * 1000)), $RANDOM]" -p bob@active)")
