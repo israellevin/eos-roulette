@@ -17,9 +17,10 @@
     Howler.usingWebAudio = false;
     const CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
     const CHEER_SOUND = new Howl({src: ['sounds/cheers.ogg']});
-    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav']});
+    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav'], volume:0.5});
     const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
     const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
+    const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav'], volume:0.3 });
 
     // Global state variables.
     let state = {
@@ -374,6 +375,7 @@
         let chip;
         if(bet.user === roulette.account_name){
             chip = CHIP_SELECTOR.querySelector('div.chip[data-value="' + bet.larimers + '"]').cloneNode(true);
+            chip.dataset.y = '120'; //send earnings to palyers box instead of selector
             changeClass(chip, 'iso', false);
         }else{
             chip = getChip(bet.user).cloneNode(true);
@@ -517,23 +519,29 @@
     // Animate a win.
     function drawWin(chip){
         let overlay = MAIN;
-        let chipRect = chip.getBoundingClientRect();
-        // FIXME Should probably be one of our "consts".
-        let overlayRect = overlay.getBoundingClientRect();
-        let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length); // how many coins
-        chip.style.transition = 'all ' + (0.1+chipRect.y/1500) + 's ease-in';
+        let originalLocation_rect = chip.getBoundingClientRect();
+        let overlay_rect = overlay.getBoundingClientRect();
+        // how many coins will fly, never more than 12
+        let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
+        chip.style.transition = 'all ' + (0.1+originalLocation_rect.y/1500) + 's ease-in';
         chip.parentElement.removeChild(chip);
-        COIN_SOUND.play();
-        for(let i = 0; i < multiplier; i++){
+        for(let i=0; i<multiplier; i++) {
             let replica = chip.cloneNode(false);
-            replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica), {once: true});
+            replica.addEventListener('transitionend', () => {
+                    replica.parentElement.removeChild(replica);
+                    COIN_SOUND.play();
+                },
+                {once: true});
             overlay.appendChild(replica);
-            window.requestAnimationFrame(function(){
-                replica.style.top = (chipRect.y - overlayRect.y) + 'px';
-                replica.style.left = (chipRect.x - overlayRect.x) + 'px';
-                replica.style.transitionDelay = (i * 0.75 / multiplier) + 's';
-                window.requestAnimationFrame(function(){
-                    replica.style.top = (chip.dataset.y - overlayRect.y) + 'px';
+            let overlayY = originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2;
+            let overlayX = originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2;
+            overlayY -= i * 2;
+            replica.style.top = overlayY + 'px';
+            replica.style.left = overlayX + 'px';
+            window.requestAnimationFrame(function () {
+                replica.style.transitionDelay = (0.1 + (multiplier-i) / (multiplier+2)) + 's';
+                window.requestAnimationFrame(function () {
+                    replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
                     replica.style.left = '250px';
                 });
             });
@@ -596,7 +604,7 @@
         });
     }
 
-    async function cleanChips(winningNumber){
+    function cleanChips(winningNumber) {
         let houseChips = [];
         let wonChips = [];
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
@@ -611,20 +619,23 @@
         houseChips.forEach(function(chip){
             drawLose(chip);
         });
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        wonChips.forEach(function(chip){
-            drawWin(chip);
-        });
+        setTimeout(function (){
+            wonChips.forEach(function (chip) {
+                return drawWin(chip);
+            });
+        }, 800);
 
     }
 
     // Our lifeCycle.
     async function lifeCycle(){
         hideRoulette();
-        while(true){
+        // noinspection InfiniteLoopJS
+        while (true) {
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
+            NO_MORE_BETS_SOUND.play();
             showRoulette();
             let winningNumber = await getResult(state.spin);
             await dropBall(winningNumber);
