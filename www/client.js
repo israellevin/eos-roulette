@@ -536,7 +536,7 @@
             let overlayX = originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2;
             overlayY -= i * 2;
             replica.style.top = overlayY + 'px';
-            replica.style.left = overlayXK + 'px';
+            replica.style.left = overlayX + 'px';
             window.requestAnimationFrame(function () {
                 replica.style.transitionDelay = (i / (multiplier+2)) + 's';
                 window.requestAnimationFrame(function () {
