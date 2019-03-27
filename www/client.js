@@ -374,7 +374,7 @@
         let chip;
         if(bet.user === roulette.account_name){
             chip = CHIP_SELECTOR.querySelector('div.chip[data-value="' + bet.larimers + '"]').cloneNode(true);
-            chip.dataset.y = '100'; //send earnings to palyers box instead of selector
+            chip.dataset.y = '120'; //send earnings to palyers box instead of selector
             changeClass(chip, 'iso', false);
         }else{
             chip = getChip(bet.user).cloneNode(true);
@@ -532,8 +532,11 @@
                 },
                 {once: true});
             overlay.appendChild(replica);
-            replica.style.top = (originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2) + 'px';
-            replica.style.left = (originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2) + 'px';
+            let overlayY = originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2;
+            let overlayX = originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2;
+            overlayY -= i * 2;
+            replica.style.top = overlayY + 'px';
+            replica.style.left = overlayXK + 'px';
             window.requestAnimationFrame(function () {
                 replica.style.transitionDelay = (i / (multiplier+2)) + 's';
                 window.requestAnimationFrame(function () {
