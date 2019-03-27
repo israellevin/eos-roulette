@@ -261,6 +261,7 @@
             document.removeEventListener('mouseup', removeChip);
             document.addEventListener('mouseup', function(mouseEvent){
                 chip.placed = true;
+                changeClass(chip, 'temporary', true);
                 placeBet(mouseEvent);
             }, {once: true});
         }
@@ -280,7 +281,7 @@
     }
 
     // Highlight potential bet and move betting chip if it exists.
-    function highlightBet(mouseEvent) {
+    function highlightBet(mouseEvent){
         changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
         let coverage = getCoverage(mouseEvent);
         coverage.forEach(function(number){
@@ -314,7 +315,7 @@
             tdElement.addEventListener('mousemove', highlightBet);
             tdElement.addEventListener('mousedown', hoverBet);
             let val = tdElement.dataset.coverage;
-            if (val.indexOf(',') < 0) {
+            if(val.indexOf(',') < 0){
                 let innerDiv = document.createElement('div');
                 changeClass(innerDiv, 'inner-td', true);
                 tdElement.appendChild(innerDiv);
@@ -419,7 +420,7 @@
     }
 
     // Get a player's entry in the players box, creating and adding a new one if needed.
-    function getPlayerEntry(user) {
+    function getPlayerEntry(user){
         let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + user + '"]');
         if(playerEntry){
             return playerEntry;
@@ -516,24 +517,25 @@
     // Animate a win.
     function drawWin(chip){
         let overlay = MAIN;
-        let originalLocation_rect = chip.getBoundingClientRect();
-        let overlay_rect = overlay.getBoundingClientRect();
+        let chipRect = chip.getBoundingClientRect();
+        // FIXME Should probably be one of our "consts".
+        let overlayRect = overlay.getBoundingClientRect();
         let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length); // how many coins
-        chip.style.transition = 'all ' + (0.1+originalLocation_rect.y/1500) + 's ease-in';
+        chip.style.transition = 'all ' + (0.1+chipRect.y/1500) + 's ease-in';
         chip.parentElement.removeChild(chip);
         COIN_SOUND.play();
-        for(let i=0; i<multiplier; i++) {
+        for(let i = 0; i < multiplier; i++){
             let replica = chip.cloneNode(false);
             replica.addEventListener('transitionend', () => replica.parentElement.removeChild(replica), {once: true});
             overlay.appendChild(replica);
-            window.requestAnimationFrame(function () {
-                replica.style.top = (originalLocation_rect.y - overlay_rect.y) + 'px';
-                replica.style.left = (originalLocation_rect.x - overlay_rect.x) + 'px';
+            window.requestAnimationFrame(function(){
+                replica.style.top = (chipRect.y - overlayRect.y) + 'px';
+                replica.style.left = (chipRect.x - overlayRect.x) + 'px';
                 replica.style.transitionDelay = (i * 0.75 / multiplier) + 's';
-                window.requestAnimationFrame(function () {
-                    replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
+                window.requestAnimationFrame(function(){
+                    replica.style.top = (chip.dataset.y - overlayRect.y) + 'px';
                     replica.style.left = '250px';
-                })
+                });
             });
         }
         // chip.parentElement.removeChild(chip);
@@ -587,39 +589,39 @@
                 resolveSpin(winning_number, resolve);
             }, {once: true});
             BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
-            var targetDeg = 1.5 * turns * -360 + winSlotDeg;
+            let targetDeg = 1.5 * turns * -360 + winSlotDeg;
             BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
             BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
             BALL.style.transform = 'rotate(' + -1 * targetDeg + 'deg)';
         });
     }
 
-    async function cleanChips(winningNumber) {
+    async function cleanChips(winningNumber){
         let houseChips = [];
         let wonChips = [];
-        LAYOUT.querySelectorAll('div.chip').forEach(function (chip) {
-            if (chip.parentElement.dataset.coverage.split(',').some(function (covered) {
+        LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
+            if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
                 return parseInt(covered, 10) === winningNumber;
-            })) {
+            })){
                 wonChips.push(chip);
             } else {
                 houseChips.push(chip);
             }
         });
-        houseChips.forEach(function (chip) {
-            return drawLose(chip);
+        houseChips.forEach(function(chip){
+            drawLose(chip);
         });
         await new Promise(resolve => setTimeout(resolve, 1000));
-        wonChips.forEach(function (chip) {
-            return drawWin(chip);
+        wonChips.forEach(function(chip){
+            drawWin(chip);
         });
 
     }
 
     // Our lifeCycle.
-    async function lifeCycle() {
+    async function lifeCycle(){
         hideRoulette();
-        while (true) {
+        while(true){
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
@@ -671,9 +673,9 @@
     // ensure click outside open Menu closes it
     function clickMenu(checkBox){
         let overlay = document.getElementById("overlay");
-        if (checkBox.checked) {
+        if(checkBox.checked){
             overlay.style.display = 'block';
-            overlay.addEventListener('mousedown', function () {
+            overlay.addEventListener('mousedown', function(){
                 checkBox.checked = false;
                 overlay.style.display = 'none';
             }, {once: true});

@@ -639,3 +639,6 @@ nav{
     transition: background-color 1s linear;
 }
 
+.temporary{
+    transform: scale(5);
+}
