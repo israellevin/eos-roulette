@@ -186,7 +186,7 @@
             try{
                 return resolve((await roulette.bet(
                     state.spin.hash, coverage, parseInt(larimers, 10), +new Date()
-                )).processed.action_traces[0].act.data.hash);
+                )).processed.action_traces[0].act.data);
             }catch(error){
                 return reject(error);
             }
@@ -200,6 +200,14 @@
         }
 
         let chip = getPlayerEntry(user).querySelector('.chip');
+        changeClass(chip, 'iso', false);
+        return chip;
+    }
+
+    // Get a new user chip to place on the layout.
+    function createChip(user){
+        const chip = getPlayerEntry(user).querySelector('div.chip').cloneNode(true);
+        changeClass(chip, 'eventless', true);
         changeClass(chip, 'iso', false);
         return chip;
     }
@@ -225,17 +233,31 @@
     }
 
     // Place a bet on the layout.
-    async function placeBet(mouseEvent){
+    async function placeBet(coverage, larimers){
         try{
-            let coverage = getCoverage(mouseEvent);
-            let larimers = getChip().dataset.value;
-            let hash = await bet(coverage, larimers);
-            console.info(hash, coverage);
+            const betData = await bet(coverage, larimers);
+            console.info('new bet', betData);
+            return betData;
         // Placement failed.
         }catch(error){
             console.error('placement failed', error);
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
         }
+    }
+
+    // Place a temp chip on the layout.
+    async function placeChip(chip, coverage){
+        const chipPosition = getChipPosition(coverage);
+        if(chip.dataset.user === roulette.account_name){
+            chip.style = '';
+        }
+        changeClass(chip, chipPosition.positions.concat(['small']), true);
+        chipPosition.target.appendChild(chip);
+
+        // Add some identifying data to the chip.
+        chip.dataset.coverage = coverage;
+        chip.dataset.user = roulette.account_name;
+        chip.placed = true;
     }
 
     // Show a potential bet.
@@ -253,8 +275,8 @@
             return showMessage('Please choose bet size');  // TODO open hint on selector
         }
 
-        let chip = selectedChip.cloneNode(true);
-        changeClass(chip, 'eventless', true);
+        let chip = createChip(roulette.account_name);
+        changeClass(chip, 'small', false);
 
         // Remove the chip if the user did not follow through.
         function removeChip(){
@@ -267,12 +289,13 @@
 
         // Use the chip to make a bet if the user follows through.
         function useChip(){
-            chip.used = true;
             document.removeEventListener('mouseup', removeChip);
-            document.addEventListener('mouseup', function(mouseEvent){
-                chip.placed = true;
-                changeClass(chip, 'temporary', true);
-                placeBet(mouseEvent);
+            chip.used = true;
+            document.addEventListener('mouseup', async function(mouseEvent){
+                let coverage = getCoverage(mouseEvent);
+                chip.dataset.user = roulette.account_name;
+                placeChip(chip, coverage);
+                chip.dataset.hash = await placeBet(coverage, chip.dataset.value);
             }, {once: true});
         }
         chip.addEventListener('transitionend', useChip, {once: true});
@@ -383,29 +406,18 @@
     function drawBet(bet){
         let chip;
         if(bet.user === roulette.account_name){
-            chip = CHIP_SELECTOR.querySelector('div.chip[data-value="' + bet.larimers + '"]').cloneNode(true);
-            chip.dataset.y = '120'; //send earnings to palyers box instead of selector
-            changeClass(chip, 'iso', false);
-        }else{
-            chip = getChip(bet.user).cloneNode(true);
-        }
-        let chipPosition = getChipPosition(bet.coverage);
-        changeClass(chip, chipPosition.positions.concat(['small', 'eventless']), true);
-        chip.appendChild(document.createTextNode(bet.larimers / 10000));
-
-        // TODO Make this pretty with a cool animation.
-        if(bet.user === roulette.account_name){
-            LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"]');
+            changeClass(chip, 'temporary', false);
             CLICK_SOUND.play();
-            chipPosition.target.appendChild(chip);
-        // for now, space other players bets
         }else{
+            // for now, space other players bets
             setTimeout(function(){
-                chipPosition.target.appendChild(chip);
+                chip = createChip(bet.user);
+                chip.dataset.user = bet.user;
+                placeChip(chip, bet.coverage);
                 CLICK_SOUND.play();
                 }, 5000 * Math.random());
         }
-
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
     }
 
@@ -446,7 +458,6 @@
 
         let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
         changeClass(chip, 'small', true);
-        changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', userColor(user));
         playerEntry.appendChild(chip);
 
@@ -555,7 +566,7 @@
                 });
             });
         }
-        // chip.parentElement.removeChild(chip);
+        chip.parentElement.removeChild(chip);
     }
 
     // Animate a lose.
