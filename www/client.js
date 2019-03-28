@@ -193,22 +193,16 @@
         });
     }
 
-    // Get a chip according to user.
-    function getChip(user){
-        if(!user || user === roulette.account_name){
-            return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
-        }
-
-        let chip = getPlayerEntry(user).querySelector('.chip');
-        changeClass(chip, 'iso', false);
-        return chip;
-    }
-
     // Get a new user chip to place on the layout.
-    function createChip(user){
-        const chip = getPlayerEntry(user).querySelector('div.chip').cloneNode(true);
+    function createChip(user, larimers){
+        let chip;
+        if(larimers){
+            chip = CHIP_SELECTOR.querySelector('div.larimers' + larimers / 1000 + 'k');
+        }else{
+            chip = getPlayerEntry(user).querySelector('div.chip');
+        }
+        chip = chip.cloneNode(true);
         changeClass(chip, 'eventless', true);
-        changeClass(chip, 'iso', false);
         return chip;
     }
 
@@ -217,19 +211,18 @@
         const chip = mouseEvent.currentTarget;
         const playerEntry = getPlayerEntry(roulette.account_name);
         const oldChip = playerEntry.querySelector('div.chip');
-
         changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
         changeClass(chip, 'iso', false);
         CHIP_SELECTOR.scrollTo({
             left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
             behavior: 'smooth'
         });
-        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
 
         let newChip = chip.cloneNode(true);
         newChip.dataset.y = oldChip.dataset.y;
         changeClass(newChip, 'small', true);
         playerEntry.replaceChild(newChip, oldChip);
+        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
     }
 
     // Place a bet on the layout.
@@ -250,6 +243,7 @@
         const chipPosition = getChipPosition(coverage);
         if(chip.dataset.user === roulette.account_name){
             chip.style = '';
+            changeClass(chip, 'temporary', true);
         }
         changeClass(chip, chipPosition.positions.concat(['small']), true);
         chipPosition.target.appendChild(chip);
@@ -270,7 +264,7 @@
             return showMessage('No spins currently in progress');
         }
 
-        let selectedChip = getChip();
+        let selectedChip = CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
         if(selectedChip === null){
             return showMessage('Please choose bet size');  // TODO open hint on selector
         }
@@ -316,8 +310,11 @@
     // Highlight potential bet and move betting chip if it exists.
     function highlightBet(mouseEvent){
         changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
+        changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'low-highlight', false);
         let coverage = getCoverage(mouseEvent);
+        changeClass(mouseEvent.currentTarget, 'low-highlight', true);
         coverage.forEach(function(number){
+            changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'low-highlight', false);
             changeClass(LAYOUT.querySelector('[data-coverage="' + number + '"]'), 'highlight', true);
         });
         let chip = LAYOUT.querySelector('#layout > .chip');
@@ -336,7 +333,7 @@
     // It is assumed that the element contains mouse sensitive elements with data-coverage attributes.
     function initLayout(layout){
         LAYOUT.addEventListener('mouseleave', function(){
-            changeClass(LAYOUT.querySelectorAll('[data-coverage]'), 'highlight', false);
+            changeClass(LAYOUT.querySelectorAll('[data-coverage]'), ['highlight', 'low-highlight'], false);
         });
         MAIN.addEventListener('mousemove', function(mouseEvent){
             const bettingChip = LAYOUT.querySelector('#layout > .chip');
@@ -404,10 +401,17 @@
 
     // Draw a bet on the felt.
     function drawBet(bet){
-        let chip;
+        let chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"][data-user="' + roulette.account_name + '"]');
         if(bet.user === roulette.account_name){
-            chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"]');
-            changeClass(chip, 'temporary', false);
+            if(chip){
+                changeClass(chip, 'temporary', false);
+            }else{
+                chip = createChip(bet.user, bet.larimers);
+                changeClass(chip, 'iso', false);
+                chip.dataset.user = bet.user;
+                placeChip(chip, bet.coverage);
+                changeClass(chip, 'temporary', false);
+            }
             CLICK_SOUND.play();
         }else{
             // for now, space other players bets
@@ -458,6 +462,8 @@
 
         let chip = CHIP_SELECTOR.querySelector('div.chip').cloneNode(true);
         changeClass(chip, 'small', true);
+        changeClass(chip, 'iso', false);
+
         chip.style.setProperty('--chip-face', userColor(user));
         playerEntry.appendChild(chip);
 
@@ -544,7 +550,6 @@
         // how many coins will fly, never more than 12
         let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
         chip.style.transition = 'all ' + (0.1 + chipRect.y / 1500) + 's ease-in';
-        chip.parentElement.removeChild(chip);
         for(let i = 0; i < multiplier; i++){
             let replica = chip.cloneNode(false);
             replica.addEventListener('transitionend', () => {
@@ -696,8 +701,9 @@
     // Repeat last bet.
     async function rebet(){
         for(const oldBet of Object.values(state.lastBets)){
-            await bet(oldBet.coverage, oldBet.larimers);
+            await placeBet(oldBet.coverage, oldBet.larimers);
         }
+        state.lastBets = {};
     }
 
     // ensure click outside open Menu closes it

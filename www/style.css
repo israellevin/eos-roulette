@@ -260,6 +260,11 @@ i.fa.fa-dot-circle-o.players-list-item{
     transition-duration: 0s;
 }
 
+#layout td.low-highlight{
+    background-color: rgba(230, 190, 29, 0.73);
+    transition-duration: 0s;
+}
+
 td.red{
     background-image: url(images/red.png);
 }
@@ -635,7 +640,7 @@ nav{
 }
 
 .winning-number{
-    background-color: red;
+    background-color: yellow;
     transition: background-color 1s linear;
 }
 
