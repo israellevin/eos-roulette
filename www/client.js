@@ -205,14 +205,23 @@
     }
 
     // Select a chip to set the bet size.
-    function selectChip(chip){
-        changeClass(getChip(), 'iso', true);
+    function selectChip(mouseEvent){
+        const chip = mouseEvent.currentTarget;
+        const playerEntry = getPlayerEntry(roulette.account_name);
+        const oldChip = playerEntry.querySelector('div.chip');
+
+        changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
         changeClass(chip, 'iso', false);
-        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
         CHIP_SELECTOR.scrollTo({
             left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
             behavior: 'smooth'
         });
+        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
+
+        let newChip = chip.cloneNode(true);
+        newChip.dataset.y = oldChip.dataset.y;
+        changeClass(newChip, 'small', true);
+        playerEntry.replaceChild(newChip, oldChip);
     }
 
     // Place a bet on the layout.
@@ -439,7 +448,6 @@
         changeClass(chip, 'small', true);
         changeClass(chip, 'iso', false);
         chip.style.setProperty('--chip-face', userColor(user));
-        // chip.style.left = '1.5em';
         playerEntry.appendChild(chip);
 
         PLAYERS_BOX.appendChild(playerEntry);
@@ -519,13 +527,14 @@
     // Animate a win.
     function drawWin(chip){
         let overlay = MAIN;
-        let originalLocation_rect = chip.getBoundingClientRect();
-        let overlay_rect = overlay.getBoundingClientRect();
+        let chipRect = chip.getBoundingClientRect();
+        // FIXME Should probably be one of our "consts".
+        let overlayRect = overlay.getBoundingClientRect();
         // how many coins will fly, never more than 12
         let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
-        chip.style.transition = 'all ' + (0.1+originalLocation_rect.y/1500) + 's ease-in';
+        chip.style.transition = 'all ' + (0.1 + chipRect.y / 1500) + 's ease-in';
         chip.parentElement.removeChild(chip);
-        for(let i=0; i<multiplier; i++) {
+        for(let i = 0; i < multiplier; i++){
             let replica = chip.cloneNode(false);
             replica.addEventListener('transitionend', () => {
                     replica.parentElement.removeChild(replica);
@@ -533,15 +542,15 @@
                 },
                 {once: true});
             overlay.appendChild(replica);
-            let overlayY = originalLocation_rect.y - overlay_rect.y + originalLocation_rect.height/2;
-            let overlayX = originalLocation_rect.x - overlay_rect.x+ originalLocation_rect.width/2;
+            let overlayY = chipRect.y - overlayRect.y + chipRect.height / 2;
+            let overlayX = chipRect.x - overlayRect.x + chipRect.width / 2;
             overlayY -= i * 2;
             replica.style.top = overlayY + 'px';
             replica.style.left = overlayX + 'px';
-            window.requestAnimationFrame(function () {
-                replica.style.transitionDelay = (0.1 + (multiplier-i) / (multiplier+2)) + 's';
-                window.requestAnimationFrame(function () {
-                    replica.style.top = (chip.dataset.y - overlay_rect.y) + 'px';
+            window.requestAnimationFrame(function(){
+                replica.style.transitionDelay = (0.1 + (multiplier - i) / (multiplier + 2)) + 's';
+                window.requestAnimationFrame(function(){
+                    replica.style.top = (chip.dataset.y - overlayRect.y) + 'px';
                     replica.style.left = '250px';
                 });
             });
@@ -604,7 +613,7 @@
         });
     }
 
-    function cleanChips(winningNumber) {
+    async function cleanChips(winningNumber){
         let houseChips = [];
         let wonChips = [];
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
@@ -619,12 +628,11 @@
         houseChips.forEach(function(chip){
             drawLose(chip);
         });
-        setTimeout(function (){
-            wonChips.forEach(function (chip) {
+        setTimeout(function(){
+            wonChips.forEach(function(chip){
                 return drawWin(chip);
             });
         }, 800);
-
     }
 
     // Our lifeCycle.
@@ -732,8 +740,11 @@
         // FIXME Just for debug.
         login();
 
-        // Initialize game.
+        // Initialize UI.
+        CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
         initLayout(LAYOUT);
+
+        // Start rolling.
         lifeCycle();
     };
 
