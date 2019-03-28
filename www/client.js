@@ -195,14 +195,11 @@
 
     // Get a new user chip to place on the layout.
     function createChip(user, larimers){
-        let chip;
-        if(larimers){
-            chip = CHIP_SELECTOR.querySelector('div.larimers' + larimers / 1000 + 'k');
-        }else{
-            chip = getPlayerEntry(user).querySelector('div.chip');
-        }
-        chip = chip.cloneNode(true);
+        let chip = getPlayerEntry(user).querySelector('div.chip').cloneNode(true);
         changeClass(chip, 'eventless', true);
+        if(larimers){
+            chip.className = 'chip small larimers' + larimers / 1000 + 'k';
+        }
         return chip;
     }
 
