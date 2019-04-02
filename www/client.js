@@ -88,7 +88,7 @@
 
     }
 
-    // Get the target cell and position relative to it of a chip from a coverage.
+    // Get a chip target cell and position relative to it from a coverage.
     function getChipPosition(coverage){
         let target = [];
         let positions = [];
@@ -174,7 +174,33 @@
         return coverage;
     }
 
-    // Place a bet.
+    // Get a new user chip to place on the layout.
+    function createChip(user, larimers){
+        let chip = getPlayerEntry(user).querySelector('div.chip').cloneNode(true);
+        changeClass(chip, 'eventless', true);
+        if(larimers){
+            chip.className = 'chip small larimers' + larimers / 1000 + 'k';
+        }
+        return chip;
+    }
+
+    // Place a temp chip on the layout.
+    async function placeChip(chip, coverage){
+        const chipPosition = getChipPosition(coverage);
+        if(chip.dataset.user === roulette.account_name){
+            chip.style = '';
+            changeClass(chip, 'temporary', true);
+        }
+        changeClass(chip, chipPosition.positions.concat(['small']), true);
+        chipPosition.target.appendChild(chip);
+
+        // Add some identifying data to the chip.
+        chip.dataset.coverage = coverage;
+        chip.dataset.user = roulette.account_name;
+        chip.placed = true;
+    }
+
+    // Send a bet to the roulette.
     function bet(coverage, larimers){
         if(state.spin === null){
             return showMessage('No spins currently in progress');
@@ -193,35 +219,6 @@
         });
     }
 
-    // Get a new user chip to place on the layout.
-    function createChip(user, larimers){
-        let chip = getPlayerEntry(user).querySelector('div.chip').cloneNode(true);
-        changeClass(chip, 'eventless', true);
-        if(larimers){
-            chip.className = 'chip small larimers' + larimers / 1000 + 'k';
-        }
-        return chip;
-    }
-
-    // Select a chip to set the bet size.
-    function selectChip(mouseEvent){
-        const chip = mouseEvent.currentTarget;
-        const playerEntry = getPlayerEntry(roulette.account_name);
-        const oldChip = playerEntry.querySelector('div.chip');
-        changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
-        changeClass(chip, 'iso', false);
-        CHIP_SELECTOR.scrollTo({
-            left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
-            behavior: 'smooth'
-        });
-
-        let newChip = chip.cloneNode(true);
-        newChip.dataset.y = oldChip.dataset.y;
-        changeClass(newChip, 'small', true);
-        playerEntry.replaceChild(newChip, oldChip);
-        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
-    }
-
     // Place a bet on the layout.
     async function placeBet(coverage, larimers){
         try{
@@ -233,22 +230,6 @@
             console.error('placement failed', error);
             LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
         }
-    }
-
-    // Place a temp chip on the layout.
-    async function placeChip(chip, coverage){
-        const chipPosition = getChipPosition(coverage);
-        if(chip.dataset.user === roulette.account_name){
-            chip.style = '';
-            changeClass(chip, 'temporary', true);
-        }
-        changeClass(chip, chipPosition.positions.concat(['small']), true);
-        chipPosition.target.appendChild(chip);
-
-        // Add some identifying data to the chip.
-        chip.dataset.coverage = coverage;
-        chip.dataset.user = roulette.account_name;
-        chip.placed = true;
     }
 
     // Show a potential bet.
@@ -354,14 +335,6 @@
         });
     }
 
-    // Update the user's balance.
-    async function updateBalance(){
-        if(roulette.account_name === null){
-            return console.error('can not get balance when disconnected');
-        }
-        document.getElementById('balance').innerText = await roulette.getBalance();
-    }
-
     // Hide the roulette.
     function hideRoulette(){
         WHEEL.style.opacity = '0';
@@ -450,7 +423,6 @@
             return playerEntry;
         }
 
-        // TODO create a complex div with chip, user, bet info, etc
         playerEntry = document.createElement('li');
         playerEntry.style.position = 'relative';
         playerEntry.style.height = '1.8em';
@@ -540,10 +512,7 @@
 
     // Animate a win.
     function drawWin(chip){
-        let overlay = MAIN;
         let chipRect = chip.getBoundingClientRect();
-        // FIXME Should probably be one of our "consts".
-        let overlayRect = overlay.getBoundingClientRect();
         // how many coins will fly, never more than 12
         let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
         chip.style.transition = 'all ' + (0.1 + chipRect.y / 1500) + 's ease-in';
@@ -553,17 +522,18 @@
                     replica.parentElement.removeChild(replica);
                     COIN_SOUND.play();
                 },
-                {once: true});
-            overlay.appendChild(replica);
-            let overlayY = chipRect.y - overlayRect.y + chipRect.height / 2;
-            let overlayX = chipRect.x - overlayRect.x + chipRect.width / 2;
+                {once: true}
+            );
+            MAIN.appendChild(replica);
+            let overlayY = chipRect.y - MAIN.rect.y + chipRect.height / 2;
+            let overlayX = chipRect.x - MAIN.rect.x + chipRect.width / 2;
             overlayY -= i * 2;
             replica.style.top = overlayY + 'px';
             replica.style.left = overlayX + 'px';
             window.requestAnimationFrame(function(){
                 replica.style.transitionDelay = (0.1 + (multiplier - i) / (multiplier + 2)) + 's';
                 window.requestAnimationFrame(function(){
-                    replica.style.top = (chip.dataset.y - overlayRect.y) + 'px';
+                    replica.style.top = (chip.dataset.y - MAIN.rect.y) + 'px';
                     replica.style.left = '250px';
                 });
             });
@@ -601,7 +571,7 @@
         }catch(error){}
         state.bets = {};
         state.spin = null;
-        resolve();  //fixme - do we need?
+        return resolve();
     }
 
     // Drop the ball and reveal the winner.
@@ -616,7 +586,7 @@
         BALL_CONTAINER.style.opacity = '1';
         return new Promise(function(resolve){
             BALL_CONTAINER.addEventListener('transitionend', function(){
-                resolveSpin(winning_number, resolve);
+                return resolveSpin(winning_number, resolve);
             }, {once: true});
             BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
             let targetDeg = 1.5 * turns * -360 + winSlotDeg;
@@ -630,7 +600,7 @@
         let houseChips = [];
         let wonChips = [];
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
-            if(chip.parentElement.dataset.coverage.split(',').some(function(covered){
+            if(chip.dataset.coverage.split(',').some(function(covered){
                 return parseInt(covered, 10) === winningNumber;
             })){
                 wonChips.push(chip);
@@ -650,9 +620,9 @@
 
     // Our lifeCycle.
     async function lifeCycle(){
-        hideRoulette();
         // noinspection InfiniteLoopJS
         while (true) {
+            hideRoulette();
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
@@ -661,8 +631,15 @@
             let winningNumber = await getResult(state.spin);
             await dropBall(winningNumber);
             await cleanChips(winningNumber);
-            hideRoulette();
         }
+    }
+
+    // Update the user's balance.
+    async function updateBalance(){
+        if(roulette.account_name === null){
+            return console.error('can not get balance when disconnected');
+        }
+        document.getElementById('balance').innerText = await roulette.getBalance();
     }
 
     // Login to scatter.
@@ -693,6 +670,25 @@
             document.getElementById('connectBtn').style.display = 'block';
             GOODBYE_SOUND.play();
         });
+    }
+
+    // Select a chip to set the bet size.
+    function selectChip(mouseEvent){
+        const chip = mouseEvent.currentTarget;
+        const playerEntry = getPlayerEntry(roulette.account_name);
+        const oldChip = playerEntry.querySelector('div.chip');
+        changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
+        changeClass(chip, 'iso', false);
+        CHIP_SELECTOR.scrollTo({
+            left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
+            behavior: 'smooth'
+        });
+
+        let newChip = chip.cloneNode(true);
+        newChip.dataset.y = oldChip.dataset.y;
+        changeClass(newChip, 'small', true);
+        playerEntry.replaceChild(newChip, oldChip);
+        showMessage('Each chip now worth ' + (chip.dataset.value / 10000) + ' EOS');
     }
 
     // Repeat last bet.
@@ -750,9 +746,7 @@
         CHIP_SELECTOR = document.getElementById('chip-selector');
         PLAYERS_BOX = document.getElementById('players-box').children[0];
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
-
-        // FIXME Just for debug.
-        login();
+        MAIN.rect = MAIN.getBoundingClientRect();
 
         // Initialize UI.
         CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
@@ -775,8 +769,5 @@
         },
         clickMenu: clickMenu,
         rebet: rebet,
-
-        // FIXME This is for debug only.
-        state: state
     };
 }());
