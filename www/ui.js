@@ -17,12 +17,14 @@
     // Sounds.
     // Avoids silly browser error.
     Howler.usingWebAudio = false;
-    const CLICK_SOUND = new Howl({src: ['sounds/click.wav']});
-    const CHEER_SOUND = new Howl({src: ['sounds/cheers.ogg']});
-    const WELCOME_SOUND = new Howl({src: ['sounds/welcome.wav'], volume:0.5});
-    const GOODBYE_SOUND = new Howl({src: ['sounds/goodbye.wav']});
-    const COIN_SOUND = new Howl({src: ['sounds/coin short 2.wav']});
-    const NO_MORE_BETS_SOUND = new Howl({src: ['sounds/no more bets please.wav'], volume:0.3 });
+    const SOUNDS = {
+        CLICK: new Howl({src: ['sounds/click.wav']}),
+        CHEER: new Howl({src: ['sounds/cheers.ogg']}),
+        WELCOME: new Howl({src: ['sounds/welcome.wav'], volume:0.5}),
+        GOODBYE: new Howl({src: ['sounds/goodbye.wav']}),
+        COIN: new Howl({src: ['sounds/coin.wav']}),
+        NO_MORE_BETS: new Howl({src: ['sounds/no_more.wav'], volume:0.3 }),
+    };
 
     // Global id of user details update interval.
     let loginUpdater;
@@ -225,14 +227,14 @@
                 placeChip(chip, bet.coverage);
                 changeClass(chip, 'temporary', false);
             }
-            CLICK_SOUND.play();
+            SOUNDS.CLICK.play();
         }else{
             // for now, space other players bets
             setTimeout(function(){
                 chip = createChip(bet.user);
                 chip.dataset.user = bet.user;
                 placeChip(chip, bet.coverage);
-                CLICK_SOUND.play();
+                SOUNDS.CLICK.play();
                 }, 5000 * Math.random());
         }
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
@@ -307,7 +309,7 @@
             let replica = chip.cloneNode(false);
             replica.addEventListener('transitionend', () => {
                     replica.parentElement.removeChild(replica);
-                    COIN_SOUND.play();
+                    SOUNDS.COIN.play();
                 },
                 {once: true}
             );
@@ -379,16 +381,16 @@
     // Initialize UI.
     function init(){
         initVolume();
-        MAIN = document.getElementById('main-space');
-        LOG = document.getElementById('log');
-        MESSAGE = document.getElementById('message');
-        BALANCE = document.getElementById('balance');
-        LAYOUT = document.getElementById('layout');
-        WHEEL = document.getElementById('wheel');
-        BALL_CONTAINER = document.getElementById('ballContainer');
-        BALL = document.getElementById('ball');
-        CHIP_SELECTOR = document.getElementById('chip-selector');
-        PLAYERS_BOX = document.getElementById('players-box').children[0];
+        MAIN = window.rouletteUI.MAIN = document.getElementById('main-space');
+        LOG = window.rouletteUI.LOG = document.getElementById('log');
+        MESSAGE = window.rouletteUI.MESSAGE = document.getElementById('message');
+        BALANCE = window.rouletteUI.BALANCE = document.getElementById('balance');
+        LAYOUT = window.rouletteUI.LAYOUT = document.getElementById('layout');
+        WHEEL = window.rouletteUI.WHEEL = document.getElementById('wheel');
+        BALL_CONTAINER = window.rouletteUI.BALL_CONTAINER = document.getElementById('ballContainer');
+        BALL = window.rouletteUI.BALL = document.getElementById('ball');
+        CHIP_SELECTOR = window.rouletteUI.CHIP_SELECTOR = document.getElementById('chip-selector');
+        PLAYERS_BOX = window.rouletteUI.PLAYERS_BOX = document.getElementById('players-box').children[0];
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
         MAIN.rect = MAIN.getBoundingClientRect();
         CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
@@ -406,7 +408,7 @@
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
                 loginUpdater = setInterval(updateBalance, 1000);
-                WELCOME_SOUND.play();
+                SOUNDS.WELCOME.play();
             }
         });
     }
@@ -428,13 +430,16 @@
             clearInterval(loginUpdater);
             document.getElementById('user').innerText = '';
             document.getElementById('connectBtn').style.display = 'block';
-            GOODBYE_SOUND.play();
+            SOUNDS.GOODBYE.play();
         });
     }
 
     // Expose some functionality.
-    window.roulette.ui = {
+    window.rouletteUI = {
         init: init,
+        changeClass: changeClass,
+        showMessage: showMessage,
+        addLogLine: addLogLine,
         hideRoulette: hideRoulette,
         login: login,
         logout: logout,
@@ -449,11 +454,6 @@
         placeChip: placeChip,
         showRoulette: showRoulette,
         displayResult: displayResult,
-        CLICK_SOUND: CLICK_SOUND,
-        CHEER_SOUND: CHEER_SOUND,
-        WELCOME_SOUND: WELCOME_SOUND,
-        GOODBYE_SOUND: GOODBYE_SOUND,
-        COIN_SOUND: COIN_SOUND,
-        NO_MORE_BETS_SOUND: NO_MORE_BETS_SOUND,
+        SOUNDS: SOUNDS
     };
 }());

@@ -1,7 +1,7 @@
 // jshint esversion: 8
 (function(){
     'use strict';
-    const ui = roulette.ui;
+    const ui = window.rouletteUI;
 
     // Global state variables.
     let state = {
@@ -162,13 +162,13 @@
     // Initialize an html element as a layout.
     // It is assumed that the element contains mouse sensitive elements with data-coverage attributes.
     function initLayout(layout){
-        ui.LAYOUT.addEventListener('mouseleave', function(){
-            ui.changeClass(ui.LAYOUT.querySelectorAll('[data-coverage]'), ['highlight', 'low-highlight'], false);
+        layout.addEventListener('mouseleave', function(){
+            ui.changeClass(layout.querySelectorAll('[data-coverage]'), ['highlight', 'low-highlight'], false);
         });
         ui.MAIN.addEventListener('mousemove', function(mouseEvent){
-            const bettingChip = ui.LAYOUT.querySelector('#layout > .chip');
+            const bettingChip = layout.querySelector('#layout > .chip');
             if(bettingChip && (!bettingChip.placed)){
-                bettingChip.style.opacity = ui.LAYOUT.contains(mouseEvent.target) ? 1 : 0;
+                bettingChip.style.opacity = layout.contains(mouseEvent.target) ? 1 : 0;
             }
         });
         layout.querySelectorAll('[data-coverage]').forEach(function(tdElement){
@@ -293,7 +293,7 @@
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
-            ui.NO_MORE_BETS_SOUND.play();
+            ui.SOUNDS.NO_MORE_BETS.play();
             ui.showRoulette();
             let winningNumber = await getResult(state.spin);
             await dropBall(winningNumber);
@@ -324,7 +324,6 @@
     }
 
     window.onload = function(){
-        console.log('!!');
         // Initialize UI.
         ui.init();
         initLayout(ui.LAYOUT);
