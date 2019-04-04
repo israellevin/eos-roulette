@@ -1,7 +1,8 @@
 // jshint esversion: 8
 (function(){
     'use strict';
-    const ui = window.rouletteUI;
+
+    const ui = window.roulette.ui;
 
     // Global state variables.
     let state = {
@@ -11,6 +12,28 @@
         winningNumber: null,
         loginUpdater: null
     };
+
+    // Initialize socket.
+    const SOCKET = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    SOCKET.on('disconnect', function(){
+        console.error('socket disconnected');
+    });
+
+    // Await reply on socket.
+    function emit(call, data, call_back){
+        return new Promise(function(resolve){
+            SOCKET.once(call_back || call, function(data){
+                resolve(data);
+            });
+            SOCKET.emit(call, data);
+        });
+    }
+
+    // Get current user's balance.
+    async function getBalance(){
+        return await emit('get_balance', roulette.scatter.account_name, 'get_balance');
+    }
+
 
     // Get selected coverage from a mouse event on the layout.
     function getCoverage(mouseEvent){
@@ -84,7 +107,7 @@
         }
         return new Promise(async function(resolve, reject){
             try{
-                return resolve((await roulette.bet(
+                return resolve((await roulette.scatter.bet(
                     state.spin.hash, coverage, parseInt(larimers, 10), +new Date()
                 )).processed.action_traces[0].act.data);
             }catch(error){
@@ -108,7 +131,7 @@
 
     // Show a potential bet.
     function hoverBet(mouseEvent){
-        if(roulette.account_name === null){
+        if(roulette.scatter.account_name === null){
             return ui.showMessage('Must be logged in to bet');
         }
 
@@ -121,7 +144,7 @@
             return ui.showMessage('Please choose bet size');  // TODO open hint on selector
         }
 
-        let chip = ui.createChip(roulette.account_name);
+        let chip = ui.createChip(roulette.scatter.account_name);
         ui.changeClass(chip, 'small', false);
 
         // Remove the chip if the user did not follow through.
@@ -139,7 +162,7 @@
             chip.used = true;
             document.addEventListener('mouseup', async function(mouseEvent){
                 let coverage = getCoverage(mouseEvent);
-                chip.dataset.user = roulette.account_name;
+                chip.dataset.user = roulette.scatter.account_name;
                 ui.placeChip(chip, coverage);
                 chip.dataset.hash = await placeBet(coverage, chip.dataset.value);
             }, {once: true});
@@ -188,7 +211,7 @@
     }
 
     // Update bets.
-    async function updateBets(bets){
+    function updateBets(bets){
         bets.forEach(function(bet){
             if(!(bet.user in state.bets)){
                 state.bets[bet.user] = {};
@@ -206,17 +229,15 @@
     async function getSpin(oldResolve){
         ui.showMessage('Trying to get a spin...');
         const now = Math.round(new Date() / 1000);
-        const spin = await roulette.selectSpin(
-            now + (roulette.account_name ? 30 : 10));
-
-        return new Promise(function(resolve){
+        const spin = await emit('get_spin', now + (roulette.scatter.account_name ? 30 : 10));
+        return new Promise(async function(resolve){
             if(oldResolve){
                 resolve = oldResolve;
             }
             if(spin){
                 ui.showMessage('Connected to spin ' + spin.hash.substr(0, 4));
                 resolve(spin);
-                roulette.monitorSpin(spin);
+                await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.scatter.account_name}, 'bettor_joined');
             }else{
                 ui.showMessage('No spins found, will retry shortly');
                 setTimeout(function(){getSpin(resolve);}, 3000);
@@ -232,7 +253,7 @@
             if(oldResolve){
                 resolve = oldResolve;
             }
-            updateBets(await roulette.getBets(spin.hash));
+            updateBets(await emit('get_bets', spin.hash));
             ui.updatePlayersBox(state.bets);
             let now = Math.round(new Date() / 1000);
             if(now < spin.maxbettime){
@@ -248,7 +269,7 @@
     // Get the result of a spin.
     async function getResult(spin){
         ui.addLogLine('waiting for result');
-        return await roulette.getWinningNumber(spin);
+        return await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.scatter.account_name}, 'winning_number');
     }
 
     // Resolve the spin.
@@ -260,7 +281,7 @@
                     ui.showMessage(user + ' won ' + (
                         bet.larimers * (36 / bet.coverage.length)
                     ) + ' larimers');
-                    if(user === roulette.account_name){
+                    if(user === roulette.scatter.account_name){
                         ui.SOUNDS.CHEER.play();
                     }
                 }
@@ -270,7 +291,7 @@
         ui.LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
             console.error('orphan chip', chip.parentElement.removeChild(chip)));
         try{
-            state.lastBets = state.bets[roulette.account_name];
+            state.lastBets = state.bets[roulette.scatter.account_name];
         }catch(error){}
         state.bets = {};
         state.spin = null;
@@ -338,6 +359,7 @@
     }
 
     window.onload = function(){
+
         // Initialize UI.
         initLayout(ui.init().LAYOUT);
 
@@ -346,14 +368,15 @@
     };
 
     // Expose some functionality.
-    window.rouletteClient = {
+    window.roulette.client = {
         hintsShown: false,
         startIntro: function(){introJs().start();},
         toggleHints: function(){
-            introJs()[window.rouletteClient.hintsShown ? 'hideHints' : 'showHints']();
-            window.rouletteClient.hintsShown = !window.rouletteClient.hintsShown;
+            introJs()[window.roulette.client.hintsShown ? 'hideHints' : 'showHints']();
+            window.roulette.client.hintsShown = !window.roulette.client.hintsShown;
         },
         clickMenu: clickMenu,
         rebet: rebet,
+        getBalance: getBalance
     };
 }());

@@ -81,7 +81,7 @@
     // Select a chip to set the bet size.
     function selectChip(mouseEvent){
         const chip = mouseEvent.currentTarget;
-        const playerEntry = getPlayerEntry(roulette.account_name);
+        const playerEntry = getPlayerEntry(roulette.scatter.account_name);
         const oldChip = playerEntry.querySelector('div.chip');
         changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
         changeClass(chip, 'iso', false);
@@ -201,7 +201,7 @@
     // Place a temp chip on the layout.
     function placeChip(chip, coverage){
         const chipPosition = getChipPosition(coverage);
-        if(chip.dataset.user === roulette.account_name){
+        if(chip.dataset.user === roulette.scatter.account_name){
             chip.style = '';
             changeClass(chip, 'temporary', true);
         }
@@ -210,14 +210,14 @@
 
         // Add some identifying data to the chip.
         chip.dataset.coverage = coverage;
-        chip.dataset.user = roulette.account_name;
+        chip.dataset.user = roulette.scatter.account_name;
         chip.placed = true;
     }
 
     // Draw a bet on the felt.
     function drawBet(bet){
-        let chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"][data-user="' + roulette.account_name + '"]');
-        if(bet.user === roulette.account_name){
+        let chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"][data-user="' + roulette.scatter.account_name + '"]');
+        if(bet.user === roulette.scatter.account_name){
             if(chip){
                 changeClass(chip, 'temporary', false);
             }else{
@@ -372,28 +372,28 @@
     // Initialize UI.
     function init(){
         initVolume();
-        MAIN = window.rouletteUI.MAIN = document.getElementById('main-space');
-        LOG = window.rouletteUI.LOG = document.getElementById('log');
-        MESSAGE = window.rouletteUI.MESSAGE = document.getElementById('message');
-        BALANCE = window.rouletteUI.BALANCE = document.getElementById('balance');
-        LAYOUT = window.rouletteUI.LAYOUT = document.getElementById('layout');
-        WHEEL = window.rouletteUI.WHEEL = document.getElementById('wheel');
-        BALL_CONTAINER = window.rouletteUI.BALL_CONTAINER = document.getElementById('ballContainer');
-        BALL = window.rouletteUI.BALL = document.getElementById('ball');
-        CHIP_SELECTOR = window.rouletteUI.CHIP_SELECTOR = document.getElementById('chip-selector');
-        PLAYERS_BOX = window.rouletteUI.PLAYERS_BOX = document.getElementById('players-box').children[0];
+        MAIN = window.roulette.ui.MAIN = document.getElementById('main-space');
+        LOG = window.roulette.ui.LOG = document.getElementById('log');
+        MESSAGE = window.roulette.ui.MESSAGE = document.getElementById('message');
+        BALANCE = window.roulette.ui.BALANCE = document.getElementById('balance');
+        LAYOUT = window.roulette.ui.LAYOUT = document.getElementById('layout');
+        WHEEL = window.roulette.ui.WHEEL = document.getElementById('wheel');
+        BALL_CONTAINER = window.roulette.ui.BALL_CONTAINER = document.getElementById('ballContainer');
+        BALL = window.roulette.ui.BALL = document.getElementById('ball');
+        CHIP_SELECTOR = window.roulette.ui.CHIP_SELECTOR = document.getElementById('chip-selector');
+        PLAYERS_BOX = window.roulette.ui.PLAYERS_BOX = document.getElementById('players-box').children[0];
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
         MAIN.rect = MAIN.getBoundingClientRect();
         CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
-        return window.rouletteUI;
+        return window.roulette.ui;
     }
 
     // Login to scatter.
     function login(){
-        if(roulette.account_name !== null){
+        if(roulette.scatter.account_name !== null){
             return showMessage('already logged in');
         }
-        roulette.login(function(account_name){
+        roulette.scatter.login(function(account_name){
             if(account_name){
                 document.getElementById('user').innerText = account_name;
                 document.getElementById('user').style.display = 'block';
@@ -407,18 +407,18 @@
 
     // Update the user's balance.
     async function updateBalance(){
-        if(roulette.account_name === null){
+        if(roulette.scatter.account_name === null){
             return console.error('can not get balance when disconnected');
         }
-        BALANCE.innerText = await roulette.getBalance();
+        BALANCE.innerText = await roulette.client.getBalance();
     }
 
     // Logout of scatter.
     function logout(){
-        if(roulette.account_name === null){
+        if(roulette.scatter.account_name === null){
             return showMessage('not logged in');
         }
-        roulette.logout(function(){
+        roulette.scatter.logout(function(){
             clearInterval(loginUpdater);
             document.getElementById('user').innerText = '';
             document.getElementById('connectBtn').style.display = 'block';
@@ -427,7 +427,7 @@
     }
 
     // Expose some functionality.
-    window.rouletteUI = {
+    window.roulette.ui = {
         init: init,
         login: login,
         logout: logout,
