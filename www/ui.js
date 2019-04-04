@@ -244,7 +244,7 @@
     function updatePlayersBox(bets){
         let betsIterator = Object.entries(bets);
 
-        // FIXME Demo only. Insert data for players who should always be there.
+        //// FIXME Demo only. Insert data for players who should always be there.
         ['alice', 'bob', 'carol'].forEach(function(user){
             if(!(user in bets)){
                 betsIterator.push([user, []]);
@@ -259,20 +259,6 @@
             let playerEntry = getPlayerEntry(user);
             playerEntry.querySelector('.larimers').innerText = '[' + totalLarimers / 10000 + ']';
         }
-    }
-
-    // Update bets.
-    async function updateBets(bets){
-        (bets).forEach(function(bet){
-            if(!(bet.user in bets)){
-                bets[bet.user] = {};
-            }
-            if(!(bet.id in bets[bet.user])){
-                bets[bet.user][bet.id] = bet;
-                drawBet(bet);
-            }
-        });
-        updatePlayersBox(bets);
     }
 
     // Show the roulette.
@@ -299,33 +285,38 @@
 
     }
 
+    // Clone a chip for win animation.
+    function cloneChip(chip, chipRect, multiplier, index){
+        chip.style.transition = 'all ' + (0.1 + chipRect.y / 1500) + 's ease-in';
+        let replica = chip.cloneNode(false);
+        replica.addEventListener('transitionend', function(){
+                replica.parentElement.removeChild(replica);
+                SOUNDS.COIN.play();
+            },
+            {once: true}
+        );
+        MAIN.appendChild(replica);
+        let overlayY = chipRect.y - MAIN.rect.y + chipRect.height / 2;
+        let overlayX = chipRect.x - MAIN.rect.x + chipRect.width / 2;
+        overlayY -= index * 2;
+        replica.style.top = overlayY + 'px';
+        replica.style.left = overlayX + 'px';
+        window.requestAnimationFrame(function(){
+            replica.style.transitionDelay = (0.1 + (multiplier - index) / (multiplier + 2)) + 's';
+            window.requestAnimationFrame(function(){
+                replica.style.top = (chip.dataset.y - MAIN.rect.y) + 'px';
+                replica.style.left = '250px';
+            });
+        });
+    }
+
     // Animate a win.
     function drawWin(chip){
         let chipRect = chip.getBoundingClientRect();
         // how many coins will fly, never more than 12
         let multiplier = Math.min(12, 36 / chip.parentElement.dataset.coverage.length);
-        chip.style.transition = 'all ' + (0.1 + chipRect.y / 1500) + 's ease-in';
-        for(let i = 0; i < multiplier; i++){
-            let replica = chip.cloneNode(false);
-            replica.addEventListener('transitionend', () => {
-                    replica.parentElement.removeChild(replica);
-                    SOUNDS.COIN.play();
-                },
-                {once: true}
-            );
-            MAIN.appendChild(replica);
-            let overlayY = chipRect.y - MAIN.rect.y + chipRect.height / 2;
-            let overlayX = chipRect.x - MAIN.rect.x + chipRect.width / 2;
-            overlayY -= i * 2;
-            replica.style.top = overlayY + 'px';
-            replica.style.left = overlayX + 'px';
-            window.requestAnimationFrame(function(){
-                replica.style.transitionDelay = (0.1 + (multiplier - i) / (multiplier + 2)) + 's';
-                window.requestAnimationFrame(function(){
-                    replica.style.top = (chip.dataset.y - MAIN.rect.y) + 'px';
-                    replica.style.left = '250px';
-                });
-            });
+        for(let index = 0; index < multiplier; index++){
+            cloneChip(chip, chipRect, multiplier, index);
         }
         chip.parentElement.removeChild(chip);
     }
@@ -394,6 +385,7 @@
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
         MAIN.rect = MAIN.getBoundingClientRect();
         CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
+        return window.rouletteUI;
     }
 
     // Login to scatter.
@@ -437,20 +429,17 @@
     // Expose some functionality.
     window.rouletteUI = {
         init: init,
+        login: login,
+        logout: logout,
         changeClass: changeClass,
         showMessage: showMessage,
         addLogLine: addLogLine,
         hideRoulette: hideRoulette,
-        login: login,
-        logout: logout,
-        selectChip: selectChip,
         createChip: createChip,
         highlightBet: highlightBet,
+        updatePlayersBox: updatePlayersBox,
         drawBet: drawBet,
         cleanChips: cleanChips,
-        updateBets: updateBets,
-        getChipPosition: getChipPosition,
-        getPlayerEntry: getPlayerEntry,
         placeChip: placeChip,
         showRoulette: showRoulette,
         displayResult: displayResult,

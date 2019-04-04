@@ -35,7 +35,7 @@
                 console.info('logged in to scatter');
                 roulette.account_name = SCATTERJS.account('eos').name;
                 success(roulette.account_name);
-                let interval = setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name);}, 1000);  // fixme - is let needed?
+                setInterval(function() {SOCKET.emit('heartbeat', roulette.account_name);}, 1000);
             }).catch(error => {
                 console.error('scatter login failed', error);
             });

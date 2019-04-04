@@ -187,6 +187,19 @@
         });
     }
 
+    // Update bets.
+    async function updateBets(bets){
+        bets.forEach(function(bet){
+            if(!(bet.user in state.bets)){
+                state.bets[bet.user] = {};
+            }
+            if(!(bet.id in state.bets[bet.user])){
+                state.bets[bet.user][bet.id] = bet;
+                ui.drawBet(bet);
+            }
+        });
+    }
+
     // Get a spin, preserving the resolve function across retries.
     // The oldResolve argument is used to maintain resolve function
     // persistance, and thus to keep a promise, across timeouts.
@@ -219,7 +232,8 @@
             if(oldResolve){
                 resolve = oldResolve;
             }
-            ui.updateBets(await roulette.getBets(spin.hash));
+            updateBets(await roulette.getBets(spin.hash));
+            ui.updatePlayersBox(state.bets);
             let now = Math.round(new Date() / 1000);
             if(now < spin.maxbettime){
                 document.getElementById('sec-left').innerText = spin.maxbettime - now;
@@ -247,7 +261,7 @@
                         bet.larimers * (36 / bet.coverage.length)
                     ) + ' larimers');
                     if(user === roulette.account_name){
-                        ui.CHEER_SOUND.play();
+                        ui.SOUNDS.CHEER.play();
                     }
                 }
             }
@@ -325,8 +339,7 @@
 
     window.onload = function(){
         // Initialize UI.
-        ui.init();
-        initLayout(ui.LAYOUT);
+        initLayout(ui.init().LAYOUT);
 
         // Start rolling.
         lifeCycle();
