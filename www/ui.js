@@ -410,7 +410,7 @@
         if(roulette.scatter.account_name === null){
             return console.error('can not get balance when disconnected');
         }
-        BALANCE.innerText = await roulette.client.getBalance();
+        BALANCE.innerText = await roulette.client.emit('get_balance', roulette.scatter.account_name, 'get_balance');
     }
 
     // Logout of scatter.

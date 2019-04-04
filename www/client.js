@@ -29,12 +29,6 @@
         });
     }
 
-    // Get current user's balance.
-    async function getBalance(){
-        return await emit('get_balance', roulette.scatter.account_name, 'get_balance');
-    }
-
-
     // Get selected coverage from a mouse event on the layout.
     function getCoverage(mouseEvent){
         let cell = mouseEvent.target;
@@ -377,6 +371,6 @@
         },
         clickMenu: clickMenu,
         rebet: rebet,
-        getBalance: getBalance
+        emit: emit
     };
 }());
