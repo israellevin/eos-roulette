@@ -1,8 +1,11 @@
+// eos-roulette game.
 // jshint esversion: 8
 (function(){
     'use strict';
 
-    const ui = window.roulette.ui;
+    // External libs, initialized on load.
+    let ui;
+    let scatter;
 
     // Global state variables.
     let state = {
@@ -10,7 +13,6 @@
         lastBets: {},
         spin: null,
         winningNumber: null,
-        loginUpdater: null
     };
 
     // Initialize socket.
@@ -26,6 +28,25 @@
                 resolve(data);
             });
             SOCKET.emit(call, data);
+        });
+    }
+
+    // Send a bet to the roulette.
+    function bet(coverage, larimers){
+        if(state.spin === null){
+            return ui.showMessage('No spins currently in progress');
+        }
+        if(36 % coverage.length !== 0){
+            return ui.showMessage('coverage size must divide 36');
+        }
+        return new Promise(async function(resolve, reject){
+            try{
+                return resolve((await scatter.bet(
+                    state.spin.hash, coverage, parseInt(larimers, 10), +new Date()
+                )).processed.action_traces[0].act.data);
+            }catch(error){
+                return reject(error);
+            }
         });
     }
 
@@ -91,25 +112,6 @@
         return coverage;
     }
 
-    // Send a bet to the roulette.
-    function bet(coverage, larimers){
-        if(state.spin === null){
-            return ui.showMessage('No spins currently in progress');
-        }
-        if(36 % coverage.length !== 0){
-            return ui.showMessage('coverage size must divide 36');
-        }
-        return new Promise(async function(resolve, reject){
-            try{
-                return resolve((await roulette.scatter.bet(
-                    state.spin.hash, coverage, parseInt(larimers, 10), +new Date()
-                )).processed.action_traces[0].act.data);
-            }catch(error){
-                return reject(error);
-            }
-        });
-    }
-
     // Place a bet on the layout.
     async function placeBet(coverage, larimers){
         try{
@@ -119,13 +121,13 @@
         // Placement failed.
         }catch(error){
             console.error('placement failed', error);
-            ui.LAYOUT.querySelectorAll('#layout > .chip').forEach(chip => chip.parentElement.removeChild(chip));
+            ui.removeTempChips();
         }
     }
 
     // Show a potential bet.
     function hoverBet(mouseEvent){
-        if(roulette.scatter.account_name === null){
+        if(scatter.account_name === null){
             return ui.showMessage('Must be logged in to bet');
         }
 
@@ -133,20 +135,17 @@
             return ui.showMessage('No spins currently in progress');
         }
 
-        let selectedChip = ui.CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
-        if(selectedChip === null){
+        if(ui.getSelectedChip() === null){
             return ui.showMessage('Please choose bet size');  // TODO open hint on selector
         }
 
-        let chip = ui.createChip(roulette.scatter.account_name);
+        let chip = ui.createChip(scatter.account_name);
         ui.changeClass(chip, 'small', false);
 
         // Remove the chip if the user did not follow through.
         function removeChip(){
             chip.removeEventListener('transitionend', useChip);
-            chip.style.left = ui.LAYOUT.rect.width - 20 + 'px';
-            chip.style.top = ui.LAYOUT.rect.height - 20 + 'px';
-            setTimeout(() => chip.parentElement.removeChild(chip), 300);
+            ui.removeTempChips(chip);
         }
         document.addEventListener('mouseup', removeChip, {once: true});
 
@@ -156,24 +155,15 @@
             chip.used = true;
             document.addEventListener('mouseup', async function(mouseEvent){
                 let coverage = getCoverage(mouseEvent);
-                chip.dataset.user = roulette.scatter.account_name;
+                chip.dataset.user = scatter.account_name;
+                ui.changeClass(chip, 'temporary', true);
                 ui.placeChip(chip, coverage);
                 chip.dataset.hash = await placeBet(coverage, chip.dataset.value);
             }, {once: true});
         }
         chip.addEventListener('transitionend', useChip, {once: true});
 
-        window.requestAnimationFrame(function(){
-            ui.LAYOUT.appendChild(chip);
-                chip.style.position = 'absolute';
-                chip.style.left = ui.LAYOUT.rect.width - 20 + 'px';
-                chip.style.top = ui.LAYOUT.rect.height - 20 + 'px';
-            chip.style.transition = 'all 0.4s ease-in';
-            window.requestAnimationFrame(function(){
-                chip.style.left = (mouseEvent.clientX - ui.LAYOUT.rect.left) + 'px';
-                chip.style.top = (mouseEvent.clientY - ui.LAYOUT.rect.top) + 'px';
-            });
-        });
+        ui.addTempChip(chip, mouseEvent.clientX, mouseEvent.clientY);
     }
 
     // Initialize an html element as a layout.
@@ -182,7 +172,7 @@
         layout.addEventListener('mouseleave', function(){
             ui.changeClass(layout.querySelectorAll('[data-coverage]'), ['highlight', 'low-highlight'], false);
         });
-        ui.MAIN.addEventListener('mousemove', function(mouseEvent){
+        document.addEventListener('mousemove', function(mouseEvent){
             const bettingChip = layout.querySelector('#layout > .chip');
             if(bettingChip && (!bettingChip.placed)){
                 bettingChip.style.opacity = layout.contains(mouseEvent.target) ? 1 : 0;
@@ -223,7 +213,7 @@
     async function getSpin(oldResolve){
         ui.showMessage('Trying to get a spin...');
         const now = Math.round(new Date() / 1000);
-        const spin = await emit('get_spin', now + (roulette.scatter.account_name ? 30 : 10));
+        const spin = await emit('get_spin', now + (scatter.account_name ? 30 : 10));
         return new Promise(async function(resolve){
             if(oldResolve){
                 resolve = oldResolve;
@@ -231,7 +221,7 @@
             if(spin){
                 ui.showMessage('Connected to spin ' + spin.hash.substr(0, 4));
                 resolve(spin);
-                await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.scatter.account_name}, 'bettor_joined');
+                await emit('monitor_spin', {spin_hash: spin.hash, user: scatter.account_name}, 'bettor_joined');
             }else{
                 ui.showMessage('No spins found, will retry shortly');
                 setTimeout(function(){getSpin(resolve);}, 3000);
@@ -263,11 +253,11 @@
     // Get the result of a spin.
     async function getResult(spin){
         ui.addLogLine('waiting for result');
-        return await emit('monitor_spin', {spin_hash: spin.hash, user: roulette.scatter.account_name}, 'winning_number');
+        return await emit('monitor_spin', {spin_hash: spin.hash, user: scatter.account_name}, 'winning_number');
     }
 
     // Resolve the spin.
-    function resolveSpin(winning_number, resolve){
+    function resolveSpin(winning_number){
         ui.displayResult(winning_number);
         for(const [user, bets] of Object.entries(state.bets)){
             for(const bet of Object.values(bets)){
@@ -275,87 +265,47 @@
                     ui.showMessage(user + ' won ' + (
                         bet.larimers * (36 / bet.coverage.length)
                     ) + ' larimers');
-                    if(user === roulette.scatter.account_name){
+                    if(user === scatter.account_name){
                         ui.SOUNDS.CHEER.play();
                     }
                 }
             }
         }
         //clear moving chip - just in case
-        ui.LAYOUT.querySelectorAll('#layout > .chip').forEach(chip =>
-            console.error('orphan chip', chip.parentElement.removeChild(chip)));
+        ui.removeTempChips();
         try{
-            state.lastBets = state.bets[roulette.scatter.account_name];
+            state.lastBets = state.bets[scatter.account_name];
         }catch(error){}
         state.bets = {};
         state.spin = null;
-        return resolve();
-    }
-
-    // Drop the ball and reveal the winner.
-    function dropBall(winning_number){
-        const LAYOUT_NUMBERS = [
-            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
-            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-        ];
-        const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
-        const secondsPerTurn = 1.5;
-        const turns = 2;
-        ui.BALL_CONTAINER.style.opacity = '1';
-        return new Promise(function(resolve){
-            ui.BALL_CONTAINER.addEventListener('transitionend', function(){
-                return resolveSpin(winning_number, resolve);
-            }, {once: true});
-            ui.BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
-            let targetDeg = 1.5 * turns * -360 + winSlotDeg;
-            ui.BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
-            ui.BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
-            ui.BALL.style.transform = 'rotate(' + -1 * targetDeg + 'deg)';
-        });
     }
 
     // Our lifeCycle.
     async function lifeCycle(){
         // noinspection InfiniteLoopJS
+        let winningNumber;
         while (true) {
             ui.hideRoulette();
+            await ui.cleanChips(winningNumber);
             state.spin = await getSpin();
             state.spin.maxbettime -= 3;
             await updateFelt(state.spin);
             ui.SOUNDS.NO_MORE_BETS.play();
             ui.showRoulette();
-            let winningNumber = await getResult(state.spin);
-            await dropBall(winningNumber);
-            await ui.cleanChips(winningNumber);
+            winningNumber = await getResult(state.spin);
+            await ui.dropBall(winningNumber);
+            resolveSpin(winningNumber);
         }
     }
 
-    // Repeat last bet.
-    async function rebet(){
-        for(const oldBet of Object.values(state.lastBets)){
-            await placeBet(oldBet.coverage, oldBet.larimers);
-        }
-        state.lastBets = {};
-    }
+    window.onload = async function(){
 
-    // ensure click outside open Menu closes it
-    function clickMenu(checkBox){
-        let overlay = document.getElementById("overlay");
-        if(checkBox.checked){
-            overlay.style.display = 'block';
-            overlay.addEventListener('mousedown', function(){
-                checkBox.checked = false;
-                overlay.style.display = 'none';
-            }, {once: true});
-        } else {
-            overlay.style.display = 'none';
-        }
-    }
-
-    window.onload = function(){
+        // Initialize libs.
+        ui = window.roulette.ui;
+        scatter = window.roulette.scatter;
 
         // Initialize UI.
-        initLayout(ui.init().LAYOUT);
+        initLayout(ui.init());
 
         // Start rolling.
         lifeCycle();
@@ -363,14 +313,13 @@
 
     // Expose some functionality.
     window.roulette.client = {
-        hintsShown: false,
-        startIntro: function(){introJs().start();},
-        toggleHints: function(){
-            introJs()[window.roulette.client.hintsShown ? 'hideHints' : 'showHints']();
-            window.roulette.client.hintsShown = !window.roulette.client.hintsShown;
-        },
-        clickMenu: clickMenu,
-        rebet: rebet,
-        emit: emit
+        SOCKET: SOCKET,
+        getBalance: () => emit('get_balance', scatter.account_name, 'get_balance'),
+        rebet: async function(){
+            for(const oldBet of Object.values(state.lastBets)){
+                await placeBet(oldBet.coverage, oldBet.larimers);
+            }
+            state.lastBets = {};
+        }
     };
 }());

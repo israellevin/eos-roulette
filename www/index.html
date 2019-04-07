@@ -43,7 +43,7 @@
                 A fake / hidden checkbox is used as click reciever,
                 so you can use the :checked selector on it.
                 -->
-                    <input class="menuCheck" type="checkbox" onclick="roulette.client.clickMenu(this)" />
+                    <input class="menuCheck" type="checkbox" onclick="roulette.ui.clickMenu(this)" />
 
                     <!--
                 Some spans to act as a hamburger.
@@ -205,8 +205,8 @@
                 </div>
 
                 <div id="main-right" class="col-1">
-                    <div class="container box" id="players-box">
-                        <ul class="players-list">
+                    <div class="container box">
+                        <ul class="players-list" id="players-box">
                         </ul>
                     </div>
                     <div class="container box" style="margin-top: 70px">Your balance:

@@ -1,3 +1,4 @@
+// Scatter communication module for eos-roulette.
 // jshint esversion: 8
 (function(){
     'use strict';

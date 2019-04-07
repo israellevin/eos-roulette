@@ -1,6 +1,9 @@
+// UI module for eos-roulette.
 // jshint esversion: 8
 (function(){
     'use strict';
+
+    let scatter;
 
     // Global element constants, initialized later (so not technically constants).
     let MAIN;
@@ -12,7 +15,7 @@
     let BALL_CONTAINER;
     let BALL;
     let CHIP_SELECTOR;
-    let PLAYERS_BOX;
+    let PLAYERS_LIST;
 
     // Sounds.
     // Avoids silly browser error.
@@ -78,12 +81,17 @@
         changeClass(LAYOUT, 'eventless', false);
     }
 
+    // Get the selected chip.
+    function getSelectedChip(){
+        return CHIP_SELECTOR.querySelector('div.chip:not(.iso)');
+    }
+
     // Select a chip to set the bet size.
     function selectChip(mouseEvent){
         const chip = mouseEvent.currentTarget;
-        const playerEntry = getPlayerEntry(roulette.scatter.account_name);
+        const playerEntry = getPlayerEntry(scatter.account_name);
         const oldChip = playerEntry.querySelector('div.chip');
-        changeClass(CHIP_SELECTOR.querySelector('div.chip:not(.iso)'), 'iso', true);
+        changeClass(getSelectedChip(), 'iso', true);
         changeClass(chip, 'iso', false);
         CHIP_SELECTOR.scrollTo({
             left: chip.offsetLeft - chip.parentElement.parentElement.clientWidth / 2 + 14, top: 0,
@@ -144,7 +152,7 @@
 
     // Get a player's entry in the players box, creating and adding a new one if needed.
     function getPlayerEntry(user){
-        let playerEntry = PLAYERS_BOX.querySelector('[data-user="' + user + '"]');
+        let playerEntry = PLAYERS_LIST.querySelector('[data-user="' + user + '"]');
         if(playerEntry){
             return playerEntry;
         }
@@ -162,7 +170,7 @@
         chip.style.setProperty('--chip-face', userColor(user));
         playerEntry.appendChild(chip);
 
-        PLAYERS_BOX.appendChild(playerEntry);
+        PLAYERS_LIST.appendChild(playerEntry);
         chip.dataset.y = chip.getBoundingClientRect().y;
         return playerEntry;
     }
@@ -175,6 +183,31 @@
             chip.className = 'chip small larimers' + larimers / 1000 + 'k';
         }
         return chip;
+    }
+
+    // Add temp chip to layout
+    function addTempChip(chip, x, y){
+        window.requestAnimationFrame(function(){
+            LAYOUT.appendChild(chip);
+            chip.style.position = 'absolute';
+            chip.style.left = LAYOUT.rect.width - 20 + 'px';
+            chip.style.top = LAYOUT.rect.height - 20 + 'px';
+            chip.style.transition = 'all 0.4s ease-in';
+            window.requestAnimationFrame(function(){
+                chip.style.left = (x - LAYOUT.rect.left) + 'px';
+                chip.style.top = (y - LAYOUT.rect.top) + 'px';
+            });
+        });
+    }
+
+    // Remove temp chip (or all temp chips, if not specified) from the layout.
+    function removeTempChips(chip){
+        if(!chip){
+            return LAYOUT.querySelectorAll('div.chip.temporary').forEach(chip => chip.parentElement.removeChild(chip));
+        }
+        chip.style.left = LAYOUT.rect.width - 20 + 'px';
+        chip.style.top = LAYOUT.rect.height - 20 + 'px';
+        setTimeout(() => chip.parentElement.removeChild(chip), 300);
     }
 
     // Highlight potential bet and move betting chip if it exists.
@@ -198,42 +231,35 @@
         }
     }
 
-    // Place a temp chip on the layout.
+    // Place a chip on the layout.
     function placeChip(chip, coverage){
         const chipPosition = getChipPosition(coverage);
-        if(chip.dataset.user === roulette.scatter.account_name){
+        if(chip.dataset.user === scatter.account_name){
             chip.style = '';
-            changeClass(chip, 'temporary', true);
         }
         changeClass(chip, chipPosition.positions.concat(['small']), true);
         chipPosition.target.appendChild(chip);
-
-        // Add some identifying data to the chip.
         chip.dataset.coverage = coverage;
-        chip.dataset.user = roulette.scatter.account_name;
         chip.placed = true;
     }
 
     // Draw a bet on the felt.
     function drawBet(bet){
-        let chip = LAYOUT.querySelector('div.chip[data-coverage="' + bet.coverage + '"][data-user="' + roulette.scatter.account_name + '"]');
-        if(bet.user === roulette.scatter.account_name){
+        if(bet.user === scatter.account_name){
+            let chip = LAYOUT.querySelector(
+                'div.chip[data-coverage="' + bet.coverage + '"][data-user="' + scatter.account_name + '"]');
             if(chip){
                 changeClass(chip, 'temporary', false);
             }else{
                 chip = createChip(bet.user, bet.larimers);
                 changeClass(chip, 'iso', false);
-                chip.dataset.user = bet.user;
                 placeChip(chip, bet.coverage);
-                changeClass(chip, 'temporary', false);
             }
             SOUNDS.CLICK.play();
         }else{
             // for now, space other players bets
             setTimeout(function(){
-                chip = createChip(bet.user);
-                chip.dataset.user = bet.user;
-                placeChip(chip, bet.coverage);
+                placeChip(createChip(bet.user), bet.coverage);
                 SOUNDS.CLICK.play();
                 }, 5000 * Math.random());
         }
@@ -266,6 +292,28 @@
         showMessage('No more bets please');
         changeClass(LAYOUT, 'eventless', true);
         WHEEL.style.opacity = '1';
+    }
+
+    // Drop the ball and reveal the winner.
+    function dropBall(winning_number){
+        const LAYOUT_NUMBERS = [
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
+            5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+        ];
+        const winSlotDeg = 360 / 37 * LAYOUT_NUMBERS.indexOf(winning_number);
+        const secondsPerTurn = 1.5;
+        const turns = 2;
+        BALL_CONTAINER.style.opacity = '1';
+        return new Promise(function(resolve){
+            BALL_CONTAINER.addEventListener('transitionend', function(){
+                return setTimeout(resolve, 1000);
+            }, {once: true});
+            BALL_CONTAINER.style.transition = 'all ' + secondsPerTurn * turns + 's ease-in';
+            let targetDeg = 1.5 * turns * -360 + winSlotDeg;
+            BALL_CONTAINER.style.transform = 'rotate(' + targetDeg + 'deg)';
+            BALL.style.transition = 'all ' + secondsPerTurn * turns + 's ease-out';
+            BALL.style.transform = 'rotate(' + -1 * targetDeg + 'deg)';
+        });
     }
 
     // Add a roulette winning number to the history and mark the winning cell.
@@ -345,7 +393,7 @@
         });
         setTimeout(function(){
             wonChips.forEach(function(chip){
-                return drawWin(chip);
+                drawWin(chip);
             });
         }, 800);
     }
@@ -371,54 +419,60 @@
 
     // Initialize UI.
     function init(){
+        scatter = window.roulette.scatter;
         initVolume();
-        MAIN = window.roulette.ui.MAIN = document.getElementById('main-space');
-        LOG = window.roulette.ui.LOG = document.getElementById('log');
-        MESSAGE = window.roulette.ui.MESSAGE = document.getElementById('message');
-        BALANCE = window.roulette.ui.BALANCE = document.getElementById('balance');
-        LAYOUT = window.roulette.ui.LAYOUT = document.getElementById('layout');
-        WHEEL = window.roulette.ui.WHEEL = document.getElementById('wheel');
-        BALL_CONTAINER = window.roulette.ui.BALL_CONTAINER = document.getElementById('ballContainer');
-        BALL = window.roulette.ui.BALL = document.getElementById('ball');
-        CHIP_SELECTOR = window.roulette.ui.CHIP_SELECTOR = document.getElementById('chip-selector');
-        PLAYERS_BOX = window.roulette.ui.PLAYERS_BOX = document.getElementById('players-box').children[0];
+
+        LAYOUT = document.getElementById('layout');
         LAYOUT.rect = LAYOUT.getBoundingClientRect();
+        MAIN = document.getElementById('main-space');
         MAIN.rect = MAIN.getBoundingClientRect();
+        CHIP_SELECTOR = document.getElementById('chip-selector');
         CHIP_SELECTOR.querySelectorAll('div.chip').forEach(chip => chip.addEventListener('click', selectChip));
-        return window.roulette.ui;
+        LOG = document.getElementById('log');
+        MESSAGE = document.getElementById('message');
+        BALANCE = document.getElementById('balance');
+        WHEEL = document.getElementById('wheel');
+        PLAYERS_LIST = document.getElementById('players-box');
+        BALL_CONTAINER = document.getElementById('ballContainer');
+        BALL = document.getElementById('ball');
+
+        return LAYOUT;
+    }
+
+    // Update the user's balance.
+    async function updateBalance(){
+        if(scatter.account_name === null){
+            return console.error('can not get balance when disconnected');
+        }
+        BALANCE.innerText = await roulette.client.getBalance();
     }
 
     // Login to scatter.
     function login(){
-        if(roulette.scatter.account_name !== null){
+        if(scatter.account_name !== null){
             return showMessage('already logged in');
         }
-        roulette.scatter.login(function(account_name){
+        scatter.login(function(account_name){
             if(account_name){
                 document.getElementById('user').innerText = account_name;
                 document.getElementById('user').style.display = 'block';
                 document.getElementById('connectBtn').style.display = 'none';
                 CHIP_SELECTOR.getElementsByClassName('chip')[0].click();
-                loginUpdater = setInterval(updateBalance, 1000);
+                loginUpdater = setInterval(function(){
+                    roulette.client.SOCKET.emit('heartbeat', scatter.account_name);
+                    updateBalance();
+                }, 1000);
                 SOUNDS.WELCOME.play();
             }
         });
     }
 
-    // Update the user's balance.
-    async function updateBalance(){
-        if(roulette.scatter.account_name === null){
-            return console.error('can not get balance when disconnected');
-        }
-        BALANCE.innerText = await roulette.client.emit('get_balance', roulette.scatter.account_name, 'get_balance');
-    }
-
     // Logout of scatter.
     function logout(){
-        if(roulette.scatter.account_name === null){
+        if(scatter.account_name === null){
             return showMessage('not logged in');
         }
-        roulette.scatter.logout(function(){
+        scatter.logout(function(){
             clearInterval(loginUpdater);
             document.getElementById('user').innerText = '';
             document.getElementById('connectBtn').style.display = 'block';
@@ -426,23 +480,48 @@
         });
     }
 
+    // Show and hide menu.
+    function clickMenu(checkBox){
+        let overlay = document.getElementById("overlay");
+        if(checkBox.checked){
+            overlay.style.display = 'block';
+            overlay.addEventListener('mousedown', function(){
+                checkBox.checked = false;
+                overlay.style.display = 'none';
+            }, {once: true});
+        } else {
+            overlay.style.display = 'none';
+        }
+    }
+
     // Expose some functionality.
     window.roulette.ui = {
         init: init,
         login: login,
         logout: logout,
+        clickMenu: clickMenu,
         changeClass: changeClass,
         showMessage: showMessage,
         addLogLine: addLogLine,
         hideRoulette: hideRoulette,
+        getSelectedChip: getSelectedChip,
         createChip: createChip,
+        addTempChip: addTempChip,
+        removeTempChips: removeTempChips,
         highlightBet: highlightBet,
-        updatePlayersBox: updatePlayersBox,
         drawBet: drawBet,
+        updatePlayersBox: updatePlayersBox,
         cleanChips: cleanChips,
         placeChip: placeChip,
         showRoulette: showRoulette,
+        dropBall: dropBall,
         displayResult: displayResult,
-        SOUNDS: SOUNDS
+        SOUNDS: SOUNDS,
+        startIntro: function(){introJs().start();},
+        hintsShown: false,
+        toggleHints: function(){
+            introJs()[window.roulette.ui.hintsShown ? 'hideHints' : 'showHints']();
+            window.roulette.ui.hintsShown = !window.roulette.ui.hintsShown;
+        }
     };
 }());
