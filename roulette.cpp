@@ -113,6 +113,9 @@ class [[eosio::contract]] roulette : public eosio::contract{
 
                 // Pay lucky bettors.
                 for(auto bets_iterator = bets_spin_index.find(hash); bets_iterator != bets_spin_index.end(); bets_iterator++){
+                    if(bets_iterator->hash != hash){
+                        continue;
+                    }
                     uint64_t winnings = bets_iterator->larimers * 36 / bets_iterator->coverage.size();
                     for(auto const& bet_number: bets_iterator->coverage){
                         if(bet_number == winning_number){
