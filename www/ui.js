@@ -380,11 +380,13 @@
         let houseChips = [];
         let wonChips = [];
         LAYOUT.querySelectorAll('div.chip').forEach(function(chip){
-            if(chip.dataset.coverage.split(',').some(function(covered){
+            if(!(chip.dataset.coverage)){
+                removeTempChips(chip);
+            }else if(chip.dataset.coverage.split(',').some(function(covered){
                 return parseInt(covered, 10) === winningNumber;
             })){
                 wonChips.push(chip);
-            } else {
+            }else{
                 houseChips.push(chip);
             }
         });
