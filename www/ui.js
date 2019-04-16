@@ -21,7 +21,8 @@
     // Avoids silly browser error.
     Howler.usingWebAudio = false;
     const SOUNDS = {
-        CLICK: new Howl({src: ['sounds/click.wav']}),
+        CLICK: new Howl({src: ['sounds/click.wav'], volume:0.6}),
+        CLICK_CONF: new Howl({src: ['sounds/click.wav'], volume:0.2}),
         CHEER: new Howl({src: ['sounds/cheers.ogg']}),
         WELCOME: new Howl({src: ['sounds/welcome.wav'], volume:0.5}),
         GOODBYE: new Howl({src: ['sounds/goodbye.wav']}),
@@ -255,12 +256,12 @@
                 changeClass(chip, 'iso', false);
                 placeChip(chip, bet.coverage);
             }
-            SOUNDS.CLICK.play();
+            SOUNDS.CLICK_CONF.play();
         }else{
             // for now, space other players bets
             setTimeout(function(){
                 placeChip(createChip(bet.user), bet.coverage);
-                SOUNDS.CLICK.play();
+                SOUNDS.CLICK_CONF.play();
                 }, 5000 * Math.random());
         }
         addLogLine(bet.user + ' placed ' + bet.larimers + ' larimers on ' + bet.coverage);
