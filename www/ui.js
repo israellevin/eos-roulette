@@ -236,6 +236,7 @@
     function placeChip(chip, coverage){
         const chipPosition = getChipPosition(coverage);
         if(chip.dataset.user === scatter.account_name){
+            SOUNDS.CLICK.play();
             chip.style = '';
         }
         changeClass(chip, chipPosition.positions.concat(['small']), true);
@@ -271,7 +272,7 @@
     function updatePlayersBox(bets){
         let betsIterator = Object.entries(bets);
 
-        //// FIXME Demo only. Insert data for players who should always be there.
+        // FIXME Demo only. Insert data for players who should always be there.
         ['alice', 'bob', 'carol'].forEach(function(user){
             if(!(user in bets)){
                 betsIterator.push([user, []]);

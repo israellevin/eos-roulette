@@ -150,7 +150,7 @@
         document.addEventListener('mouseup', removeChip, {once: true});
 
         // Use the chip to make a bet if the user follows through.
-        function useChip(){  //TODO should this be in ui.js?
+        function useChip(){
             document.removeEventListener('mouseup', removeChip);
             chip.used = true;
             document.addEventListener('mouseup', async function(mouseEvent){
